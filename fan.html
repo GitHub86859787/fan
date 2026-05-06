@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1E2820">
 <title>梵</title>
 <!-- App icons (I1 经典版) -->
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -14,11 +15,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;500&family=EB+Garamond:ital,wght@0,400;0,500;1,300;1,400&family=Cormorant:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100vh;height:100dvh;overflow:hidden;touch-action:pan-y}
-body{font-family:'EB Garamond','Noto Serif SC',serif;-webkit-font-smoothing:antialiased;user-select:none;background:#0E1210;position:relative}
+html{background:#1E2820}
+html,body{overflow:hidden;touch-action:pan-y;width:100%}
+/* 100% includes safe area in iOS PWA when using viewport-fit=cover */
+html,body{height:100%;min-height:100vh;min-height:100dvh}
+body{font-family:'EB Garamond','Noto Serif SC',serif;-webkit-font-smoothing:antialiased;user-select:none;background:transparent;position:relative}
 
 /* ============ GRADIENT BG ============ */
-.gradient-bg{position:fixed;inset:0;z-index:0;overflow:hidden;transition:background 3s ease}
+.gradient-bg{position:fixed;
+  /* Force background to extend into safe areas (full screen behind status bar and home indicator) */
+  top:calc(0px - env(safe-area-inset-top,0px));
+  bottom:calc(0px - env(safe-area-inset-bottom,0px));
+  left:0;right:0;
+  z-index:0;overflow:hidden;transition:background 3s ease}
 .layer{position:absolute;border-radius:50%;filter:blur(120px);transition:background 3s ease}
 .layer.l0{animation:f0 14s ease-in-out infinite alternate}
 .layer.l1{animation:f1 17s ease-in-out infinite alternate}
@@ -258,7 +267,10 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
 .garden-btn:hover{background:rgba(255,255,255,.08)}
 .garden-btn svg{width:11px;height:11px;opacity:.7}
 
-.garden-overlay{position:fixed;inset:0;z-index:1000;
+.garden-overlay{position:fixed;
+  top:calc(0px - env(safe-area-inset-top,0px));
+  bottom:calc(0px - env(safe-area-inset-bottom,0px));
+  left:0;right:0;z-index:1000;
   background:rgba(14,18,16,.95);backdrop-filter:blur(20px);
   display:none;flex-direction:column;animation:gOverlayIn .4s ease}
 .garden-overlay.on{display:flex}
@@ -1259,7 +1271,10 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
 .la-btn-yang .la-sub{color:rgba(232,196,180,.8)}
 
 /* ====== MENU OVERLAYS - immersive, breathing ====== */
-.menu-overlay{position:fixed;inset:0;z-index:1000;
+.menu-overlay{position:fixed;
+  top:calc(0px - env(safe-area-inset-top,0px));
+  bottom:calc(0px - env(safe-area-inset-bottom,0px));
+  left:0;right:0;z-index:1000;
   display:none;flex-direction:column;
   animation:hovIn .5s ease;
   overflow:hidden}
@@ -1795,8 +1810,8 @@ const PERIODS=[
    colors:['#D4A86A','#7E5CC8','#5D3A9B','#4A2E80','#3D2944','#2D2245'],
    text:'#E0D8E8',textLight:'#9890A8',bg:'#1A1428'},
   {h0:21,h1:27,name:'亥子时',element:'水',
-   colors:['#6A8A68','#4A6248','#3A5238','#2A3E28','#1A2A1A','#141A14'],
-   text:'#8A9A84',textLight:'#4A5A46',bg:'#0E1210'},
+   colors:['#6A8A68','#4A6248','#3A5238','#2A3E28','#243A24','#1E2E1E'],
+   text:'#8A9A84',textLight:'#4A5A46',bg:'#1E2820'},
 ];
 
 // Tomato palette (for pomodoro page) - 6 colors
@@ -1927,11 +1942,11 @@ function getCurrentColorSet(hf){
 // ================================================================
 const POSITIONS=[
   {w:75,h:65,left:5,top:-15,opacity:0.55},
-  {w:90,h:80,left:-25,top:-10,opacity:0.5},
-  {w:80,h:75,left:25,top:-5,opacity:0.5},
-  {w:85,h:80,left:-10,top:30,opacity:0.5},
-  {w:90,h:85,left:30,top:35,opacity:0.5},
-  {w:95,h:90,left:5,top:55,opacity:0.5},
+  {w:90,h:80,left:-25,top:10,opacity:0.5},
+  {w:80,h:75,left:25,top:0,opacity:0.5},
+  {w:85,h:80,left:-10,top:35,opacity:0.5},
+  {w:95,h:85,left:30,top:25,opacity:0.5},
+  {w:100,h:95,left:5,top:50,opacity:0.45},
 ];
 
 let currentMode='time'; // 'time' or 'tomato'
@@ -1948,6 +1963,12 @@ function applyGradient(){
     bg=cs.bg;
   }
   document.getElementById('gradientBg').style.background=bg;
+  // Sync html background so iOS PWA safe-area regions blend in
+  document.documentElement.style.background=bg;
+  document.body.style.background=bg;
+  // Also update theme-color meta for status bar tint
+  const tc=document.querySelector('meta[name="theme-color"]');
+  if(tc)tc.setAttribute('content',bg);
   for(let j=0;j<6;j++){
     const el=document.getElementById('L'+j);
     const p=POSITIONS[j];
@@ -2636,10 +2657,14 @@ function guanBackToTiers(side){
 
 function guanOpenMenu(side){
   document.getElementById(side+'Menu').classList.add('on');
+  // Sync html bg to menu color so PWA safe areas blend
+  document.documentElement.style.background = side==='yin' ? '#0F1E18' : '#B8451F';
   guanBuildMenu(side);
 }
 function guanCloseMenu(side){
   document.getElementById(side+'Menu').classList.remove('on');
+  // Restore html bg from current gradient
+  applyGradient();
 }
 
 // ================================================================
@@ -3136,7 +3161,7 @@ function renderTomatoes(){
   updateEntryLabel();
 }
 
-function showPomoVerSwitch(anchorEl){
+function showPomoVerSwitch(anchorEl, touchX, touchY){
   // Remove any existing
   document.querySelectorAll('.ver-pop').forEach(p=>p.remove());
   
@@ -3163,10 +3188,35 @@ function showPomoVerSwitch(anchorEl){
   
   document.body.appendChild(pop);
   
-  const rect=anchorEl.getBoundingClientRect();
+  // Position popup near finger touch position (or center if no touch coords)
+  const popW=140;
   const popH=140;
-  pop.style.left=Math.max(20,Math.min(window.innerWidth-140,rect.left+rect.width/2-60))+'px';
-  pop.style.top=Math.max(20,rect.top-popH-10)+'px';
+  const winH=window.innerHeight;
+  const winW=window.innerWidth;
+  
+  // Center horizontally on touch X (or screen center if no touch)
+  const cx = (typeof touchX === 'number') ? touchX : winW / 2;
+  const cy = (typeof touchY === 'number') ? touchY : winH / 2;
+  
+  let popLeft = cx - popW / 2;
+  popLeft = Math.max(20, Math.min(winW - popW - 20, popLeft));
+  
+  // Smart vertical placement:
+  // If finger is in upper half: show popup BELOW finger (with 30px gap)
+  // If finger is in lower half: show popup ABOVE finger (with 30px gap)
+  let popTop;
+  if (cy < winH / 2) {
+    // Touch in upper half — popup goes below
+    popTop = cy + 30;
+  } else {
+    // Touch in lower half — popup goes above
+    popTop = cy - popH - 30;
+  }
+  // Safety clamp: keep popup fully visible
+  popTop = Math.max(60, Math.min(winH - popH - 60, popTop));
+  
+  pop.style.left = popLeft + 'px';
+  pop.style.top = popTop + 'px';
   
   // Close on outside click - wait longer to avoid the same press that opened it
   setTimeout(()=>{
@@ -3191,13 +3241,22 @@ setTimeout(()=>{
   
   let pressTimer=null;
   let longPressed=false;
+  let touchX=null, touchY=null;
   const startLp=(e)=>{
     // Don't trigger on interactive elements (buttons, inputs, links)
     if(e.target.closest('button,input,a,textarea,select'))return;
+    // Capture touch position for popup placement
+    if(e.touches && e.touches[0]){
+      touchX = e.touches[0].clientX;
+      touchY = e.touches[0].clientY;
+    } else {
+      touchX = e.clientX;
+      touchY = e.clientY;
+    }
     longPressed=false;
     pressTimer=setTimeout(()=>{
       longPressed=true;
-      showPomoVerSwitch(page);
+      showPomoVerSwitch(page, touchX, touchY);
       if(navigator.vibrate)navigator.vibrate(50);
     },550);
   };
@@ -4002,10 +4061,14 @@ function autoSetGardenScene(){
 // ================================================================
 function openCellar(){
   document.getElementById('cellarOverlay').classList.add('on');
+  // Sync html bg to cellar's deep brown so PWA safe areas blend
+  document.documentElement.style.background='#170C06';
   renderCellar();
 }
 function closeCellar(){
   document.getElementById('cellarOverlay').classList.remove('on');
+  // Restore html bg from current gradient
+  applyGradient();
 }
 
 function fmtBoxDate(dk){return dk.replace(/-/g,'.');}
