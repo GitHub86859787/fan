@@ -216,26 +216,31 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
 
 /* Version switch popover */
 .ver-pop{position:absolute;
-  background:linear-gradient(135deg,#F2EBD9 0%,#E8DEC5 100%);
-  color:#3D2F1F;
-  border:1px solid rgba(60,40,20,.15);border-radius:14px;
+  background:
+    linear-gradient(135deg,rgba(96,52,40,.92) 0%,rgba(70,38,30,.94) 100%);
+  color:#F2DCC4;
+  border:1px solid rgba(200,150,100,.25);border-radius:14px;
   padding:8px;display:flex;flex-direction:column;gap:3px;
   z-index:200;
-  box-shadow:0 12px 30px rgba(0,0,0,.5),0 2px 8px rgba(0,0,0,.3),
-    inset 0 1px 0 rgba(255,255,255,.5);
+  backdrop-filter:blur(20px);
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.55),
+    0 2px 8px rgba(0,0,0,.4),
+    inset 0 1px 0 rgba(255,220,180,.18),
+    inset 0 -1px 0 rgba(0,0,0,.2);
   animation:popIn .3s cubic-bezier(.16,1,.3,1)}
 @keyframes popIn{from{opacity:0;transform:scale(.85) translateY(8px)}
   to{opacity:1;transform:scale(1) translateY(0)}}
 .ver-pop button{padding:11px 22px;border:none;background:none;
-  color:#3D2F1F;font-family:'Noto Serif SC',serif;font-weight:300;font-size:14px;
+  color:#F2DCC4;font-family:'Noto Serif SC',serif;font-weight:300;font-size:14px;
   letter-spacing:.4em;cursor:pointer;border-radius:9px;text-align:center;
   min-width:100px;transition:background .25s}
-.ver-pop button:hover{background:rgba(60,40,20,.06)}
-.ver-pop button.on{background:rgba(60,40,20,.1);font-weight:400}
+.ver-pop button:hover{background:rgba(255,220,180,.08)}
+.ver-pop button.on{background:rgba(255,220,180,.14);font-weight:400}
 .ver-pop-tip{font-family:'Cormorant',serif;font-style:italic;
-  font-size:9px;letter-spacing:.15em;color:rgba(60,40,20,.5);
+  font-size:9px;letter-spacing:.15em;color:rgba(242,220,196,.5);
   text-align:center;padding:4px 0 2px;margin-top:4px;
-  border-top:1px dashed rgba(60,40,20,.15)}
+  border-top:1px dashed rgba(200,150,100,.22)}
 
 /* ============ 森 GROVE ============ */
 .tomato-header{display:flex;justify-content:space-between;align-items:center;
@@ -260,7 +265,8 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
 @keyframes gOverlayIn{from{opacity:0}to{opacity:1}}
 
 .garden-header{display:flex;justify-content:space-between;align-items:center;
-  padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.05)}
+  padding:calc(14px + env(safe-area-inset-top,0px)) 18px 14px;
+  border-bottom:1px solid rgba(255,255,255,.05)}
 .garden-title{font-family:'Noto Serif SC',serif;font-weight:200;
   font-size:16px;letter-spacing:.25em}
 .garden-close{width:30px;height:30px;border-radius:50%;
@@ -602,7 +608,7 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px 22px 16px;
+  padding: calc(20px + env(safe-area-inset-top, 0px)) 22px 16px;
   border-bottom: none;
 }
 .cellar-overlay .garden-header::before,
@@ -1302,7 +1308,7 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
     radial-gradient(ellipse 60% 25% at 50% 100%,rgba(212,78,46,.25),transparent 65%)}
 
 .menu-header{display:flex;justify-content:space-between;align-items:center;
-  padding:18px 20px 14px;
+  padding:calc(18px + env(safe-area-inset-top,0px)) 20px 14px;
   position:relative;z-index:2}
 .menu-title{font-family:'Noto Serif SC',serif;font-weight:200;
   font-size:18px;letter-spacing:.4em}
@@ -2944,8 +2950,7 @@ function download(content,name,type){
 // ================================================================
 function initPomo(){
   const pw=document.getElementById('pmW');pw.innerHTML='';
-  // Test option: 3 seconds (will display as "测试")
-  const presets=[{m:0.05,label:'测试'},{m:25,label:'25分'},{m:30,label:'30分'},{m:35,label:'35分'},{m:45,label:'45分'},{m:60,label:'60分'}];
+  const presets=[{m:25,label:'25分'},{m:30,label:'30分'},{m:35,label:'35分'},{m:45,label:'45分'},{m:60,label:'60分'}];
   presets.forEach(p=>{
     const b=document.createElement('button');
     b.className='pm-pre'+(pmW===p.m?' sel':'');
@@ -3096,7 +3101,7 @@ function renderTomatoes(){
       let toms='';
       for(let i=0;i<Math.min(treeCount,25);i++){
         const [x,y]=positions[i];
-        toms+=`<circle cx="${x}" cy="${y}" r="4.5" fill="url(#ttgTom)" opacity="0.96"/>`;
+        toms+=`<circle cx="${x}" cy="${y}" r="4.5" fill="url(#ttgTom)" opacity="0.78"/>`;
         toms+=`<path d="M${x-2},${y-5.5} l2,-3 l2,3 l3,-1 l-2,3 l2,2 l-3,-1 l-2,3 l-1,-3 l-3,1 l2,-2 l-2,-3 z" fill="#4F7044" opacity="0.9"/>`;
       }
       treeWrap.innerHTML=`<svg class="today-tree" viewBox="0 0 100 126" xmlns="http://www.w3.org/2000/svg">
@@ -3175,29 +3180,34 @@ function showPomoVerSwitch(anchorEl){
   },300);
 }
 
-// Long-press on the today's tomato area to switch versions
+// Long-press anywhere on the pomodoro page to switch versions
 setTimeout(()=>{
-  const garden=document.getElementById('tomatoGarden');
-  if(!garden)return;
+  const page=document.getElementById('pgP');
+  if(!page)return;
+  // Prevent iOS text selection and copy popup on long press
+  page.style.webkitUserSelect='none';
+  page.style.userSelect='none';
+  page.style.webkitTouchCallout='none';
+  
   let pressTimer=null;
   let longPressed=false;
   const startLp=(e)=>{
-    // Don't trigger if clicking the 番茄园 button
-    if(e.target.closest('.garden-btn'))return;
+    // Don't trigger on interactive elements (buttons, inputs, links)
+    if(e.target.closest('button,input,a,textarea,select'))return;
     longPressed=false;
     pressTimer=setTimeout(()=>{
       longPressed=true;
-      showPomoVerSwitch(garden);
+      showPomoVerSwitch(page);
       if(navigator.vibrate)navigator.vibrate(50);
     },550);
   };
   const cancelLp=()=>{if(pressTimer){clearTimeout(pressTimer);pressTimer=null;}};
-  garden.addEventListener('touchstart',startLp,{passive:true});
-  garden.addEventListener('touchend',cancelLp);
-  garden.addEventListener('touchmove',cancelLp,{passive:true});
-  garden.addEventListener('mousedown',startLp);
-  garden.addEventListener('mouseup',cancelLp);
-  garden.addEventListener('mouseleave',cancelLp);
+  page.addEventListener('touchstart',startLp,{passive:true});
+  page.addEventListener('touchend',cancelLp);
+  page.addEventListener('touchmove',cancelLp,{passive:true});
+  page.addEventListener('mousedown',startLp);
+  page.addEventListener('mouseup',cancelLp);
+  page.addEventListener('mouseleave',cancelLp);
 },500);
 
 // ================================================================
@@ -4156,7 +4166,7 @@ function buildTreeSvg(seed,isToday,tomCount){
   for(let i=0;i<tomCount;i++){
     const [x,y]=positions[(seed+i*2)%positions.length];
     const r=4.2+((seed+i)%3)*0.45;
-    toms+=`<circle cx="${x}" cy="${y}" r="${r}" fill="url(#tomG${seed})" opacity="0.96"/>`;
+    toms+=`<circle cx="${x}" cy="${y}" r="${r}" fill="url(#tomG${seed})" opacity="0.85"/>`;
     toms+=`<path d="M${x-2},${y-r-1} l2,-3 l2,3 l3,-1 l-2,3 l2,2 l-3,-1 l-2,3 l-1,-3 l-3,1 l2,-2 l-2,-3 z" fill="#4F7044" opacity="0.9"/>`;
   }
   return `<svg class="tree-svg" viewBox="0 0 100 126" xmlns="http://www.w3.org/2000/svg">
