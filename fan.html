@@ -6,6 +6,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>梵</title>
+<!-- App icons (I1 经典版) -->
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;500&family=EB+Garamond:ital,wght@0,400;0,500;1,300;1,400&family=Cormorant:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -67,8 +71,8 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
 .nv{display:flex;padding:3px;pointer-events:auto;
   background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
   border-radius:100px;backdrop-filter:blur(40px)}
-.nb{display:flex;align-items:center;gap:5px;padding:9px 18px;border-radius:100px;
-  border:none;background:none;font-family:'EB Garamond',serif;font-size:10px;letter-spacing:.1em;
+.nb{display:flex;align-items:center;gap:4px;padding:9px 13px;border-radius:100px;
+  border:none;background:none;font-family:'EB Garamond',serif;font-size:10px;letter-spacing:.08em;
   cursor:pointer;transition:all .5s,color 2s}
 .nb svg{width:13px;height:13px}
 .nb:active{transform:scale(.95)}
@@ -196,12 +200,159 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
 .tomato{width:18px;height:18px;border-radius:50%;
   background:radial-gradient(circle at 35% 30%,#E8826E,#A8313A 65%,#7C2820);
   box-shadow:0 2px 8px rgba(168,49,58,.3),inset 0 -2px 4px rgba(0,0,0,.2);
-  position:relative;animation:tomatoIn .6s cubic-bezier(.16,1,.3,1)}
+  position:relative}
 .tomato::before{content:'';position:absolute;top:-2px;left:50%;transform:translateX(-50%);
   width:6px;height:3px;background:#4A6248;border-radius:50% 50% 0 0;opacity:.6}
-@keyframes tomatoIn{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
+@keyframes tomatoIn{from{opacity:0}to{opacity:1}}
 .tomato-empty{font-size:10px;letter-spacing:.1em;font-style:italic;font-family:'Cormorant',serif;
   opacity:.4;transition:color 2s}
+
+/* 森 version - tree with growing tomatoes */
+.today-tree-wrap{display:flex;justify-content:center;align-items:flex-end;
+  min-height:140px;padding:8px}
+.today-tree{width:160px;height:140px;display:block}
+.today-tree-empty{font-size:10px;letter-spacing:.1em;font-style:italic;
+  font-family:'Cormorant',serif;opacity:.4;text-align:center;padding:30px 0;transition:color 2s}
+
+/* Version switch popover */
+.ver-pop{position:absolute;
+  background:linear-gradient(135deg,#F2EBD9 0%,#E8DEC5 100%);
+  color:#3D2F1F;
+  border:1px solid rgba(60,40,20,.15);border-radius:14px;
+  padding:8px;display:flex;flex-direction:column;gap:3px;
+  z-index:200;
+  box-shadow:0 12px 30px rgba(0,0,0,.5),0 2px 8px rgba(0,0,0,.3),
+    inset 0 1px 0 rgba(255,255,255,.5);
+  animation:popIn .3s cubic-bezier(.16,1,.3,1)}
+@keyframes popIn{from{opacity:0;transform:scale(.85) translateY(8px)}
+  to{opacity:1;transform:scale(1) translateY(0)}}
+.ver-pop button{padding:11px 22px;border:none;background:none;
+  color:#3D2F1F;font-family:'Noto Serif SC',serif;font-weight:300;font-size:14px;
+  letter-spacing:.4em;cursor:pointer;border-radius:9px;text-align:center;
+  min-width:100px;transition:background .25s}
+.ver-pop button:hover{background:rgba(60,40,20,.06)}
+.ver-pop button.on{background:rgba(60,40,20,.1);font-weight:400}
+.ver-pop-tip{font-family:'Cormorant',serif;font-style:italic;
+  font-size:9px;letter-spacing:.15em;color:rgba(60,40,20,.5);
+  text-align:center;padding:4px 0 2px;margin-top:4px;
+  border-top:1px dashed rgba(60,40,20,.15)}
+
+/* ============ 森 GROVE ============ */
+.tomato-header{display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:12px}
+.garden-btn{
+  display:flex;align-items:center;gap:5px;
+  padding:5px 11px;border-radius:100px;
+  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
+  color:inherit;cursor:pointer;
+  font-family:'Noto Serif SC',serif;font-weight:300;
+  font-size:10px;letter-spacing:.2em;
+  backdrop-filter:blur(10px);
+  transition:all .3s,color 2s}
+.garden-btn:active{transform:scale(.94)}
+.garden-btn:hover{background:rgba(255,255,255,.08)}
+.garden-btn svg{width:11px;height:11px;opacity:.7}
+
+.garden-overlay{position:fixed;inset:0;z-index:1000;
+  background:rgba(14,18,16,.95);backdrop-filter:blur(20px);
+  display:none;flex-direction:column;animation:gOverlayIn .4s ease}
+.garden-overlay.on{display:flex}
+@keyframes gOverlayIn{from{opacity:0}to{opacity:1}}
+
+.garden-header{display:flex;justify-content:space-between;align-items:center;
+  padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.05)}
+.garden-title{font-family:'Noto Serif SC',serif;font-weight:200;
+  font-size:16px;letter-spacing:.25em}
+.garden-close{width:30px;height:30px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
+  color:#d4d0c8;cursor:pointer;font-size:14px;
+  display:flex;align-items:center;justify-content:center}
+
+.garden-body{flex:1;overflow-y:auto;padding:14px 18px 80px;
+  display:flex;flex-direction:column;
+  scrollbar-width:none}
+.garden-body::-webkit-scrollbar{display:none}
+
+.garden-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  margin-bottom:18px;border:1px solid rgba(230,214,177,.10);
+  border-radius:18px;overflow:hidden;background:rgba(230,214,177,.06)}
+.gstat{padding:14px 8px;background:rgba(14,18,16,.78);text-align:center}
+.gstat-num{font-family:'EB Garamond',serif;font-size:24px;font-weight:400;
+  color:#9CAF88;letter-spacing:.04em}
+.gstat-lbl{margin-top:3px;font-family:'EB Garamond',serif;letter-spacing:.3em;
+  font-size:9px;color:rgba(242,235,217,.34);text-transform:uppercase}
+
+.time-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.time-btn{border:1px solid rgba(230,214,177,.14);background:rgba(255,255,255,.028);
+  color:rgba(242,235,217,.58);border-radius:999px;padding:7px 12px;
+  font-family:'Noto Serif SC',serif;font-weight:200;font-size:11px;
+  letter-spacing:.12em;cursor:pointer;flex:1;min-width:60px;
+  transition:all .35s}
+.time-btn.on{color:rgba(255,245,222,.9);background:rgba(156,175,136,.12);
+  border-color:rgba(156,175,136,.34)}
+
+.garden-scene{position:relative;flex:1;min-height:400px;border-radius:18px;overflow:hidden;
+  border:1px solid rgba(230,214,177,.11);transition:background 1s ease;margin-bottom:14px}
+.garden-scene.dawn{background:#2A1F18}
+.garden-scene.day{background:#5C6A48}
+.garden-scene.dusk{background:#352840}
+.garden-scene.night{background:#0E1218}
+.gsky{position:absolute;left:0;right:0;top:0;height:35%;transition:background 1s ease}
+.garden-scene.dawn .gsky{background:linear-gradient(180deg,
+  rgba(230,151,126,.44),rgba(221,176,120,.22),rgba(20,26,22,0))}
+.garden-scene.day .gsky{background:linear-gradient(180deg,
+  rgba(240,229,200,.42),rgba(188,202,174,.14),rgba(20,26,22,0))}
+.garden-scene.dusk .gsky{background:linear-gradient(180deg,
+  rgba(102,70,107,.52),rgba(204,145,94,.28),rgba(20,26,22,0))}
+.garden-scene.night .gsky{background:linear-gradient(180deg,
+  rgba(32,35,76,.76),rgba(55,45,78,.24),rgba(20,26,22,0))}
+
+.gground{position:absolute;left:0;right:0;bottom:0;height:65%;
+  transition:background 1s ease}
+/* Ground colors match time of day */
+.garden-scene.dawn .gground{
+  background:radial-gradient(ellipse at 50% 108%,rgba(212,170,140,.22),transparent 52%),
+    linear-gradient(180deg,rgba(80,60,55,.4),rgba(40,30,28,.85))}
+.garden-scene.day .gground{
+  background:radial-gradient(ellipse at 50% 108%,rgba(156,175,136,.25),transparent 52%),
+    linear-gradient(180deg,rgba(140,148,120,.32),rgba(60,72,52,.85))}
+.garden-scene.dusk .gground{
+  background:radial-gradient(ellipse at 50% 108%,rgba(180,120,90,.25),transparent 52%),
+    linear-gradient(180deg,rgba(80,55,68,.5),rgba(35,28,40,.92))}
+.garden-scene.night .gground{
+  background:radial-gradient(ellipse at 50% 108%,rgba(120,130,165,.18),transparent 52%),
+    linear-gradient(180deg,rgba(28,32,52,.7),rgba(10,12,20,.95))}
+.gground::before{content:'';position:absolute;left:-10%;right:-10%;top:0;height:42px;
+  background:linear-gradient(180deg,rgba(156,175,136,.18),rgba(156,175,136,0));
+  filter:blur(4px)}
+
+.tree-field{position:absolute;inset:34% 8% 8% 8%}
+.tree-wrap{position:absolute;width:var(--tree-size);
+  height:calc(var(--tree-size) * 1.25);transform-origin:bottom center;
+  animation:tsway var(--sway) ease-in-out infinite;
+  animation-delay:var(--delay);opacity:var(--alpha);z-index:var(--z)}
+@keyframes tsway{
+  0%,100%{transform:translate(-50%,-100%) rotate(-1.1deg)}
+  50%{transform:translate(-50%,-100%) rotate(1.1deg)}
+}
+.tree-wrap.today{filter:drop-shadow(0 0 12px rgba(212,177,106,.72))
+  drop-shadow(0 0 24px rgba(212,177,106,.24))}
+.tree-wrap.today::after{content:'';position:absolute;left:50%;bottom:-3px;
+  width:calc(var(--tree-size) * 0.95);height:5px;transform:translateX(-50%);
+  border-radius:50%;
+  background:radial-gradient(ellipse,rgba(212,177,106,.78),rgba(212,177,106,0))}
+.tree-svg{width:100%;height:100%;display:block;overflow:visible}
+
+.garden-empty{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:6px;
+  pointer-events:none;text-align:center}
+.garden-empty.hide{display:none}
+.ge-text{font-family:'Noto Serif SC',serif;font-weight:200;
+  font-size:18px;letter-spacing:.5em;
+  color:rgba(242,235,217,.55);padding-left:.5em}
+.ge-sub{font-family:'Cormorant',serif;font-style:italic;
+  font-size:11px;letter-spacing:.2em;
+  color:rgba(242,235,217,.3)}
 
 /* ============ CALENDAR ============ */
 .cal-h{display:flex;align-items:center;justify-content:space-between;margin:12px 0}
@@ -255,37 +406,45 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
 
 
 /* ============ MEMO ============ */
-.memo-tabs{display:flex;gap:6px;margin:14px 0 16px;padding:3px;
+.memo-tabs{display:flex;gap:4px;margin:14px 0 16px;padding:3px;
   background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);
-  border-radius:100px;backdrop-filter:blur(10px)}
+  border-radius:100px;backdrop-filter:blur(10px);
+  position:relative;user-select:none}
 .memo-tab{flex:1;padding:8px 0;border-radius:100px;border:none;background:none;
-  font-family:'EB Garamond',serif;font-size:10px;letter-spacing:.1em;
-  cursor:pointer;transition:all .4s,color 2s}
+  font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;letter-spacing:.15em;
+  cursor:pointer;transition:all .4s,color 2s;
+  color:inherit;
+  -webkit-touch-callout:none}
 .memo-tab.on{background:rgba(255,255,255,.08)}
 .memo-tab:active{transform:scale(.96)}
+.memo-tab.dragging{opacity:.4;transform:scale(1.05)}
+.memo-tab.drag-mode{animation:wiggle .3s ease-in-out infinite alternate}
+@keyframes wiggle{from{transform:rotate(-1deg)}to{transform:rotate(1deg)}}
 
 .memo-input-row{display:flex;gap:8px;margin-bottom:14px}
 .memo-input{flex:1;padding:11px 14px;border-radius:14px;
   border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.03);
   font-family:'Noto Serif SC',serif;font-size:13px;color:inherit;
-  outline:none;letter-spacing:.04em;backdrop-filter:blur(10px);font-weight:300}
+  outline:none;letter-spacing:.04em;backdrop-filter:blur(10px);font-weight:300;
+  resize:none;min-height:44px}
 .memo-input::placeholder{color:rgba(255,255,255,.2)}
 .memo-input:focus{border-color:rgba(255,255,255,.15)}
 .memo-add-btn{width:40px;height:40px;border-radius:14px;border:none;
   background:rgba(255,255,255,.08);font-size:18px;cursor:pointer;
   font-family:'EB Garamond',serif;font-weight:300;
   display:flex;align-items:center;justify-content:center;
-  transition:all .3s,color 2s,background 2s;backdrop-filter:blur(10px)}
+  transition:all .3s,color 2s,background 2s;backdrop-filter:blur(10px);
+  flex-shrink:0;align-self:flex-start}
 .memo-add-btn:active{transform:scale(.92)}
 
-.memo-priority-row{display:flex;gap:6px;margin-bottom:10px}
+.memo-priority-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
 .memo-pri{padding:5px 10px;border-radius:100px;font-size:9px;letter-spacing:.1em;
   border:1px solid rgba(255,255,255,.06);background:none;cursor:pointer;
-  font-family:'EB Garamond',serif;transition:all .3s,color 2s}
+  font-family:'Noto Serif SC',serif;font-weight:300;color:inherit;transition:all .3s,color 2s}
 .memo-pri.sel{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.2)}
 
 .memo-list{display:flex;flex-direction:column;gap:5px}
-.memo-item{display:flex;align-items:center;padding:12px 14px;border-radius:12px;
+.memo-item{display:flex;align-items:flex-start;padding:12px 14px;border-radius:12px;
   background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.04);
   backdrop-filter:blur(10px);
   animation:recIn .4s cubic-bezier(.16,1,.3,1);transition:all .3s,color 2s}
@@ -293,16 +452,963 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
 .memo-item.done .memo-text{text-decoration:line-through}
 .memo-check{width:18px;height:18px;border-radius:50%;border:1.5px solid currentColor;
   margin-right:11px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;
-  justify-content:center;opacity:.4;transition:all .3s}
+  justify-content:center;opacity:.4;transition:all .3s;margin-top:1px}
 .memo-check.checked{opacity:1;background:currentColor}
 .memo-check.checked::after{content:'✓';font-size:10px;color:rgba(0,0,0,.5)}
-.memo-priority-dot{width:5px;height:5px;border-radius:50%;margin-right:8px;flex-shrink:0}
+.memo-priority-dot{display:none}
 .memo-text{flex:1;font-size:12.5px;letter-spacing:.04em;line-height:1.5;
-  font-family:'Noto Serif SC',serif;font-weight:300;transition:color 2s}
+  font-family:'Noto Serif SC',serif;font-weight:300;transition:color 2s;
+  word-break:break-word;cursor:pointer}
+.memo-text-edit{flex:1;font-size:12.5px;letter-spacing:.04em;line-height:1.5;
+  font-family:'Noto Serif SC',serif;font-weight:300;color:inherit;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);
+  border-radius:8px;padding:6px 8px;outline:none;resize:vertical;min-height:24px;
+  width:100%}
 .memo-del{width:20px;height:20px;border-radius:50%;border:none;background:none;
-  font-size:9px;cursor:pointer;margin-left:8px;display:flex;
-  align-items:center;justify-content:center;opacity:.3;transition:opacity .3s,color 2s}
-.memo-del:hover{opacity:.8}
+  font-size:11px;cursor:pointer;margin-left:8px;display:flex;
+  align-items:center;justify-content:center;opacity:.3;transition:opacity .3s,color 2s;
+  flex-shrink:0;color:inherit;align-self:flex-start;margin-top:1px}
+.memo-del:hover,.memo-del:active{opacity:.8}
+
+/* ===== INSPIRATION (灵感) - 简化版 ===== */
+.insp-views{display:flex;gap:4px;margin-bottom:12px;padding:3px;
+  background:rgba(255,255,255,.03);border-radius:100px;border:1px solid rgba(255,255,255,.05)}
+.insp-view{flex:1;padding:7px 0;border-radius:100px;border:none;background:none;
+  font-family:'Noto Serif SC',serif;font-weight:300;font-size:10px;letter-spacing:.18em;
+  cursor:pointer;transition:all .4s,color 2s;color:inherit}
+.insp-view.on{background:rgba(255,255,255,.07)}
+
+/* Category tabs (todo) - draggable, editable */
+.cat-tabs{display:flex;gap:4px;margin-bottom:12px;padding:3px;
+  background:rgba(255,255,255,.03);border-radius:100px;border:1px solid rgba(255,255,255,.05);
+  align-items:center;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+.cat-tabs::-webkit-scrollbar{display:none}
+.cat-tab{flex:1;min-width:48px;padding:7px 6px;border-radius:100px;border:none;background:none;
+  font-family:'Noto Serif SC',serif;font-weight:300;font-size:10px;letter-spacing:.18em;
+  cursor:pointer;transition:all .4s,color 2s;color:inherit;
+  text-align:center;white-space:nowrap;-webkit-touch-callout:none}
+.cat-tab.on{background:rgba(255,255,255,.07)}
+.cat-tab.dragging{opacity:.4;transform:scale(1.05)}
+.cat-tab.drag-mode{animation:wiggle .3s ease-in-out infinite alternate}
+.cat-tab-input{flex:0 0 auto;width:60px;padding:7px 8px;border-radius:100px;border:none;
+  background:rgba(255,255,255,.05);font-family:'Noto Serif SC',serif;font-weight:300;
+  font-size:10px;letter-spacing:.1em;color:inherit;outline:none;text-align:center}
+.cat-add{flex-shrink:0;width:24px;height:24px;border-radius:50%;border:none;
+  background:none;color:inherit;cursor:pointer;font-size:14px;font-weight:200;
+  opacity:.25;transition:opacity .3s,color 2s;display:flex;
+  align-items:center;justify-content:center;font-family:'EB Garamond',serif}
+.cat-add:hover,.cat-add:active{opacity:.7}
+
+/* Edit popover for renaming category */
+.cat-edit-pop{position:absolute;background:rgba(20,24,22,.97);
+  border:1px solid rgba(255,255,255,.12);border-radius:12px;
+  padding:6px;display:flex;flex-direction:column;gap:2px;
+  backdrop-filter:blur(15px);z-index:100;
+  box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.cat-edit-pop button{padding:8px 14px;border:none;background:none;
+  color:inherit;font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;
+  letter-spacing:.15em;cursor:pointer;border-radius:8px;text-align:left;
+  min-width:80px;transition:background .2s}
+.cat-edit-pop button:hover{background:rgba(255,255,255,.06)}
+.cat-edit-pop button.danger{color:#C8636A}
+
+/* 写新灵感时折叠的选项区 */
+.insp-opts{margin:-4px 0 12px;padding:10px 12px;border-radius:12px;
+  background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);
+  display:flex;flex-direction:column;gap:8px;
+  animation:fadeSlide .3s ease}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.insp-opt-row{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.insp-opt-lbl{font-family:'Noto Serif SC',serif;font-weight:300;
+  font-size:9px;letter-spacing:.25em;opacity:.4;
+  margin-right:4px;min-width:24px;transition:color 2s}
+.insp-opt-btn{padding:4px 11px;border-radius:100px;font-size:9px;letter-spacing:.15em;
+  border:1px solid rgba(255,255,255,.06);background:none;cursor:pointer;
+  font-family:'Noto Serif SC',serif;font-weight:300;color:inherit;
+  transition:all .3s,color 2s;opacity:.55}
+.insp-opt-btn.sel{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.2);opacity:1}
+
+/* 筛选提示 */
+.insp-filter-hint{display:flex;align-items:center;gap:6px;
+  margin-bottom:10px;padding:5px 12px;border-radius:100px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+  font-family:'Noto Serif SC',serif;font-weight:300;
+  font-size:10px;letter-spacing:.15em;opacity:.7}
+.insp-filter-hint button{margin-left:auto;border:none;background:none;
+  color:inherit;cursor:pointer;font-size:11px;opacity:.6;padding:2px 6px}
+
+.insp-card{padding:14px 16px;border-radius:14px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);
+  backdrop-filter:blur(10px);position:relative;
+  animation:recIn .4s cubic-bezier(.16,1,.3,1)}
+.insp-text{font-family:'Noto Serif SC',serif;font-weight:300;font-size:13px;
+  letter-spacing:.04em;line-height:1.65;white-space:pre-wrap;word-break:break-word;
+  margin-right:24px;cursor:pointer;transition:color 2s}
+.insp-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}
+.insp-tag-pill{padding:2px 8px;border-radius:100px;font-size:9px;letter-spacing:.1em;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);
+  font-family:'Noto Serif SC',serif;font-weight:300;color:inherit;opacity:.7;
+  cursor:pointer;transition:all .25s,color 2s}
+.insp-tag-pill:hover{opacity:1;background:rgba(255,255,255,.08)}
+.insp-time{font-family:'Cormorant',serif;font-style:italic;font-size:10px;
+  letter-spacing:.1em;opacity:.4;margin-left:auto}
+.insp-state-tag{font-family:'Noto Serif SC',serif;font-weight:300;font-size:9px;
+  letter-spacing:.2em;opacity:.6;color:inherit;transition:color 2s;
+  cursor:pointer}
+
+.insp-actions{position:absolute;top:10px;right:10px;display:flex;gap:4px}
+.insp-act-btn{width:22px;height:22px;border-radius:50%;border:none;background:none;
+  font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  opacity:.4;transition:opacity .25s,color 2s;color:inherit;font-family:'Noto Serif SC',serif}
+.insp-act-btn:hover,.insp-act-btn:active{opacity:.85}
+.insp-act-up{font-size:11px}
+
+.insp-empty{text-align:center;padding:30px 20px;font-family:'Cormorant',serif;
+  font-style:italic;font-size:12px;letter-spacing:.15em;opacity:.35}
+
+/* ============ 库 CELLAR · Hermès-inspired Showroom ============ */
+
+/* Cellar-specific CSS variables (only apply within cellar) */
+.cellar-overlay {
+  --row-h: 128px;
+  --shelf-h: 512px;
+}
+
+/* Cellar overlay — own warm room background */
+.cellar-overlay {
+  background:
+    radial-gradient(ellipse 78% 34% at 50% 0%, rgba(255, 230, 185, 0.22), transparent 62%),
+    radial-gradient(ellipse 120% 78% at 50% 46%, rgba(173, 95, 42, 0.24) 0%, rgba(74, 41, 20, 0.46) 42%, transparent 74%),
+    linear-gradient(180deg, #4B2D1A 0%, #2E1A0F 52%, #170C06 100%);
+}
+
+/* Subtle inner texture (architectural grid) */
+.cellar-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse 70% 55% at 50% 32%, black 0%, transparent 78%);
+}
+
+/* Header refinement — brass divider lines, no subtitle */
+.cellar-overlay .garden-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 22px 16px;
+  border-bottom: none;
+}
+.cellar-overlay .garden-header::before,
+.cellar-overlay .garden-header::after {
+  content: '';
+  height: 1px;
+  flex: 1;
+  max-width: 220px;
+  background: linear-gradient(90deg, transparent, rgba(210, 166, 89, 0.56), transparent);
+}
+.cellar-overlay .garden-title {
+  position: relative;
+  padding: 0 22px;
+  font-family: 'Noto Serif SC', serif;
+  font-weight: 200;
+  font-size: 17px;
+  letter-spacing: 0.32em;
+  color: #F0D6A8;
+  text-shadow: 0 2px 14px rgba(218, 145, 65, 0.34);
+}
+.cellar-overlay .garden-close {
+  border: 1px solid rgba(210, 166, 89, 0.34);
+  background: rgba(60, 32, 14, 0.55);
+  color: rgba(244, 218, 174, 0.85);
+  position: absolute;
+  right: 18px;
+}
+
+.cellar-overlay .garden-body {
+  position: relative;
+  z-index: 2;
+  padding: 10px clamp(14px, 4vw, 48px) 86px;
+}
+
+/* Stats — vitrined brass plaque, not black */
+.cellar-overlay .garden-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  width: min(760px, 100%);
+  margin: 0 auto 22px;
+  border: 1px solid rgba(216, 174, 100, 0.42);
+  border-radius: 22px;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, rgba(223, 183, 113, 0.24), rgba(86, 49, 23, 0.34)),
+    rgba(76, 42, 20, 0.54);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 237, 205, 0.14),
+    0 18px 45px rgba(22, 10, 4, 0.24);
+}
+.cellar-overlay .gstat {
+  padding: 16px 8px 14px;
+  background:
+    linear-gradient(180deg, rgba(133, 78, 38, 0.30), rgba(55, 30, 14, 0.32));
+  text-align: center;
+  border-right: 1px solid rgba(222, 177, 96, 0.20);
+}
+.cellar-overlay .gstat:last-child { border-right: none; }
+.cellar-overlay .gstat-num {
+  font-family: 'EB Garamond', serif;
+  font-size: clamp(24px, 4vw, 32px);
+  line-height: 1;
+  font-weight: 300;
+  color: #F0D19D;
+  letter-spacing: 0.035em;
+  text-shadow: 0 1px 12px rgba(255, 198, 112, 0.25);
+}
+.cellar-overlay .gstat-lbl {
+  margin-top: 7px;
+  font-family: 'Cormorant', serif;
+  letter-spacing: 0.32em;
+  font-size: 9px;
+  color: rgba(244, 218, 174, 0.56);
+  text-transform: uppercase;
+}
+
+/* The display room */
+.cellar-room {
+  position: relative;
+  width: min(1180px, 100%);
+  min-height: calc(var(--shelf-h) + 50px);
+  margin: 4px auto 0;
+  border-radius: 28px;
+  overflow: hidden;
+  border: 1px solid rgba(220, 176, 102, 0.42);
+  background:
+    linear-gradient(90deg, rgba(35,18,8,0.65), transparent 13%, transparent 87%, rgba(35,18,8,0.65)),
+    radial-gradient(ellipse 70% 34% at 50% 0%, rgba(255, 230, 185, 0.24), transparent 72%),
+    linear-gradient(180deg, #774A27 0%, #5F371E 46%, #3A2113 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 231, 190, 0.07),
+    inset 0 0 90px rgba(42, 19, 7, 0.56),
+    0 28px 72px rgba(16, 7, 2, 0.46);
+}
+
+.cellar-room::before {
+  content: '';
+  position: absolute;
+  inset: 14px;
+  border-radius: 22px;
+  pointer-events: none;
+  border: 1px solid rgba(238, 201, 132, 0.25);
+  box-shadow:
+    inset 0 0 0 1px rgba(89, 54, 26, 0.36),
+    inset 0 30px 80px rgba(255, 212, 151, 0.06);
+  z-index: 5;
+}
+
+.cellar-room::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg,
+      rgba(244, 211, 156, 0.13) 0px,
+      transparent 2px,
+      transparent calc(100% - 2px),
+      rgba(244, 211, 156, 0.13) 100%),
+    radial-gradient(ellipse 80% 25% at 50% 0%, rgba(255, 242, 205, 0.16), transparent 70%);
+  z-index: 6;
+}
+
+/* Spotlight overhead */
+.cellar-spotlight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  background:
+    radial-gradient(ellipse 58% 28% at 50% 2%,
+      rgba(255, 237, 201, 0.30) 0%,
+      rgba(242, 184, 101, 0.12) 42%,
+      transparent 76%),
+    radial-gradient(circle at 18% 18%, rgba(255, 211, 145, 0.10), transparent 20%),
+    radial-gradient(circle at 82% 18%, rgba(255, 211, 145, 0.10), transparent 20%);
+}
+
+/* Wood shelf — warm oak with horizontal grain */
+.cellar-shelf {
+  position: absolute;
+  left: 26px; right: 26px; top: 24px;
+  height: var(--shelf-h);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px 18px 10px 10px;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(53, 29, 12, 0.62), transparent 8%, transparent 92%, rgba(53, 29, 12, 0.62)),
+    radial-gradient(ellipse 54% 32% at 50% 18%, rgba(255, 223, 173, 0.18), transparent 70%),
+    repeating-linear-gradient(92deg,
+      rgba(255,255,255,0.028) 0px,
+      rgba(255,255,255,0.028) 1px,
+      transparent 1px,
+      transparent 17px),
+    linear-gradient(180deg, #B47A44 0%, #8C552E 38%, #683D22 72%, #442716 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 238, 203, 0.16),
+    inset 0 14px 36px rgba(255, 209, 147, 0.08),
+    inset 0 -26px 50px rgba(30, 14, 6, 0.46),
+    0 18px 46px rgba(19, 8, 3, 0.35);
+}
+
+/* Vertical brass side rails */
+.cellar-shelf::before,
+.cellar-shelf::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 12px;
+  z-index: 8;
+  background:
+    linear-gradient(90deg, rgba(255, 226, 180, 0.24), rgba(139, 91, 45, 0.45), rgba(50, 27, 12, 0.52));
+  box-shadow:
+    inset 1px 0 0 rgba(255, 241, 207, 0.18),
+    0 0 18px rgba(28, 12, 4, 0.34);
+}
+.cellar-shelf::before { left: 0; }
+.cellar-shelf::after { right: 0; transform: scaleX(-1); }
+
+/* Floor base */
+.cellar-floor {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 50px;
+  z-index: 3;
+  background:
+    linear-gradient(180deg, rgba(103, 61, 31, 0.92) 0%, rgba(52, 29, 15, 0.98) 100%),
+    repeating-linear-gradient(90deg, transparent 0 70px, rgba(255,255,255,0.04) 70px 71px);
+  border-top: 1px solid rgba(232, 184, 98, 0.34);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 232, 190, 0.12),
+    inset 0 -13px 28px rgba(17, 7, 2, 0.42),
+    0 -8px 22px rgba(32, 12, 3, 0.22);
+}
+
+/* Shelf rows */
+.shelf-row {
+  position: relative;
+  flex: 0 0 var(--row-h);
+  display: grid;
+  align-items: end;
+  gap: clamp(5px, calc(24px / var(--cols, 6)), 18px);
+  padding: calc(var(--row-h) * 0.18) clamp(16px, 3vw, 34px) calc(var(--row-h) * 0.16);
+  min-height: 0;
+}
+
+.shelf-row::before {
+  content: '';
+  position: absolute;
+  inset: 0 8px auto;
+  height: 58%;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 48% 76% at 50% 8%, rgba(255, 239, 211, 0.12), transparent 74%),
+    linear-gradient(90deg, rgba(255,255,255,0.035), transparent 10%, transparent 90%, rgba(255,255,255,0.025));
+  opacity: 0.75;
+  z-index: 1;
+}
+
+/* Shelf board (the actual wood plank below each row) */
+.shelf-row::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: clamp(8px, calc(var(--row-h) * 0.092), 14px);
+  background:
+    linear-gradient(180deg,
+      rgba(245, 206, 134, 0.72) 0%,
+      rgba(184, 123, 58, 0.88) 23%,
+      rgba(100, 58, 28, 0.96) 58%,
+      rgba(43, 24, 12, 0.98) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 239, 205, 0.56),
+    inset 0 -1px 0 rgba(113, 71, 33, 0.55),
+    0 1px 0 rgba(16, 7, 3, 0.65),
+    0 7px 16px rgba(20, 7, 2, 0.42);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.shelf-cell {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 0;
+}
+
+/* Empty cells get subtle floor shadow (showroom rhythm) */
+.shelf-cell:empty::before {
+  content: '';
+  width: 78%;
+  aspect-ratio: 1 / 0.62;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(40, 18, 7, 0.22), transparent 65%);
+  transform: translateY(8%);
+}
+
+/* === Box (.cb) — refined Hermès gift-box quality === */
+.cb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1.04;
+  cursor: pointer;
+  perspective: 360px;
+  transform-style: preserve-3d;
+  filter:
+    drop-shadow(0 6px 7px rgba(26, 10, 3, 0.44))
+    drop-shadow(0 1px 0 rgba(255, 227, 182, 0.08));
+  transition: filter 0.28s, transform 0.25s;
+}
+.cb:hover {
+  filter:
+    drop-shadow(0 9px 10px rgba(22, 8, 2, 0.52))
+    drop-shadow(0 0 8px rgba(231, 178, 94, 0.22))
+    brightness(1.055);
+  transform: translateY(-2px);
+}
+.cb:active { transform: translateY(0); }
+
+/* Cast shadow under box (gives it weight on the shelf) */
+.cb::before {
+  content: '';
+  position: absolute;
+  left: 14%; right: 14%; bottom: 4%;
+  height: 10%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(18, 7, 2, 0.58), transparent 70%);
+  filter: blur(2px);
+  z-index: 0;
+}
+
+.cb-back {
+  position: absolute;
+  left: 8%; top: 32%;
+  width: 84%; height: 50%;
+  border-radius: 3px 3px 2px 2px;
+  background:
+    linear-gradient(160deg, rgba(255, 231, 190, 0.10), transparent 35%),
+    linear-gradient(155deg, #A56E3B 0%, #7F4D2A 48%, #432413 100%);
+  border: 0.5px solid rgba(78, 42, 18, 0.70);
+  z-index: 1;
+}
+
+.cb-inner {
+  position: absolute;
+  left: 8%; top: 38%;
+  width: 84%; height: 48%;
+  border-radius: 2px;
+  background:
+    radial-gradient(circle at 35% 12%, rgba(255, 238, 208, 0.10), transparent 32%),
+    linear-gradient(160deg, #744323, #2A160B 78%);
+  box-shadow:
+    inset 0 5px 10px rgba(18, 7, 2, 0.72),
+    inset 0 -1px 0 rgba(255, 223, 174, 0.08);
+  overflow: hidden;
+  z-index: 2;
+}
+
+.cb-grid {
+  position: absolute;
+  inset: 8% 8% 13% 8%;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  gap: 1px;
+  align-items: center;
+  justify-items: center;
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity 0.35s ease, transform 0.44s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.cb-tom {
+  width: 78%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 28%, #F6B097 0%, #CB4C41 42%, #8E241D 72%, #641511 100%);
+  box-shadow:
+    inset -0.6px -1px 1px rgba(60, 12, 8, 0.45),
+    0 0.3px 0.5px rgba(255, 220, 190, 0.18);
+  transform: scale(0);
+  transition: transform 0.30s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cb-front {
+  position: absolute;
+  left: 8%; top: 62%;
+  width: 84%; height: 24%;
+  border-radius: 0 0 4px 4px;
+  background:
+    linear-gradient(120deg, rgba(255,255,255,0.12), transparent 26%),
+    linear-gradient(145deg, #D7B07A 0%, #B9824A 58%, #7B4723 100%);
+  border: 0.5px solid rgba(77, 42, 18, 0.66);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 219, 0.28),
+    inset 0 -4px 9px rgba(82, 42, 16, 0.25);
+  z-index: 5;
+}
+
+.cb-lid {
+  position: absolute;
+  left: 8%; top: 32%;
+  width: 84%; height: 30%;
+  z-index: 8;
+  transform-origin: center top;
+  transform: rotateX(0);
+  transition: transform 0.58s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.cb-lid-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 3px 3px 4px 4px;
+  background:
+    linear-gradient(120deg, rgba(255,255,255,0.15), transparent 30%),
+    linear-gradient(145deg, #D2A86F 0%, #BC8750 55%, #74411F 100%);
+  border: 0.5px solid rgba(72, 38, 15, 0.62);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 218, 0.26),
+    inset 0 -3px 7px rgba(76, 38, 15, 0.18);
+}
+
+.cb-lid-face::after {
+  content: '';
+  position: absolute;
+  left: 12%; right: 12%; bottom: 18%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(248, 221, 174, 0.32), transparent);
+}
+
+.cb-tape {
+  position: absolute;
+  left: 8%; right: 8%; top: 62%;
+  height: 5%;
+  z-index: 9;
+  background:
+    linear-gradient(180deg, rgba(255, 236, 198, 0.86), rgba(205, 166, 104, 0.82));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.18),
+    0 0.5px 1px rgba(53, 26, 8, 0.28);
+  transition: opacity 0.35s ease;
+}
+
+.cb-wax {
+  position: absolute;
+  left: 50%; top: 60%;
+  width: 25%;
+  aspect-ratio: 1;
+  z-index: 10;
+  transform: translateX(-50%);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 26%, #F06A4C 0%, #B32D23 43%, #72120F 100%);
+  box-shadow:
+    inset -1px -1px 2px rgba(40, 5, 4, 0.48),
+    inset 1px 1px 1px rgba(255, 177, 137, 0.22),
+    0 1px 2px rgba(28, 9, 3, 0.55);
+  color: rgba(255, 234, 214, 0.96);
+  font-family: 'Noto Serif SC', serif;
+  font-weight: 400;
+  line-height: 1;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.cb-date {
+  position: absolute;
+  left: -8%; right: -8%; bottom: -1%;
+  font-family: 'EB Garamond', serif;
+  color: rgba(252, 236, 209, 0.72);
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(28, 9, 3, 0.74);
+}
+
+/* Density: row gaps + box size + typography adapt together */
+.shelf-row[data-cols="6"]  { --cols: 6;  gap: 16px; }
+.shelf-row[data-cols="10"] { --cols: 10; gap: 12px; }
+.shelf-row[data-cols="14"] { --cols: 14; gap: 8px;  }
+.shelf-row[data-cols="18"] { --cols: 18; gap: 6px;  }
+
+.shelf-row[data-cols="6"]  .cb { width: min(100%, 84px); }
+.shelf-row[data-cols="10"] .cb { width: min(100%, 66px); }
+.shelf-row[data-cols="14"] .cb { width: min(100%, 52px); }
+.shelf-row[data-cols="18"] .cb { width: min(100%, 42px); }
+
+.shelf-row[data-cols="6"]  .cb-wax { font-size: 13px; }
+.shelf-row[data-cols="10"] .cb-wax { font-size: 9px; }
+.shelf-row[data-cols="14"] .cb-wax { font-size: 7px; }
+.shelf-row[data-cols="18"] .cb-wax { font-size: 5px; }
+
+.shelf-row[data-cols="6"]  .cb-date { font-size: 9px; }
+.shelf-row[data-cols="10"] .cb-date { font-size: 7px; }
+.shelf-row[data-cols="14"] .cb-date { font-size: 5.5px; }
+.shelf-row[data-cols="18"] .cb-date { font-size: 4.5px; }
+
+/* Open state */
+.cb.open .cb-lid { transform: rotateX(-128deg); }
+.cb.open .cb-tape, .cb.open .cb-wax { opacity: 0; pointer-events: none; }
+.cb.open .cb-grid { opacity: 1; transform: translateY(0); }
+.cb.open .cb-tom {
+  transform: scale(1);
+  transition-delay: calc(0.3s + (var(--i, 0) * 0.012s));
+}
+
+.cellar-empty {
+  text-align: center;
+  padding: 60px 20px;
+  font-family: 'Cormorant', serif;
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.15em;
+  opacity: 0.45;
+}
+.cellar-empty .ge-text { font-size: 14px; letter-spacing: 0.2em; margin-bottom: 8px; }
+.cellar-empty .ge-sub { font-size: 11px; opacity: 0.7; }
+
+/* ============ FULL SEAL ANIMATION ============ */
+.seal-anim{position:fixed;inset:0;z-index:2000;
+  background:rgba(14,18,16,.95);backdrop-filter:blur(15px);
+  display:none;align-items:center;justify-content:center;
+  animation:overIn .4s ease}
+.seal-anim.on{display:flex}
+@keyframes overIn{from{opacity:0}to{opacity:1}}
+.seal-stage{width:90%;max-width:340px;height:380px;position:relative}
+.seal-tomatoes{position:absolute;inset:0;display:flex;flex-wrap:wrap;
+  gap:6px;padding:30px;justify-content:center;align-content:center;
+  transition:opacity 1s}
+.seal-tom{width:24px;height:24px;border-radius:50%;
+  background:radial-gradient(circle at 32% 28%,#F0A088,#A8313A 75%,#7C2820);
+  position:relative;transition:all 1s cubic-bezier(.7,0,.3,1)}
+.seal-tom.gather{transform:translate(var(--gx),var(--gy)) scale(.55)}
+.seal-box{position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%) scale(0);
+  width:200px;height:170px;
+  opacity:0;transition:opacity 1s ease,transform 1s cubic-bezier(.16,1,.3,1)}
+.seal-box.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.sb-body{position:absolute;inset:0;
+  background:linear-gradient(160deg,#C19A6B 0%,#A87E50 35%,#8B6940 65%,#5C3F24 100%);
+  border-radius:6px;
+  border:1px solid rgba(60,35,18,.6);
+  box-shadow:inset 0 2px 0 rgba(255,235,200,.35),
+    inset 0 -2px 0 rgba(0,0,0,.4),0 16px 28px rgba(0,0,0,.5)}
+.sb-tape{position:absolute;left:0;right:0;top:38%;height:18%;
+  background:linear-gradient(180deg,rgba(180,140,90,.35),rgba(140,100,60,.45));
+  border-top:1px solid rgba(80,55,30,.4);
+  border-bottom:1px solid rgba(80,55,30,.4);
+  transform:scaleX(0);transform-origin:center;
+  transition:transform .8s cubic-bezier(.16,1,.3,1)}
+.seal-box.tape .sb-tape{transform:scaleX(1)}
+.sb-seal{position:absolute;left:50%;top:46%;
+  width:62px;height:62px;
+  transform:translate(-50%,-50%) scale(0) rotate(-45deg);
+  background:radial-gradient(circle at 35% 30%,#D04030,#7C1818);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:#F2EBD9;font-family:'Noto Serif SC',serif;font-weight:400;
+  font-size:30px;
+  box-shadow:inset -2px -2px 4px rgba(0,0,0,.4),
+    inset 2px 2px 2px rgba(255,255,255,.2),0 4px 10px rgba(0,0,0,.5);
+  transition:transform .6s cubic-bezier(.34,1.56,.64,1)}
+.seal-box.seal .sb-seal{transform:translate(-50%,-50%) scale(1) rotate(0)}
+.sb-date{position:absolute;left:50%;bottom:8%;
+  transform:translateX(-50%);
+  font-family:'EB Garamond',serif;font-size:11px;
+  color:rgba(240,225,195,.9);letter-spacing:.1em;white-space:nowrap;
+  opacity:0;transition:opacity .5s}
+.seal-box.date .sb-date{opacity:1}
+.seal-msg{position:absolute;left:0;right:0;bottom:30px;text-align:center;
+  font-family:'Cormorant',serif;font-style:italic;
+  font-size:13px;letter-spacing:.2em;opacity:0;
+  color:rgba(212,180,140,.8);transition:opacity 1s}
+.seal-msg.show{opacity:1}
+
+/* ============ 观 (GUAN) PAGE ============ */
+.guan-card{padding:24px 18px;border-radius:18px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  backdrop-filter:blur(10px);margin-bottom:16px;transition:all 2s}
+.guan-card-label{font-size:8px;letter-spacing:.4em;text-transform:uppercase;
+  text-align:center;opacity:.55;margin-bottom:18px;transition:color 2s}
+
+/* Slider — emoji & thumb aligned via flex math */
+.gs1-wrap{position:relative}
+.gs1-emojis{display:flex;justify-content:space-between;
+  margin-bottom:14px;padding:0;width:100%}
+.gs1-emoji{display:flex;flex-direction:column;align-items:center;gap:5px;
+  cursor:pointer;transition:all .3s;opacity:.4;flex:1 1 0;min-width:0}
+.gs1-emoji.preview{opacity:.85;transform:scale(1.05)}
+.gs1-emoji.confirmed{opacity:1;transform:scale(1.1)}
+.gs1-emoji-icon{font-size:20px;line-height:1}
+.gs1-emoji-label{font-size:10px;font-family:'Noto Serif SC',serif;font-weight:300;
+  letter-spacing:.15em;cursor:pointer;
+  padding:2px 4px;border-radius:6px;transition:background .2s,color 2s}
+.gs1-emoji-label:active{background:rgba(255,255,255,.06)}
+
+/* Track wrap matches emoji row width perfectly */
+.gs1-track-wrap{position:relative;height:40px;display:flex;align-items:center;
+  cursor:pointer;width:100%}
+.gs1-track{position:absolute;left:0;right:0;height:6px;border-radius:3px;
+  background:linear-gradient(to right,
+    #E85A2C 0%,#4A8FB8 20%,#6E4C8E 40%,
+    #B8D4E8 60%,#8B8B8B 80%,#1A1418 100%);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.4)}
+.gs1-thumb{position:absolute;width:22px;height:22px;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%,#fff,#d4d0c8);
+  box-shadow:0 0 12px rgba(255,255,255,.4),0 2px 6px rgba(0,0,0,.5);
+  cursor:pointer;left:0;
+  transition:left .35s cubic-bezier(.16,1,.3,1)}
+
+/* Confirm row — perfectly centered */
+.gs1-confirm-row{margin-top:18px;
+  display:flex;justify-content:center;align-items:center;
+  gap:0;min-height:34px;position:relative}
+.gs1-preview-text{font-size:10px;letter-spacing:.2em;opacity:.5;
+  font-family:'Cormorant',serif;font-style:italic}
+.gs1-confirm-btn{padding:6px 18px;border-radius:100px;
+  font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;letter-spacing:.3em;
+  border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);
+  cursor:pointer;color:inherit;
+  display:none;
+  transition:transform .2s}
+.gs1-confirm-btn.show{display:inline-block}
+.gs1-confirm-btn:active{transform:scale(.95)}
+.gs1-recorded{font-size:10px;letter-spacing:.2em;
+  font-family:'Cormorant',serif;font-style:italic;
+  color:#C8A86A;
+  display:none;transition:opacity .4s}
+.gs1-recorded.show{display:inline}
+
+/* Meaning popover */
+.meaning-pop{position:fixed;z-index:500;
+  background:rgba(20,24,22,.97);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:14px;padding:14px 18px;
+  backdrop-filter:blur(20px);
+  box-shadow:0 8px 24px rgba(0,0,0,.5);
+  max-width:280px;
+  animation:popUp .25s cubic-bezier(.16,1,.3,1)}
+@keyframes popUp{from{opacity:0;transform:scale(.85) translateY(8px)}
+  to{opacity:1;transform:scale(1) translateY(0)}}
+.meaning-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.meaning-icon{font-size:18px}
+.meaning-name{font-family:'Noto Serif SC',serif;font-weight:300;
+  font-size:15px;letter-spacing:.25em;color:rgba(232,225,210,.95)}
+.meaning-feel{font-family:'Noto Serif SC',serif;font-weight:300;
+  font-size:13px;line-height:1.7;color:rgba(212,208,200,.85)}
+
+/* 印 / 火 entry — luminosity (light from within) */
+.la-prompt{text-align:center;font-family:'Noto Serif SC',serif;font-weight:200;
+  font-size:13px;letter-spacing:.4em;opacity:.55;margin-bottom:18px;transition:color 2s}
+.la-btns{display:flex;flex-direction:column;gap:12px}
+.la-btn{padding:28px 20px;border-radius:18px;cursor:pointer;
+  border:1px solid rgba(255,255,255,.08);position:relative;overflow:hidden;
+  transition:all .35s}
+.la-btn:active{transform:scale(.98)}
+/* 印 — sage glow from within (warmer, more luminous) */
+.la-btn-yin{
+  background:
+    radial-gradient(ellipse at 30% 25%,rgba(156,175,136,.32),transparent 60%),
+    radial-gradient(ellipse at 70% 75%,rgba(140,160,120,.18),transparent 55%),
+    linear-gradient(160deg,rgba(76,96,68,.55),rgba(40,55,35,.45));
+  box-shadow:inset 0 1px 0 rgba(220,230,200,.08),
+    inset 0 -1px 0 rgba(0,0,0,.2)}
+/* 火 — rose-coral glow from within */
+.la-btn-yang{
+  background:
+    radial-gradient(ellipse at 30% 25%,rgba(220,140,110,.32),transparent 60%),
+    radial-gradient(ellipse at 70% 75%,rgba(196,97,74,.20),transparent 55%),
+    linear-gradient(160deg,rgba(105,55,50,.55),rgba(60,30,25,.45));
+  box-shadow:inset 0 1px 0 rgba(255,220,200,.08),
+    inset 0 -1px 0 rgba(0,0,0,.2)}
+.la-name{font-family:'Noto Serif SC',serif;font-weight:200;font-size:36px;
+  letter-spacing:.4em;text-align:center;margin-bottom:6px;line-height:1}
+.la-btn-yin .la-name{color:rgba(220,235,205,1);
+  text-shadow:0 0 24px rgba(156,175,136,.5),0 0 4px rgba(156,175,136,.3)}
+.la-btn-yang .la-name{color:rgba(255,228,210,1);
+  text-shadow:0 0 24px rgba(240,160,130,.5),0 0 4px rgba(240,160,130,.3)}
+.la-sub{font-family:'Cormorant',serif;font-style:italic;font-size:12px;
+  letter-spacing:.25em;text-align:center;opacity:.7}
+.la-btn-yin .la-sub{color:rgba(197,204,186,.8)}
+.la-btn-yang .la-sub{color:rgba(232,196,180,.8)}
+
+/* ====== MENU OVERLAYS - immersive, breathing ====== */
+.menu-overlay{position:fixed;inset:0;z-index:1000;
+  display:none;flex-direction:column;
+  animation:hovIn .5s ease;
+  overflow:hidden}
+.menu-overlay.on{display:flex}
+@keyframes hovIn{from{opacity:0}to{opacity:1}}
+
+/* Slow breathing background layer */
+.menu-bg-base{position:absolute;inset:0;z-index:-2}
+.menu-bg-haze{position:absolute;inset:0;z-index:-1;
+  animation:breath 14s ease-in-out infinite alternate}
+@keyframes breath{
+  0%{transform:translate(-2%,-1%) scale(1.05);opacity:.9}
+  100%{transform:translate(3%,2%) scale(1.1);opacity:1}
+}
+
+/* 印 menu - moonlit forest with silver+gold accents */
+#yinMenu .menu-bg-base{
+  background:linear-gradient(170deg,#1F3329 0%,#172821 50%,#0F1E18 100%)}
+#yinMenu .menu-bg-haze{
+  background:
+    /* Moonlight from upper left */
+    radial-gradient(ellipse 60% 40% at 20% 15%,rgba(220,225,200,.10),transparent 55%),
+    /* Soft gold light below */
+    radial-gradient(ellipse 50% 30% at 80% 70%,rgba(200,168,106,.08),transparent 55%),
+    /* Forest green glow */
+    radial-gradient(ellipse 70% 60% at 50% 100%,rgba(110,140,100,.10),transparent 60%),
+    /* Subtle silver shimmer */
+    radial-gradient(ellipse 30% 20% at 30% 50%,rgba(180,200,170,.06),transparent 50%)}
+
+/* 火 menu - Hermès Orange gift box, warm and luminous */
+#yangMenu .menu-bg-base{
+  background:linear-gradient(170deg,
+    #F0A05C 0%,
+    #E47B36 35%,
+    #D9682E 70%,
+    #B8451F 100%)}
+#yangMenu .menu-bg-haze{
+  background:
+    /* Top warm gold light - like glow above the box */
+    radial-gradient(ellipse 70% 30% at 50% 0%,rgba(248,221,170,.30),transparent 65%),
+    /* Soft gold accent right side */
+    radial-gradient(ellipse 50% 35% at 80% 35%,rgba(232,200,140,.18),transparent 60%),
+    /* Hermès orange highlight upper left */
+    radial-gradient(ellipse 40% 30% at 20% 25%,rgba(255,200,140,.15),transparent 55%),
+    /* Rouge Tomate deeper accent at bottom */
+    radial-gradient(ellipse 60% 25% at 50% 100%,rgba(212,78,46,.25),transparent 65%)}
+
+.menu-header{display:flex;justify-content:space-between;align-items:center;
+  padding:18px 20px 14px;
+  position:relative;z-index:2}
+.menu-title{font-family:'Noto Serif SC',serif;font-weight:200;
+  font-size:18px;letter-spacing:.4em}
+.menu-title.yin{color:#C5CCBA}
+.menu-title.yang{color:#3D1810}
+.menu-title-en{font-family:'Cormorant',serif;font-style:italic;
+  font-size:11px;letter-spacing:.2em;
+  margin-left:10px;opacity:.5}
+.menu-title.yin .menu-title-en{color:#9CAF88}
+.menu-title.yang .menu-title-en{color:#C49A80}
+.menu-close{width:30px;height:30px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);
+  color:rgba(232,225,210,.7);cursor:pointer;font-size:14px;
+  transition:all .3s}
+.menu-close:hover{background:rgba(255,255,255,.08)}
+#yangMenu .menu-close{
+  border-color:rgba(60,30,15,.25);background:rgba(60,30,15,.08);
+  color:rgba(60,30,15,.7)}
+#yangMenu .menu-close:hover{background:rgba(60,30,15,.15)}
+.menu-title.yang .menu-title-en{color:rgba(60,30,15,.5)}
+
+.menu-body{flex:1;overflow-y:auto;padding:0 0 80px;scrollbar-width:none;
+  position:relative;z-index:2}
+.menu-body::-webkit-scrollbar{display:none}
+
+/* Tier prompt + cards (the "你需要多久" experience) */
+.tier-prompt{text-align:center;
+  padding:40px 24px 30px;
+  font-family:'Noto Serif SC',serif;font-weight:200;
+  font-size:15px;letter-spacing:.3em;line-height:1.8;
+  animation:fadeUp .8s ease-out}
+#yinMenu .tier-prompt{color:rgba(197,204,186,.85)}
+#yangMenu .tier-prompt{color:rgba(232,196,180,.85)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.tier-tabs{display:flex;gap:6px;
+  padding:0 18px 16px;
+  animation:fadeUp .8s ease-out}
+.tier-tab{flex:1;padding:10px 8px;border-radius:100px;cursor:pointer;
+  text-align:center;
+  transition:all .3s cubic-bezier(.16,1,.3,1)}
+#yinMenu .tier-tab{
+  background:rgba(156,175,136,.04);
+  border:1px solid rgba(156,175,136,.10)}
+#yinMenu .tier-tab.on{
+  background:rgba(156,175,136,.14);
+  border-color:rgba(156,175,136,.32)}
+#yangMenu .tier-tab{
+  background:rgba(60,30,15,.08);
+  border:1px solid rgba(60,30,15,.18)}
+#yangMenu .tier-tab.on{
+  background:rgba(60,30,15,.22);
+  border-color:rgba(60,30,15,.42)}
+.tier-tab-name{font-family:'Noto Serif SC',serif;font-weight:300;
+  font-size:13px;letter-spacing:.3em;display:block;margin-bottom:2px}
+#yinMenu .tier-tab-name{color:rgba(197,204,186,.65)}
+#yinMenu .tier-tab.on .tier-tab-name{color:#E0E5D6}
+#yangMenu .tier-tab-name{color:rgba(60,30,15,.65)}
+#yangMenu .tier-tab.on .tier-tab-name{color:#3D1810}
+.tier-tab-time{font-family:'Cormorant',serif;font-style:italic;
+  font-size:9px;letter-spacing:.1em;display:block}
+#yinMenu .tier-tab-time{color:rgba(156,175,136,.45)}
+#yinMenu .tier-tab.on .tier-tab-time{color:rgba(156,175,136,.85)}
+#yangMenu .tier-tab-time{color:rgba(60,30,15,.5)}
+#yangMenu .tier-tab.on .tier-tab-time{color:rgba(60,30,15,.85)}
+
+/* Method list view - now always visible */
+.method-view{display:block}
+.method-view.on{display:block}
+
+.method-back{padding:14px 22px 4px;
+  display:flex;align-items:center;gap:8px;
+  cursor:pointer;
+  font-family:'Noto Serif SC',serif;font-weight:300;
+  font-size:11px;letter-spacing:.3em;
+  transition:opacity .2s;opacity:.7}
+.method-back:hover{opacity:1}
+#yinMenu .method-back{color:#9CAF88}
+#yangMenu .method-back{color:#C49A80}
+.method-back-arrow{font-size:14px;line-height:1}
+
+.method-tier-head{padding:10px 24px 24px;
+  text-align:center}
+.method-tier-name{font-family:'Noto Serif SC',serif;font-weight:200;
+  font-size:22px;letter-spacing:.5em;margin-bottom:8px}
+#yinMenu .method-tier-name{color:#C5CCBA}
+#yangMenu .method-tier-name{color:#3D1810}
+.method-tier-time{font-family:'Cormorant',serif;font-style:italic;
+  font-size:12px;letter-spacing:.15em}
+#yinMenu .method-tier-time{color:rgba(156,175,136,.6)}
+#yangMenu .method-tier-time{color:rgba(60,30,15,.65)}
+
+.method-list{padding:0 24px 60px}
+.method{padding:22px 0;
+  display:flex;flex-direction:column;gap:8px}
+#yinMenu .method{border-bottom:1px solid rgba(156,175,136,.10)}
+#yangMenu .method{border-bottom:1px solid rgba(60,30,15,.18)}
+.method:last-child{border-bottom:none}
+.method-name{font-family:'Noto Serif SC',serif;font-weight:300;
+  font-size:14.5px;letter-spacing:.05em;line-height:1.6}
+#yinMenu .method-name{color:#D4D0C4}
+#yangMenu .method-name{color:#3D1810}
+.method-why{font-family:'Cormorant',serif;font-style:italic;
+  font-size:12px;letter-spacing:.04em;line-height:1.7}
+#yinMenu .method-why{color:rgba(156,175,136,.55)}
+#yangMenu .method-why{color:rgba(60,30,15,.6)}
 
 @media(min-width:500px){.app{border-left:1px solid rgba(255,255,255,.04);border-right:1px solid rgba(255,255,255,.04)}}
 </style>
@@ -383,8 +1489,17 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
       </div>
 
       <div class="tomato-garden" id="tomatoGarden">
-        <div class="tomato-lbl" id="tomatoLbl">今日番茄</div>
+        <div class="tomato-header">
+          <div class="tomato-lbl" id="tomatoLbl">今日番茄</div>
+          <button class="garden-btn" onclick="openHistoryEntry()" title="森/库">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L7 9h10z"/><path d="M12 9L4 19h16z"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+            <span id="entryBtnLbl">箧</span>
+          </button>
+        </div>
+        <!-- 箧 version (default) - row of tomatoes -->
         <div class="tomato-row" id="tomatoRow"></div>
+        <!-- 森 version - growing tree -->
+        <div class="today-tree-wrap" id="todayTreeWrap" style="display:none"></div>
       </div>
     </div>
 
@@ -404,26 +1519,183 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
     </div>
     <!-- MEMO -->
     <div class="pg" id="pgM">
-      <div class="memo-tabs">
-        <button class="memo-tab on" id="memoT1" onclick="memoSwitch('todo')">待办</button>
-        <button class="memo-tab" id="memoT2" onclick="memoSwitch('shopping')">购物清单</button>
-        <button class="memo-tab" id="memoT3" onclick="memoSwitch('ingredient')">食材清单</button>
+      <div class="memo-tabs" id="memoTabs">
+        <!-- Tab order is dynamic and persistable -->
       </div>
 
-      <div class="memo-input-row">
-        <input class="memo-input" id="memoInp" placeholder="添加新条目" maxlength="80">
-        <button class="memo-add-btn" onclick="memoAdd()">+</button>
+      <!-- ===== Inspiration tab content ===== -->
+      <div id="memoSecInsp" style="display:none">
+        <div class="insp-views">
+          <button class="insp-view" data-iv="present" onclick="inspSetView('present')">此刻</button>
+          <button class="insp-view" data-iv="soon" onclick="inspSetView('soon')">不久</button>
+          <button class="insp-view on" data-iv="far" onclick="inspSetView('far')">远思</button>
+        </div>
+        <div class="memo-input-row">
+          <textarea class="memo-input" id="inspInp" placeholder="写下你的想法..." rows="2" oninput="inspToggleOpts()"></textarea>
+          <button class="memo-add-btn" onclick="inspAdd()">+</button>
+        </div>
+        <div class="insp-opts" id="inspOpts" style="display:none">
+          <div class="insp-opt-row" id="inspTagRow">
+            <span class="insp-opt-lbl">标签</span>
+            <!-- Tags rendered dynamically (with rename support) -->
+          </div>
+        </div>
+        <!-- 当前筛选标签提示 -->
+        <div class="insp-filter-hint" id="inspFilterHint" style="display:none"></div>
+        <div class="memo-list" id="inspList"></div>
       </div>
 
-      <div class="memo-priority-row" id="memoPriRow">
-        <button class="memo-pri sel" data-pri="normal" onclick="memoSetPri('normal')">普通</button>
-        <button class="memo-pri" data-pri="important" onclick="memoSetPri('important')">重要</button>
-        <button class="memo-pri" data-pri="urgent" onclick="memoSetPri('urgent')">紧急</button>
+      <!-- ===== Todo tab content ===== -->
+      <div id="memoSecTodo" style="display:none">
+        <div class="cat-tabs" id="todoCatTabs">
+          <!-- categories rendered dynamically -->
+        </div>
+        <div class="memo-input-row">
+          <textarea class="memo-input" id="todoInp" placeholder="添加待办..." rows="1"></textarea>
+          <button class="memo-add-btn" onclick="todoAdd()">+</button>
+        </div>
+        <div class="memo-list" id="todoList"></div>
       </div>
 
-      <div class="memo-list" id="memoList"></div>
+      <!-- ===== Shopping tab content ===== -->
+      <div id="memoSecShopping" style="display:none">
+        <div class="memo-input-row">
+          <textarea class="memo-input" id="shopInp" placeholder="添加购物..." rows="1"></textarea>
+          <button class="memo-add-btn" onclick="shopAdd()">+</button>
+        </div>
+        <div class="memo-list" id="shopList"></div>
+      </div>
+
+      <!-- ===== Ingredient tab content ===== -->
+      <div id="memoSecIngredient" style="display:none">
+        <div class="memo-input-row">
+          <textarea class="memo-input" id="ingInp" placeholder="添加食材..." rows="1" oninput="ingDetectBulk()"></textarea>
+          <button class="memo-add-btn" id="ingAddBtn" onclick="ingSmartAdd()">+</button>
+        </div>
+        <div class="memo-list" id="ingList"></div>
+      </div>
     </div>
 
+    <!-- ============ 观 (GUAN) ============ -->
+    <div class="pg" id="pgG">
+      <div class="guan-card">
+        <div class="guan-card-label">此 刻 · 能 量</div>
+        <div class="gs1-wrap">
+          <div class="gs1-emojis" id="gs1Emojis"></div>
+          <div class="gs1-track-wrap" id="gs1Track">
+            <div class="gs1-track"></div>
+            <div class="gs1-thumb" id="gs1thumb"></div>
+          </div>
+          <div class="gs1-confirm-row">
+            <span class="gs1-preview-text" id="gs1Preview">拖 动 选 择</span>
+            <button class="gs1-confirm-btn" id="gs1Confirm" onclick="guanConfirmRecord()">记 录</button>
+            <span class="gs1-recorded" id="gs1Recorded">已 记 录</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="guan-card">
+        <div class="guan-card-label">补 给</div>
+        <div class="la-prompt">— 此 刻 我 需 要 —</div>
+        <div class="la-btns">
+          <div class="la-btn la-btn-yin" onclick="guanOpenMenu('yin')">
+            <div class="la-name">印</div>
+            <div class="la-sub">Nourish · 滋 养</div>
+          </div>
+          <div class="la-btn la-btn-yang" onclick="guanOpenMenu('yang')">
+            <div class="la-name">火</div>
+            <div class="la-sub">Ignite · 点 燃</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ 森 GROVE OVERLAY ============ -->
+  <div class="garden-overlay" id="gardenOverlay">
+    <div class="garden-header">
+      <span class="garden-title">森 · GROVE</span>
+      <button class="garden-close" onclick="closeGarden()">✕</button>
+    </div>
+    <div class="garden-body">
+      <div class="garden-stats">
+        <div class="gstat">
+          <div class="gstat-num" id="gstatTrees">0</div>
+          <div class="gstat-lbl">TREES</div>
+        </div>
+        <div class="gstat">
+          <div class="gstat-num" id="gstatToms">0</div>
+          <div class="gstat-lbl">TOMATOES</div>
+        </div>
+        <div class="gstat">
+          <div class="gstat-num" id="gstatDays">0</div>
+          <div class="gstat-lbl">DAYS</div>
+        </div>
+      </div>
+      <div class="time-tabs">
+        <button class="time-btn" id="ttd" onclick="setGardenTime('dawn')">黎明</button>
+        <button class="time-btn" id="tta" onclick="setGardenTime('day')">白天</button>
+        <button class="time-btn" id="ttu" onclick="setGardenTime('dusk')">黄昏</button>
+        <button class="time-btn" id="ttn" onclick="setGardenTime('night')">深夜</button>
+      </div>
+      <div class="garden-scene day" id="gardenScene">
+        <div class="gsky"></div>
+        <div class="gground"></div>
+        <div class="tree-field" id="treeField"></div>
+        <div class="garden-empty" id="gardenEmpty">
+          <div class="ge-text">尚 无 树</div>
+          <div class="ge-sub">完成 一个番茄 · 种 下 第 一 棵</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 库 CELLAR OVERLAY ============ -->
+  <div class="garden-overlay cellar-overlay" id="cellarOverlay">
+    <div class="garden-header">
+      <span class="garden-title">箧 · COFFRET</span>
+      <button class="garden-close" onclick="closeCellar()">✕</button>
+    </div>
+    <div class="garden-body">
+      <div class="garden-stats">
+        <div class="gstat">
+          <div class="gstat-num" id="cstatBoxes">0</div>
+          <div class="gstat-lbl">BOXES</div>
+        </div>
+        <div class="gstat">
+          <div class="gstat-num" id="cstatToms">0</div>
+          <div class="gstat-lbl">TOMATOES</div>
+        </div>
+        <div class="gstat">
+          <div class="gstat-num" id="cstatDays">0</div>
+          <div class="gstat-lbl">DAYS</div>
+        </div>
+      </div>
+      <div class="cellar-room">
+        <div class="cellar-spotlight"></div>
+        <div class="cellar-shelf" id="cellarBg"></div>
+        <div class="cellar-floor"></div>
+      </div>
+      <div class="cellar-empty" id="cellarEmpty" style="display:none">
+        <div class="ge-text">尚 无 箱</div>
+        <div class="ge-sub">完成 25个番茄 · 装 满 第 一 箱</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FULL SEAL ANIMATION OVERLAY ============ -->
+  <div class="seal-anim" id="sealAnim">
+    <div class="seal-stage" id="sealStage">
+      <div class="seal-tomatoes" id="sealTomatoes"></div>
+      <div class="seal-box" id="sealBox">
+        <div class="sb-body"></div>
+        <div class="sb-tape"></div>
+        <div class="sb-seal">梵</div>
+        <div class="sb-date" id="sbDate">2026.05.06</div>
+      </div>
+      <div class="seal-msg" id="sealMsg">封 · 入 库</div>
+    </div>
   </div>
 
   <div class="nav"><div class="nv">
@@ -435,6 +1707,8 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>日历</button>
     <button class="nb" id="nM" onclick="goPage('M')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>备忘</button>
+    <button class="nb" id="nG" onclick="goPage('G')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/></svg>观</button>
   </div></div>
 </div>
 
@@ -451,6 +1725,43 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
   </div>
 </div>
 
+<!-- ============ 印 / 火 MENUS (GUAN) ============ -->
+<div class="menu-overlay" id="yinMenu">
+  <div class="menu-bg-base"></div>
+  <div class="menu-bg-haze"></div>
+  <div class="menu-header">
+    <span class="menu-title yin">印<span class="menu-title-en">Nourish</span></span>
+    <button class="menu-close" onclick="guanCloseMenu('yin')">✕</button>
+  </div>
+  <div class="menu-body">
+    <!-- Tier tabs at top -->
+    <div class="tier-tabs" id="yinTierTabs"></div>
+    <!-- Method list directly below -->
+    <div class="method-tier-head">
+      <div class="method-tier-name" id="yinMethodTierName"></div>
+      <div class="method-tier-time" id="yinMethodTierTime"></div>
+    </div>
+    <div class="method-list" id="yinMethodList"></div>
+  </div>
+</div>
+
+<div class="menu-overlay" id="yangMenu">
+  <div class="menu-bg-base"></div>
+  <div class="menu-bg-haze"></div>
+  <div class="menu-header">
+    <span class="menu-title yang">火<span class="menu-title-en">Ignite</span></span>
+    <button class="menu-close" onclick="guanCloseMenu('yang')">✕</button>
+  </div>
+  <div class="menu-body">
+    <div class="tier-tabs" id="yangTierTabs"></div>
+    <div class="method-tier-head">
+      <div class="method-tier-name" id="yangMethodTierName"></div>
+      <div class="method-tier-time" id="yangMethodTierTime"></div>
+    </div>
+    <div class="method-list" id="yangMethodList"></div>
+  </div>
+</div>
+
 <!-- SUMMARY -->
 <div class="sum-bg" id="sumBg"><div class="sum-box" id="sumBox"></div></div>
 
@@ -464,17 +1775,17 @@ const PERIODS=[
    text:'#E0DCC8',textLight:'#A0AC8C',bg:'#1E2820'},
   {h0:7,h1:9,name:'辰时',element:'土',
    colors:['#FAF6EE','#E8E0D0','#D4C8B0','#C4B49A','#B5A48A','#9C8F77'],
-   text:'#3E3830',textLight:'#8C8274',bg:'#F0EBE2'},
+   text:'#3E3830',textLight:'#8C8274',bg:'#F0E8DA'},
   {h0:9,h1:13,name:'巳午时',element:'火',
    colors:['#F2EDE0','#A8B89A','#7A8E68','#5E7248','#C8A86A','#B4923E'],
-   text:'#2E3028',textLight:'#6E7462',bg:'#EDE6D8'},
+   text:'#2E3028',textLight:'#6E7462',bg:'#E8E6D4'},
   {h0:13,h1:15,name:'未时',element:'土',
    colors:['#FDFAF2','#F0E8DA','#E4D8C4','#D4C8B0','#C2B6A0','#B0A48E'],
    text:'#4A4438',textLight:'#9E9484',bg:'#F8F4EC'},
   {h0:15,h1:19,name:'申酉时',element:'金',
    colors:['#F0E8D4','#E0CCA0','#C8A86A','#B4923E','#8E7248','#5C4030'],
    text:'#3A3028',textLight:'#8A7A64',bg:'#EBE3D5'},
-  {h0:19,h1:21,name:'戌时',element:'暮',
+  {h0:19,h1:21,name:'戌时',element:'土',
    colors:['#D4A86A','#7E5CC8','#5D3A9B','#4A2E80','#3D2944','#2D2245'],
    text:'#E0D8E8',textLight:'#9890A8',bg:'#1A1428'},
   {h0:21,h1:27,name:'亥子时',element:'水',
@@ -685,11 +1996,20 @@ function applyUITheme(){
   document.querySelectorAll('.cal-n button').forEach(e=>e.style.color=tlCol);
   document.querySelectorAll('.t-pulse').forEach(e=>e.style.background=textCol);
   document.querySelectorAll('.tomato-lbl').forEach(e=>e.style.color=tlCol);
+  document.querySelectorAll('.garden-btn').forEach(e=>e.style.color=textCol);
   
   // Memo
   document.querySelectorAll('.memo-tab,.memo-text,.memo-input,.memo-add-btn').forEach(e=>e.style.color=textCol);
   document.querySelectorAll('.memo-pri,.memo-del').forEach(e=>e.style.color=tlCol);
   document.querySelectorAll('.memo-check').forEach(e=>e.style.color=textCol);
+  // Categories
+  document.querySelectorAll('.cat-tab,.cat-tab-input').forEach(e=>e.style.color=textCol);
+  document.querySelectorAll('.cat-add').forEach(e=>e.style.color=tlCol);
+  // Inspiration
+  document.querySelectorAll('.insp-view,.insp-opt-btn,.insp-filter-hint').forEach(e=>e.style.color=textCol);
+  document.querySelectorAll('.insp-text').forEach(e=>e.style.color=textCol);
+  document.querySelectorAll('.insp-tag-pill,.insp-state-tag,.insp-opt-lbl').forEach(e=>e.style.color=tlCol);
+  document.querySelectorAll('.insp-act-btn').forEach(e=>e.style.color=tlCol);
   
   // Pomo
   document.getElementById('pmDig').style.color=textCol;
@@ -910,9 +2230,410 @@ function goPage(p){
   if(p==='C')initCal();
   if(p==='P')renderTomatoes();
   if(p==='M')goMemo();
+  if(p==='G')guanInit();
   
   applyGradient();
   setTimeout(()=>applyUITheme(),100);
+}
+
+// ================================================================
+// 观 (GUAN) - Energy tracking + 印/火 menus
+// ================================================================
+const GUAN_STATES=[
+  {icon:'🔥',name:'燃',color:'#E85A2C',feel:'精力充沛、有动力、状态好'},
+  {icon:'🌊',name:'流',color:'#4A8FB8',feel:'平稳、专注、安静地做事'},
+  {icon:'🌀',name:'转',color:'#6E4C8E',feel:'胡思乱想、停不下来、脑子很快但身体累'},
+  {icon:'❄️',name:'冷',color:'#B8D4E8',feel:'没感觉、麻木、不想动'},
+  {icon:'🔪',name:'刺',color:'#8B8B8B',feel:'愤怒、烦躁、恨、想发火'},
+  {icon:'🕳️',name:'空',color:'#1A1418',feel:'痛苦、无力、想哭、虚脱'}
+];
+
+// ============ 干支历计算 (Ganzhi/八字) ============
+const GZ_STEMS=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const GZ_BRANCHES=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+
+// Reference: 1900-01-01 was 庚子年 丁丑月 甲子日 (Julian Day reference)
+function getGanzhi(date){
+  const Y = date.getFullYear();
+  const M = date.getMonth()+1;
+  const D = date.getDate();
+  const H = date.getHours();
+  
+  // 年柱 (Year pillar) - based on lunar new year approximation (Feb 4 立春)
+  // For simplicity, use 立春 ~ Feb 4 as year boundary
+  let yY = Y;
+  if(M < 2 || (M === 2 && D < 4)) yY = Y - 1;
+  const yStem = ((yY - 4) % 10 + 10) % 10;
+  const yBranch = ((yY - 4) % 12 + 12) % 12;
+  const yearPillar = GZ_STEMS[yStem] + GZ_BRANCHES[yBranch];
+  
+  // 月柱 (Month pillar) - based on 节气 (solar terms), simplified to month boundaries
+  // Months in 干支: 寅(Feb)=1, 卯(Mar)=2, 辰(Apr)=3, ... 丑(Jan)=12
+  // Boundary: each month roughly starts on the 4th-7th day
+  // Simplified: use month >= 4th day boundary
+  let lunarMonthIdx; // 0=寅, 1=卯, 2=辰, ...
+  // Solar term boundaries (approximate): 
+  // 立春 ~ Feb 4, 惊蛰 ~ Mar 6, 清明 ~ Apr 5, 立夏 ~ May 5, 芒种 ~ Jun 6,
+  // 小暑 ~ Jul 7, 立秋 ~ Aug 7, 白露 ~ Sep 8, 寒露 ~ Oct 8, 立冬 ~ Nov 7,
+  // 大雪 ~ Dec 7, 小寒 ~ Jan 6
+  const termDays=[6,4,6,5,5,6,7,7,8,8,7,7]; // approx start day for each month boundary
+  let solarMonth; // 1-12, where 1=寅月
+  if(M === 1){
+    solarMonth = D >= termDays[11] ? 12 : 11; // 12月=丑, 11月=子
+    // wait: 小寒(Jan 6)→丑月(12) , 大雪(Dec 7)→子月(11)
+    if(D < termDays[11]) solarMonth = 11; else solarMonth = 12;
+  } else {
+    if(D >= termDays[M-2]) solarMonth = M - 1; else solarMonth = M - 2;
+    if(solarMonth <= 0) solarMonth = 11; // Dec wraps to 子
+  }
+  // solarMonth 1=寅 ... 11=子, 12=丑
+  // Branch index: solarMonth=1→branch 2(寅), 2→3(卯), ... 11→0(子), 12→1(丑)
+  const mBranch = (solarMonth + 1) % 12;
+  // 月干 = (年干 * 2 + 月支序号) % 10, where 月支序号 starts from 寅=1
+  // Standard formula: 月干 = (年干*2 + solarMonth) % 10, solarMonth from 1=寅
+  const mStem = ((yStem * 2 + solarMonth) % 10 + 10) % 10;
+  const monthPillar = GZ_STEMS[mStem] + GZ_BRANCHES[mBranch];
+  
+  // 日柱 (Day pillar) - based on Julian Day count
+  // Reference: 2000-01-01 was 甲辰日 (well-known reference)
+  // Actually 2000-01-01 was 戊午日. Let's use: 1900-01-01 = 甲戌日
+  // Using formula: dayDiff from a known 甲子日, then mod 60
+  // Known: 1984-12-26 was 甲子日
+  const refDate = new Date(1984, 11, 26); // Dec 26, 1984
+  const target = new Date(Y, M-1, D);
+  const dayDiff = Math.floor((target - refDate) / 86400000);
+  const dayCycle = ((dayDiff % 60) + 60) % 60;
+  const dStem = dayCycle % 10;
+  const dBranch = dayCycle % 12;
+  const dayPillar = GZ_STEMS[dStem] + GZ_BRANCHES[dBranch];
+  
+  // 时柱 (Hour pillar)
+  // Hour branches: 子=23-1, 丑=1-3, 寅=3-5, 卯=5-7, 辰=7-9, 巳=9-11, 
+  //                午=11-13, 未=13-15, 申=15-17, 酉=17-19, 戌=19-21, 亥=21-23
+  let hBranch;
+  if(H >= 23 || H < 1) hBranch = 0;       // 子
+  else if(H < 3)  hBranch = 1;             // 丑
+  else if(H < 5)  hBranch = 2;             // 寅
+  else if(H < 7)  hBranch = 3;             // 卯
+  else if(H < 9)  hBranch = 4;             // 辰
+  else if(H < 11) hBranch = 5;             // 巳
+  else if(H < 13) hBranch = 6;             // 午
+  else if(H < 15) hBranch = 7;             // 未
+  else if(H < 17) hBranch = 8;             // 申
+  else if(H < 19) hBranch = 9;             // 酉
+  else if(H < 21) hBranch = 10;            // 戌
+  else hBranch = 11;                       // 亥
+  // 时干 = (日干*2 + 时支序号) % 10, 时支序号 from 子=0
+  const hStem = ((dStem * 2 + hBranch) % 10 + 10) % 10;
+  const hourPillar = GZ_STEMS[hStem] + GZ_BRANCHES[hBranch];
+  
+  return {
+    year: yearPillar,
+    month: monthPillar,
+    day: dayPillar,
+    hour: hourPillar,
+    full: `${yearPillar}年 ${monthPillar}月 ${dayPillar}日 ${hourPillar}时`
+  };
+}
+
+function fmtSolar(date){
+  const Y=date.getFullYear(), M=String(date.getMonth()+1).padStart(2,'0'),
+        D=String(date.getDate()).padStart(2,'0'),
+        h=String(date.getHours()).padStart(2,'0'),
+        m=String(date.getMinutes()).padStart(2,'0');
+  return `${Y}-${M}-${D} ${h}:${m}`;
+}
+
+let energyLog = ld('energyLog', []);
+let gs1Idx = 1;
+let gs1Inited = false;
+let gs1ActivePop = null;
+
+function guanInit(){
+  if(gs1Inited){return;}
+  gs1Inited = true;
+  
+  // Build emoji row
+  const cont = document.getElementById('gs1Emojis');
+  cont.innerHTML = '';
+  GUAN_STATES.forEach((s,i)=>{
+    const cell = document.createElement('div');
+    cell.className = 'gs1-emoji';
+    cell.dataset.i = i;
+    cell.innerHTML = `<span class="gs1-emoji-icon">${s.icon}</span>
+      <span class="gs1-emoji-label" data-meaning="${i}">${s.name}</span>`;
+    cell.querySelector('.gs1-emoji-icon').addEventListener('click',(e)=>{
+      e.stopPropagation();
+      guanSetSlider(i);
+      guanShowConfirm();
+    });
+    cont.appendChild(cell);
+  });
+  document.querySelectorAll('.gs1-emoji-label').forEach(label=>{
+    label.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      const i = parseInt(label.dataset.meaning);
+      guanShowMeaning(GUAN_STATES[i], label);
+    });
+  });
+  
+  // Slider drag — map x to emoji slot (6 equal slots)
+  const track = document.getElementById('gs1Track');
+  let drag = false;
+  function move(x){
+    const r = track.getBoundingClientRect();
+    const relX = Math.max(0, Math.min(r.width, x - r.left));
+    // Each slot is r.width/6 wide; index = floor(relX / slotWidth), clamped 0-5
+    const slotW = r.width / 6;
+    const idx = Math.max(0, Math.min(5, Math.floor(relX / slotW)));
+    guanSetSlider(idx);
+  }
+  track.addEventListener('mousedown', e=>{drag=true; move(e.clientX); guanShowConfirm();});
+  track.addEventListener('touchstart', e=>{drag=true; move(e.touches[0].clientX); guanShowConfirm();}, {passive:true});
+  document.addEventListener('mousemove', e=>{if(drag) move(e.clientX);});
+  document.addEventListener('touchmove', e=>{if(drag) move(e.touches[0].clientX);}, {passive:true});
+  document.addEventListener('mouseup', ()=>{drag=false;});
+  document.addEventListener('touchend', ()=>{drag=false;});
+  
+  // Build menus
+  guanBuildMenu('yin');
+  guanBuildMenu('yang');
+  
+  setTimeout(()=>guanSetSlider(1), 50);
+}
+
+function guanSetSlider(i){
+  gs1Idx = i;
+  const track = document.getElementById('gs1Track');
+  const thumb = document.getElementById('gs1thumb');
+  if(!track || !thumb) return;
+  // Each emoji is flex:1 in a 6-column row; center of emoji i is at (i+0.5)*W/6
+  const trackW = track.getBoundingClientRect().width;
+  const center = (i + 0.5) * (trackW / 6);
+  // Thumb is 22px wide, center it
+  thumb.style.left = (center - 11) + 'px';
+  document.querySelectorAll('.gs1-emoji').forEach((e,j)=>{
+    e.classList.remove('preview','confirmed');
+    if(j===i) e.classList.add('preview');
+  });
+}
+
+function guanShowConfirm(){
+  document.getElementById('gs1Preview').style.display='none';
+  document.getElementById('gs1Confirm').classList.add('show');
+  document.getElementById('gs1Recorded').classList.remove('show');
+}
+
+function guanConfirmRecord(){
+  const now = new Date();
+  const gz = getGanzhi(now);
+  energyLog.push({
+    ts: Date.now(),
+    idx: gs1Idx,
+    state: GUAN_STATES[gs1Idx].name,
+    solar: fmtSolar(now),
+    ganzhi: gz.full,
+    gzYear: gz.year, gzMonth: gz.month, gzDay: gz.day, gzHour: gz.hour
+  });
+  sv('energyLog', energyLog);
+  document.getElementById('gs1Confirm').classList.remove('show');
+  const rec = document.getElementById('gs1Recorded');
+  rec.classList.add('show');
+  rec.textContent = `已 记 录 · ${GUAN_STATES[gs1Idx].name}`;
+  document.querySelectorAll('.gs1-emoji').forEach((e,j)=>{
+    e.classList.remove('preview','confirmed');
+    if(j===gs1Idx) e.classList.add('confirmed');
+  });
+  setTimeout(()=>{
+    rec.classList.remove('show');
+    document.getElementById('gs1Preview').style.display='inline';
+  },3000);
+}
+
+function guanShowMeaning(state, anchor){
+  if(gs1ActivePop){ gs1ActivePop.remove(); gs1ActivePop = null; }
+  const pop = document.createElement('div');
+  pop.className = 'meaning-pop';
+  pop.innerHTML = `
+    <div class="meaning-head">
+      <span class="meaning-icon">${state.icon}</span>
+      <span class="meaning-name">${state.name}</span>
+    </div>
+    <div class="meaning-feel">${state.feel}</div>
+  `;
+  document.body.appendChild(pop);
+  gs1ActivePop = pop;
+  
+  const rect = anchor.getBoundingClientRect();
+  const popRect = pop.getBoundingClientRect();
+  let left = rect.left + rect.width/2 - popRect.width/2;
+  left = Math.max(12, Math.min(window.innerWidth - popRect.width - 12, left));
+  let top = rect.top - popRect.height - 12;
+  if(top < 12) top = rect.bottom + 12;
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+  
+  setTimeout(()=>{
+    const closeOnce = (e)=>{
+      if(!pop.contains(e.target)){
+        pop.remove();
+        if(gs1ActivePop === pop) gs1ActivePop = null;
+      }else{
+        document.addEventListener('click', closeOnce, {once:true});
+        document.addEventListener('touchend', closeOnce, {once:true});
+      }
+    };
+    document.addEventListener('click', closeOnce, {once:true});
+    document.addEventListener('touchend', closeOnce, {once:true});
+  }, 50);
+}
+
+const GUAN_TIERS = [
+  {key:'glance', name:'一瞥', time:'1 分 钟 内', desc:'几 乎 不 需 要 精 力'},
+  {key:'tea', name:'一茶', time:'5 - 15 分 钟', desc:'需 要 一 点 点 意 愿'},
+  {key:'walk', name:'一程', time:'30 分 钟 至 1 小 时', desc:'需 要 走 出 去'},
+  {key:'day', name:'一日', time:'半 天 以 上', desc:'需 要 专 门 安 排'}
+];
+
+const GUAN_YIN = {
+  glance: [
+    {name:'闻一下沉香或檀香精油', why:'嗅觉直接入脑,最快的补印方式'},
+    {name:'摸一下木质手串', why:'触觉补木,手指和木的接触'},
+    {name:'站起来看一眼窗外的绿色', why:'视觉补木,哪怕只有一棵树'},
+    {name:'双手合十放在胸口,闭眼三次呼吸', why:'最简冥想,重置神经系统'},
+    {name:'赤脚踩地板(木地板最好)', why:'接地,物理层面回到根'},
+    {name:'喝一口温热的水', why:'暖=火,水被火温化,不克你'},
+    {name:'看一眼你养的植物', why:'和活的木连接'}
+  ],
+  tea: [
+    {name:'泡一杯茶,慢慢喝完', why:'仪式感+温暖+慢下来=造印'},
+    {name:'冥想或静坐(哪怕只有5分钟)', why:'最直接的造印,安住'},
+    {name:'读几页纸质书(不是手机)', why:'精神层补印,和更大的智慧连接'},
+    {name:'点一支香,什么都不做', why:'嗅觉+仪式+留白'},
+    {name:'手写几行字(日记/感受/随便写)', why:'把脑子里的东西倒出来,清空食伤'},
+    {name:'听一首安静的音乐(颂钵/古琴/自然声)', why:'听觉补木,声波层面的滋养'},
+    {name:'拉伸或瑜伽3-5个动作', why:'身体层面释放淤积的能量'},
+    {name:'整理桌面或房间一小块区域', why:'外在秩序=内在秩序=印'},
+    {name:'给植物浇水,擦叶子', why:'照顾活的木=练习滋养'},
+    {name:'洗手,慢慢洗,感受水的温度', why:'最简单的正念练习'}
+  ],
+  walk: [
+    {name:'散步(最好在有树的地方)', why:'物理补木+轻度运动+独处'},
+    {name:'去公园/河边/山边坐一会', why:'自然是最强的印'},
+    {name:'泡澡或长时间热水淋浴', why:'热水=火,被水包裹=被托住'},
+    {name:'做一顿简单的饭', why:'用手做事(不是用脑)=接地'},
+    {name:'去花市或植物店逛一逛', why:'被大量活木包围'},
+    {name:'和一个让你放松的人聊天', why:'关系层补印'},
+    {name:'去寺庙或道观坐一会', why:'灵性层补印,和更大的秩序连接'},
+    {name:'抄经(心经260字,一遍约30分钟)', why:'最高级的造印动作'},
+    {name:'瑜伽或八段锦完整一套', why:'身体层面的深度修复'}
+  ],
+  day: [
+    {name:'进一次真正的森林或山', why:'终极补木,没有替代品'},
+    {name:'去一次远方旅行(东方或东南方向)', why:'方位补木+环境重置'},
+    {name:'做一次完整的茶道', why:'从选茶到收杯,整套仪式'},
+    {name:'找一位你信任的人做深度对话', why:'关系层的深度印'},
+    {name:'去美术馆或博物馆独自待半天', why:'和人类的精神积累连接'},
+    {name:'断网一整天', why:'切断所有消耗源,让火自己恢复'}
+  ]
+};
+
+const GUAN_YANG = {
+  glance: [
+    {name:'站在阳光里,闭眼感受10秒', why:'太阳=丙火本体,最直接的补火'},
+    {name:'搓热双手,捂住眼睛', why:'手心劳宫穴属火,热量直接入目(火的器官)'},
+    {name:'点一根蜡烛,看火焰几秒', why:'注视真实的火=和自己的本元共振'},
+    {name:'喝一口热水或热茶(不是温的,是热的)', why:'热=火,从内部升温'},
+    {name:'穿一件红色或紫色的衣服', why:'视觉补火,皮肤被火色包裹'},
+    {name:'深呼吸三次,每次呼气时想象自己在发光', why:'丙火=太阳,你本来就会发光'},
+    {name:'闻一下肉桂或姜的气味', why:'辛温之气,嗅觉层面的火'}
+  ],
+  tea: [
+    {name:'出门晒太阳10-15分钟(不要戴墨镜)', why:'眼睛接收阳光=火入火宅,全身回暖'},
+    {name:'喝一杯姜茶/桂圆红枣茶/热可可', why:'温热食物从内部生火'},
+    {name:'跳舞或原地跳动3分钟', why:'快速心跳=火的物理状态,血液循环加速'},
+    {name:'大声朗读一段文字(什么都行)', why:'声音=火的表达,发声是补火最快的方式之一'},
+    {name:'和一个让你开心的人发消息或打电话', why:'开心=心火升,笑=火的释放'},
+    {name:'化妆,打扮自己', why:'丙火=光彩照人,装扮自己=恢复你的光'},
+    {name:'看一段让你振奋的视频或演讲', why:'被别人的火点燃自己的火'},
+    {name:'吃一顿热的、辣的、重口味的食物', why:'辛辣=火,胃暖则全身暖'},
+    {name:'点香(檀香/沉香都行)+ 点蜡烛', why:'双重真火——嗅觉+视觉同时补'},
+    {name:'看自己的美照', why:'丙火=太阳=光=自我认同,看见自己在发光'}
+  ],
+  walk: [
+    {name:'户外快走或慢跑(在阳光下)', why:'运动+阳光=身体的火被物理层面激活'},
+    {name:'做一顿饭(用火烹饪)', why:'你亲手控制火=和火建立主动关系'},
+    {name:'去一个明亮的、有人气的地方待一会', why:'人气=火,热闹的场所补火(但不要待太久,你身弱)'},
+    {name:'桑拿或汗蒸15-20分钟', why:'全身被热包裹,强力补火(但不要过久,你身弱会虚脱)'},
+    {name:'看一部让你热血沸腾的电影', why:'情绪的火被点燃=心火回升'},
+    {name:'整理衣柜,把红色或紫色衣物放在最显眼位置', why:'每天打开衣柜第一眼看到火色'},
+    {name:'给家里换暖色灯泡(3000K以下)', why:'改变光环境=长期被暖光养着'},
+    {name:'练习表达(写文章/录音/对镜头说话)', why:'食伤的正向释放=火通过土(表达)流出去,不淤积'}
+  ],
+  day: [
+    {name:'去一个阳光充足的地方旅行(南方)', why:'南=火位,阳光充沛的地方直接补火'},
+    {name:'参加一次聚会或派对(你喜欢的人)', why:'人气+欢笑+社交=火的盛宴(但要选对人)'},
+    {name:'做一件被别人看见的事(发作品/分享/演讲)', why:'丙火=太阳=需要照耀别人,被看见=火被点亮'},
+    {name:'去看一场现场演出(音乐会/话剧/体育赛事)', why:'现场的集体能量=火的共振场'},
+    {name:'和最亲近的人待一整天,什么都不做', why:'爱=火,被爱的感觉=最深层的补火'}
+  ]
+};
+
+function guanBuildMenu(side){
+  const tabsEl = document.getElementById(side+'TierTabs');
+  if(!tabsEl) return;
+  tabsEl.innerHTML = '';
+  GUAN_TIERS.forEach((t, idx)=>{
+    const tab = document.createElement('div');
+    tab.className = 'tier-tab' + (idx===0 ? ' on' : '');
+    tab.dataset.key = t.key;
+    tab.innerHTML = `
+      <span class="tier-tab-name">${t.name}</span>
+      <span class="tier-tab-time">${t.time}</span>
+    `;
+    tab.onclick = ()=>guanShowTier(side, t.key);
+    tabsEl.appendChild(tab);
+  });
+  // Show first tier by default
+  guanShowTier(side, GUAN_TIERS[0].key);
+}
+
+function guanShowTier(side, key){
+  const tier = GUAN_TIERS.find(t=>t.key===key);
+  const methods = (side==='yin' ? GUAN_YIN : GUAN_YANG)[key];
+  const listEl = document.getElementById(side+'MethodList');
+  if(!listEl) return;
+  
+  // Update tab on state
+  document.querySelectorAll(`#${side}TierTabs .tier-tab`).forEach(tab=>{
+    tab.classList.toggle('on', tab.dataset.key===key);
+  });
+  
+  // Update tier head
+  document.getElementById(side+'MethodTierName').textContent = tier.name;
+  document.getElementById(side+'MethodTierTime').textContent = `${tier.time} · ${tier.desc}`;
+  
+  // Build method list
+  let html = '';
+  methods.forEach(m=>{
+    html += `<div class="method">
+      <div class="method-name">${m.name}</div>
+      <div class="method-why">${m.why}</div>
+    </div>`;
+  });
+  listEl.innerHTML = html;
+}
+
+function guanBackToTiers(side){
+  // No-op now - kept for compatibility with any old calls
+}
+
+function guanOpenMenu(side){
+  document.getElementById(side+'Menu').classList.add('on');
+  guanBuildMenu(side);
+}
+function guanCloseMenu(side){
+  document.getElementById(side+'Menu').classList.remove('on');
 }
 
 // ================================================================
@@ -1062,15 +2783,154 @@ function expDayCSV(dk){
   download(csv,`梵_${dk}.csv`,'text/csv');
 }
 function exportAllCSV(){
-  let csv='date,tag,start_time,end_time,duration_seconds,duration_readable\n';
+  // Collect all records into one unified list, then sort by time
+  const records=[];
+  
+  // Time records (timing logs)
   Object.entries(allDays).sort().forEach(([dk,recs])=>{
-    recs.forEach(r=>{const s=new Date(r.start),e=new Date(r.end);
-      csv+=`${dk},${r.tagName},${pad(s.getHours())}:${pad(s.getMinutes())}:${pad(s.getSeconds())},${pad(e.getHours())}:${pad(e.getMinutes())}:${pad(e.getSeconds())},${r.duration},${fmtD(r.duration)}\n`;});
+    recs.forEach(r=>{
+      const s=new Date(r.start), e=new Date(r.end);
+      const sGz=getGanzhi(s), eGz=getGanzhi(e);
+      records.push({
+        ts:s.getTime(),
+        type:'time',
+        solar:fmtSolar(s)+' → '+fmtSolar(e),
+        ganzhi:sGz.full,
+        detail:`${r.tagName} (${fmtD(r.duration)})`
+      });
+    });
   });
+  
+  // Energy records
+  if(energyLog&&energyLog.length){
+    energyLog.forEach(e=>{
+      const d=new Date(e.ts);
+      const solar=e.solar||fmtSolar(d);
+      const gz=e.ganzhi||(getGanzhi(d).full);
+      const state=e.state||(typeof GUAN_STATES!=='undefined'&&GUAN_STATES[e.idx]?GUAN_STATES[e.idx].name:'');
+      records.push({
+        ts:e.ts,
+        type:'energy',
+        solar:solar,
+        ganzhi:gz,
+        detail:state
+      });
+    });
+  }
+  
+  // Inspirations / Thoughts
+  if(inspirations&&inspirations.length){
+    inspirations.forEach(i=>{
+      const d=new Date(i.createdAt);
+      const tagsStr=(i.tags||[]).join('|');
+      const stateMap={present:'此刻',soon:'不久',far:'远思'};
+      const stateLbl=stateMap[i.state]||'';
+      const content=String(i.content||'').replace(/"/g,'""').replace(/\n/g,' / ');
+      records.push({
+        ts:i.createdAt,
+        type:'thought',
+        solar:fmtSolar(d),
+        ganzhi:getGanzhi(d).full,
+        detail:`[${stateLbl}] ${content}${tagsStr?' (tags: '+tagsStr+')':''}`
+      });
+    });
+  }
+  
+  // Todos (all - completed and pending)
+  const todos=memos.todo||[];
+  if(todos.length){
+    todos.forEach(t=>{
+      const d=new Date(t.createdAt);
+      const status=t.done?'done':'pending';
+      const content=String(t.text||'').replace(/"/g,'""').replace(/\n/g,' / ');
+      const pri=t.priority||'normal';
+      records.push({
+        ts:t.createdAt,
+        type:'todo',
+        solar:fmtSolar(d),
+        ganzhi:getGanzhi(d).full,
+        detail:`[${pri}|${status}] ${content}`
+      });
+    });
+  }
+  
+  // Sort by timestamp ascending (oldest first)
+  records.sort((a,b)=>a.ts-b.ts);
+  
+  // Build CSV
+  let csv='type,solar_time,ganzhi,detail\n';
+  records.forEach(r=>{
+    const det=String(r.detail).replace(/"/g,'""');
+    csv+=`${r.type},${r.solar},${r.ganzhi},"${det}"\n`;
+  });
+  
   download(csv,`梵_全部记录_${todayK()}.csv`,'text/csv');
 }
+
 function exportAllJSON(){
-  const data={app:'梵',exported:new Date().toISOString(),days:allDays,tomatoes:allTomatoes};
+  // AI-friendly JSON with standardized fields and dual time format
+  
+  // Time records
+  const timeRecords=[];
+  Object.entries(allDays).sort().forEach(([dk,recs])=>{
+    recs.forEach(r=>{
+      const s=new Date(r.start), e=new Date(r.end);
+      timeRecords.push({
+        solar_start:fmtSolar(s),
+        solar_end:fmtSolar(e),
+        ganzhi_start:getGanzhi(s).full,
+        duration_minutes:Math.round(r.duration/60),
+        tag:r.tagName
+      });
+    });
+  });
+  
+  // Energy records
+  const energyRecords=(energyLog||[]).map(e=>{
+    const d=new Date(e.ts);
+    return {
+      solar:e.solar||fmtSolar(d),
+      ganzhi:e.ganzhi||getGanzhi(d).full,
+      state:e.state||(typeof GUAN_STATES!=='undefined'&&GUAN_STATES[e.idx]?GUAN_STATES[e.idx].name:'')
+    };
+  });
+  
+  // Thoughts
+  const stateMap={present:'此刻',soon:'不久',far:'远思'};
+  const thoughts=(inspirations||[]).map(i=>{
+    const d=new Date(i.createdAt);
+    return {
+      solar:fmtSolar(d),
+      ganzhi:getGanzhi(d).full,
+      state:stateMap[i.state]||i.state,
+      tags:i.tags||[],
+      content:i.content||''
+    };
+  });
+  
+  // Todos (all)
+  const todoRecords=(memos.todo||[]).map(t=>{
+    const d=new Date(t.createdAt);
+    return {
+      created_solar:fmtSolar(d),
+      created_ganzhi:getGanzhi(d).full,
+      priority:t.priority||'normal',
+      status:t.done?'done':'pending',
+      content:t.text||''
+    };
+  });
+  
+  const data={
+    app:'梵',
+    exported:new Date().toISOString(),
+    export_for:'AI分析',
+    note:'每条记录包含solar(公历)和ganzhi(干支)双时间,便于交叉关联',
+    time_records:timeRecords,
+    energy_records:energyRecords,
+    thoughts:thoughts,
+    todos:todoRecords
+  };
+  
   download(JSON.stringify(data,null,2),`梵_全部记录_${todayK()}.json`,'application/json');
 }
 function download(content,name,type){
@@ -1084,17 +2944,34 @@ function download(content,name,type){
 // ================================================================
 function initPomo(){
   const pw=document.getElementById('pmW');pw.innerHTML='';
-  [25,30,35,45,60].forEach(m=>{const b=document.createElement('button');b.className='pm-pre'+(pmW===m?' sel':'');
-    b.textContent=m+'分';b.onclick=()=>{if(pmState==='idle'){pmW=m;initPomo();updPomoDig();}};pw.appendChild(b);});
+  // Test option: 3 seconds (will display as "测试")
+  const presets=[{m:0.05,label:'测试'},{m:25,label:'25分'},{m:30,label:'30分'},{m:35,label:'35分'},{m:45,label:'45分'},{m:60,label:'60分'}];
+  presets.forEach(p=>{
+    const b=document.createElement('button');
+    b.className='pm-pre'+(pmW===p.m?' sel':'');
+    b.textContent=p.label;
+    b.onclick=()=>{if(pmState==='idle'){pmW=p.m;initPomo();updPomoDig();}};
+    pw.appendChild(b);
+  });
   const pr=document.getElementById('pmR');pr.innerHTML='';
   [5,10,15,30].forEach(m=>{const b=document.createElement('button');b.className='pm-pre'+(pmR===m?' sel':'');
     b.textContent=m+'分';b.onclick=()=>{if(pmState==='idle'){pmR=m;initPomo();}};pr.appendChild(b);});
   setTimeout(()=>applyUITheme(),50);
 }
-function updPomoDig(){if(pmState==='idle'){document.getElementById('pmDig').textContent=pad(pmW)+':00';document.getElementById('pmPh').textContent='专注时间';}}
+function updPomoDig(){
+  if(pmState==='idle'){
+    if(pmW<1){
+      // Test mode: display in seconds
+      document.getElementById('pmDig').textContent='00:'+pad(Math.round(pmW*60));
+    }else{
+      document.getElementById('pmDig').textContent=pad(Math.round(pmW))+':00';
+    }
+    document.getElementById('pmPh').textContent='专注时间';
+  }
+}
 function startPomo(){
   playTomatoPluck();
-  pmState='work';pmTotal=pmW*60;pmEnd=Date.now()+pmTotal*1000;
+  pmState='work';pmTotal=Math.max(1,Math.round(pmW*60));pmEnd=Date.now()+pmTotal*1000;
   document.getElementById('pmAI').style.display='none';document.getElementById('pmAR').style.display='flex';
   document.getElementById('pmPh').textContent='专注中';
   const ink=document.getElementById('pmInk');const sz=Math.max(innerWidth,innerHeight)*2.5;
@@ -1107,10 +2984,20 @@ function tickPomo(){
   if(left<=0){clearInterval(pmInt);
     if(pmState==='work'){
       // Save tomato
-      todayTomatoes.push({completedAt:Date.now(),duration:pmW});
+      const newTom={completedAt:Date.now(),duration:pmW};
+      newTomatoIds.add(newTom.completedAt);
+      todayTomatoes.push(newTom);
       allTomatoes[todayK()]=todayTomatoes;sv('tomatoes',allTomatoes);
       renderTomatoes();
       playTomatoLand();
+      // Check if a box just got sealed (current box now full at 25)
+      const flat=getAllTomatoesFlat();
+      if(flat.length%BOX_SIZE===0&&flat.length>0){
+        // A box was just completed
+        const justSealedIdx=Math.floor(flat.length/BOX_SIZE)-1;
+        // Mark for animation when user opens 库
+        // (animation plays on first click of unviewed box in cellar)
+      }
       pmState='rest';pmTotal=pmR*60;pmEnd=Date.now()+pmTotal*1000;
       document.getElementById('pmPh').textContent='休息中';pmInt=setInterval(tickPomo,1000);
     }else{playTomatoLand();resetPomo();}}
@@ -1121,15 +3008,197 @@ function resetPomo(){pmState='idle';
   document.getElementById('pmAI').style.display='flex';document.getElementById('pmAR').style.display='none';
   updPomoDig();}
 
+// Version of pomodoro display: '箧' (boxes) or '森' (tree)
+let pomoVer=ld('pomoVer','箧');
+
+// Track which boxes have been opened/viewed (to avoid replaying seal animation)
+let viewedBoxes=ld('viewedBoxes',[]);
+
+// Track newly added tomatoes for selective animation
+let newTomatoIds=new Set();
+
+const BOX_SIZE=25; // 25 tomatoes per box / per tree
+
+// Get all tomatoes as a flat ordered list across all dates
+function getAllTomatoesFlat(){
+  const out=[];
+  Object.keys(allTomatoes).sort().forEach(dk=>{
+    (allTomatoes[dk]||[]).forEach(t=>{
+      out.push({...t,dateKey:dk});
+    });
+  });
+  return out;
+}
+
+// Boxes/Trees - same data, sliced into chunks of 25
+function getBoxes(){
+  const flat=getAllTomatoesFlat();
+  const boxes=[];
+  for(let i=0;i<flat.length;i+=BOX_SIZE){
+    boxes.push(flat.slice(i,i+BOX_SIZE));
+  }
+  return boxes;
+}
+
+// Current open (non-full) box - the "today's working box" in 箧 mode
+function getCurrentBox(){
+  const boxes=getBoxes();
+  if(!boxes.length)return [];
+  const last=boxes[boxes.length-1];
+  return last.length<BOX_SIZE?last:[];
+}
+
+// For 森 mode: count of tomatoes in current open tree
+function getCurrentTreeCount(){
+  return getCurrentBox().length;
+}
+
 function renderTomatoes(){
   todayTomatoes=allTomatoes[todayK()]||[];
-  const row=document.getElementById('tomatoRow');row.innerHTML='';
-  if(!todayTomatoes.length){
-    row.innerHTML='<div class="tomato-empty">完成第一个番茄</div>';
-    setTimeout(()=>applyUITheme(),50);return;
+  const row=document.getElementById('tomatoRow');
+  const treeWrap=document.getElementById('todayTreeWrap');
+  if(!row||!treeWrap)return;
+  
+  // Toggle visibility
+  if(pomoVer==='箧'){
+    row.style.display='flex';
+    treeWrap.style.display='none';
+    // Show CURRENT BOX content (cross-day, not full yet) - this is the key change
+    const currentBox=getCurrentBox();
+    row.innerHTML='';
+    if(!currentBox.length){
+      row.innerHTML='<div class="tomato-empty">完成第一个番茄</div>';
+    }else{
+      currentBox.forEach((t,i)=>{
+        const el=document.createElement('div');
+        el.className='tomato';
+        row.appendChild(el);
+      });
+    }
+  }else{
+    // 森 version - tree with growing tomatoes
+    row.style.display='none';
+    treeWrap.style.display='flex';
+    treeWrap.innerHTML='';
+    
+    const treeCount=getCurrentTreeCount();
+    const currentBox=getCurrentBox();
+    
+    if(treeCount===0){
+      treeWrap.innerHTML='<div class="today-tree-empty">完成 第 一 个 番 茄 · 种 下 一 棵 树</div>';
+    }else{
+      // 25 positions on the foliage
+      const positions=[
+        [38,32],[55,28],[68,38],[28,40],[48,38],[60,48],[72,52],[35,52],[50,55],
+        [22,58],[64,62],[40,68],[55,72],[28,72],[70,72],[45,30],[58,38],[35,42],
+        [48,50],[62,58],[30,62],[52,68],[42,76],[68,40],[20,48]
+      ];
+      let toms='';
+      for(let i=0;i<Math.min(treeCount,25);i++){
+        const [x,y]=positions[i];
+        toms+=`<circle cx="${x}" cy="${y}" r="4.5" fill="url(#ttgTom)" opacity="0.96"/>`;
+        toms+=`<path d="M${x-2},${y-5.5} l2,-3 l2,3 l3,-1 l-2,3 l2,2 l-3,-1 l-2,3 l-1,-3 l-3,1 l2,-2 l-2,-3 z" fill="#4F7044" opacity="0.9"/>`;
+      }
+      treeWrap.innerHTML=`<svg class="today-tree" viewBox="0 0 100 126" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="ttgTom" cx="35%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#E8826E"/>
+            <stop offset="58%" stop-color="#A8313A"/>
+            <stop offset="100%" stop-color="#7C2820"/>
+          </radialGradient>
+          <linearGradient id="ttgTrunk" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0%" stop-color="#9A7145"/>
+            <stop offset="100%" stop-color="#5D3C24"/>
+          </linearGradient>
+        </defs>
+        <path d="M48 67 C45 86 42 103 35 123 L63 123 C56 101 54 85 52 67 Z" fill="url(#ttgTrunk)" opacity="0.9"/>
+        <path d="M50 75 C37 62 31 52 20 39" stroke="#6B4728" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.65"/>
+        <path d="M50 75 C61 58 68 49 80 37" stroke="#6B4728" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.65"/>
+        <ellipse cx="34" cy="40" rx="25" ry="20" fill="#617D4F" opacity="0.72"/>
+        <ellipse cx="56" cy="32" rx="30" ry="22" fill="#86A66C" opacity="0.68"/>
+        <ellipse cx="69" cy="48" rx="26" ry="22" fill="#58744A" opacity="0.76"/>
+        <ellipse cx="44" cy="58" rx="34" ry="24" fill="#78985F" opacity="0.72"/>
+        <ellipse cx="25" cy="57" rx="22" ry="18" fill="#AFC78E" opacity="0.5"/>
+        <ellipse cx="61" cy="63" rx="28" ry="20" fill="#47623E" opacity="0.7"/>
+        ${toms}
+      </svg>`;
+    }
   }
-  todayTomatoes.forEach(()=>{const t=document.createElement('div');t.className='tomato';row.appendChild(t);});
+  
+  // Clear new tomato markers shortly after animation
+  setTimeout(()=>{newTomatoIds.clear();},800);
+  setTimeout(()=>applyUITheme(),50);
+  updateEntryLabel();
 }
+
+function showPomoVerSwitch(anchorEl){
+  // Remove any existing
+  document.querySelectorAll('.ver-pop').forEach(p=>p.remove());
+  
+  const pop=document.createElement('div');
+  pop.className='ver-pop';
+  
+  const linBtn=document.createElement('button');
+  linBtn.textContent='森';
+  if(pomoVer==='森')linBtn.classList.add('on');
+  linBtn.onclick=(e)=>{e.stopPropagation();pop.remove();pomoVer='森';sv('pomoVer','森');renderTomatoes();};
+  
+  const qieBtn=document.createElement('button');
+  qieBtn.textContent='箧';
+  if(pomoVer==='箧')qieBtn.classList.add('on');
+  qieBtn.onclick=(e)=>{e.stopPropagation();pop.remove();pomoVer='箧';sv('pomoVer','箧');renderTomatoes();};
+  
+  pop.appendChild(linBtn);
+  pop.appendChild(qieBtn);
+  
+  const tip=document.createElement('div');
+  tip.className='ver-pop-tip';
+  tip.textContent=pomoVer==='森'?'tree · forest':'tomatoes · cellar';
+  pop.appendChild(tip);
+  
+  document.body.appendChild(pop);
+  
+  const rect=anchorEl.getBoundingClientRect();
+  const popH=140;
+  pop.style.left=Math.max(20,Math.min(window.innerWidth-140,rect.left+rect.width/2-60))+'px';
+  pop.style.top=Math.max(20,rect.top-popH-10)+'px';
+  
+  // Close on outside click - wait longer to avoid the same press that opened it
+  setTimeout(()=>{
+    const closeOnce=(e)=>{
+      if(!pop.contains(e.target)){
+        pop.remove();
+        document.removeEventListener('click',closeOnce,true);
+      }
+    };
+    document.addEventListener('click',closeOnce,true);
+  },300);
+}
+
+// Long-press on the today's tomato area to switch versions
+setTimeout(()=>{
+  const garden=document.getElementById('tomatoGarden');
+  if(!garden)return;
+  let pressTimer=null;
+  let longPressed=false;
+  const startLp=(e)=>{
+    // Don't trigger if clicking the 番茄园 button
+    if(e.target.closest('.garden-btn'))return;
+    longPressed=false;
+    pressTimer=setTimeout(()=>{
+      longPressed=true;
+      showPomoVerSwitch(garden);
+      if(navigator.vibrate)navigator.vibrate(50);
+    },550);
+  };
+  const cancelLp=()=>{if(pressTimer){clearTimeout(pressTimer);pressTimer=null;}};
+  garden.addEventListener('touchstart',startLp,{passive:true});
+  garden.addEventListener('touchend',cancelLp);
+  garden.addEventListener('touchmove',cancelLp,{passive:true});
+  garden.addEventListener('mousedown',startLp);
+  garden.addEventListener('mouseup',cancelLp);
+  garden.addEventListener('mouseleave',cancelLp);
+},500);
 
 // ================================================================
 // CALENDAR
@@ -1177,100 +3246,1021 @@ document.getElementById('addInp').addEventListener('keydown',function(e){if(e.ke
 
 
 // ================================================================
-// MEMO
+// MEMO (灵感 / 待办 / 购物 / 食材)
 // ================================================================
 let memos=ld('memos',{todo:[],shopping:[],ingredient:[]});
-let memoCurrent='todo';
+let inspirations=ld('inspirations',[]);
+let inspTags=ld('inspTags',['思','业','修']);
+let memoTabOrder=ld('memoTabOrder',['todo','shopping','ingredient','inspiration']);
+let memoCurrent=ld('memoCurrent','todo'); // remember last position
 let memoSelectedPri='normal';
+let inspView='far';
+let inspFilterTag=null;
+let inspAddTags=[];
+let inspAddState='far';
+
+const TAB_LABELS={
+  inspiration:'灵感',
+  todo:'待办',
+  shopping:'购物',
+  ingredient:'食材'
+};
+const STATE_LABELS={present:'此刻',soon:'不久',far:'远思'};
+
+// ----------- TAB SYSTEM (with reorder) -----------
+function buildMemoTabs(){
+  const wrap=document.getElementById('memoTabs');
+  wrap.innerHTML='';
+  memoTabOrder.forEach(key=>{
+    const b=document.createElement('button');
+    b.className='memo-tab'+(memoCurrent===key?' on':'');
+    b.dataset.key=key;
+    b.textContent=TAB_LABELS[key];
+    b.onclick=(e)=>{ if(!b.classList.contains('drag-mode')) memoSwitch(key); };
+    // Long press to enter drag mode
+    let pressTimer=null,longPressed=false;
+    b.addEventListener('touchstart',(e)=>{
+      longPressed=false;
+      pressTimer=setTimeout(()=>{
+        longPressed=true;
+        enterDragMode();
+        if(navigator.vibrate)navigator.vibrate(40);
+      },500);
+    },{passive:true});
+    b.addEventListener('touchend',()=>{
+      if(pressTimer)clearTimeout(pressTimer);
+    });
+    b.addEventListener('touchmove',()=>{
+      if(pressTimer&&!longPressed)clearTimeout(pressTimer);
+    },{passive:true});
+    // Mouse long press for desktop testing
+    let mousePressTimer=null;
+    b.addEventListener('mousedown',()=>{
+      mousePressTimer=setTimeout(()=>{
+        enterDragMode();
+      },500);
+    });
+    b.addEventListener('mouseup',()=>{if(mousePressTimer)clearTimeout(mousePressTimer);});
+    b.addEventListener('mouseleave',()=>{if(mousePressTimer)clearTimeout(mousePressTimer);});
+    
+    // Make draggable in drag mode
+    b.draggable=false; // toggled in drag mode
+    b.addEventListener('dragstart',(e)=>{
+      if(!b.classList.contains('drag-mode'))return;
+      b.classList.add('dragging');
+      e.dataTransfer.setData('text/plain',key);
+      e.dataTransfer.effectAllowed='move';
+    });
+    b.addEventListener('dragover',(e)=>{
+      if(!b.classList.contains('drag-mode'))return;
+      e.preventDefault();
+    });
+    b.addEventListener('drop',(e)=>{
+      if(!b.classList.contains('drag-mode'))return;
+      e.preventDefault();
+      const fromKey=e.dataTransfer.getData('text/plain');
+      const toKey=key;
+      if(fromKey&&fromKey!==toKey){
+        const fromIdx=memoTabOrder.indexOf(fromKey);
+        const toIdx=memoTabOrder.indexOf(toKey);
+        memoTabOrder.splice(fromIdx,1);
+        memoTabOrder.splice(toIdx,0,fromKey);
+        sv('memoTabOrder',memoTabOrder);
+        buildMemoTabs();
+      }
+    });
+    b.addEventListener('dragend',()=>{
+      b.classList.remove('dragging');
+    });
+    
+    wrap.appendChild(b);
+  });
+  setTimeout(()=>applyUITheme(),50);
+}
+
+let dragMode=false;
+function enterDragMode(){
+  if(dragMode)return;
+  dragMode=true;
+  document.querySelectorAll('.memo-tab').forEach(t=>{
+    t.classList.add('drag-mode');
+    t.draggable=true;
+  });
+  // Click anywhere outside to exit
+  setTimeout(()=>{
+    document.addEventListener('click',exitDragModeOnce,{once:true});
+  },100);
+}
+function exitDragModeOnce(e){
+  if(e.target.closest('.memo-tabs'))return; // stay if clicking on tabs
+  exitDragMode();
+}
+function exitDragMode(){
+  dragMode=false;
+  document.querySelectorAll('.memo-tab').forEach(t=>{
+    t.classList.remove('drag-mode');
+    t.draggable=false;
+  });
+}
 
 function goMemo(){memoSwitch(memoCurrent);}
 
 function memoSwitch(type){
   memoCurrent=type;
-  ['todo','shopping','ingredient'].forEach((t,i)=>{
-    document.getElementById('memoT'+(i+1)).classList.toggle('on',t===type);
+  sv('memoCurrent',memoCurrent);
+  // Update tab visual state
+  document.querySelectorAll('.memo-tab').forEach(t=>{
+    t.classList.toggle('on',t.dataset.key===type);
   });
-  // Show priority row only for todo
-  document.getElementById('memoPriRow').style.display=type==='todo'?'flex':'none';
-  renderMemos();
+  // Show right section
+  ['Insp','Todo','Shopping','Ingredient'].forEach(k=>{
+    const sec=document.getElementById('memoSec'+k);
+    if(sec)sec.style.display='none';
+  });
+  if(type==='inspiration')document.getElementById('memoSecInsp').style.display='block';
+  if(type==='todo'){
+    document.getElementById('memoSecTodo').style.display='block';
+    buildTodoCatTabs();
+  }
+  if(type==='shopping')document.getElementById('memoSecShopping').style.display='block';
+  if(type==='ingredient')document.getElementById('memoSecIngredient').style.display='block';
+  // Render content
+  if(type==='inspiration')renderInsp();
+  else renderMemoList(type);
+  exitDragMode();
 }
 
-function memoSetPri(p){
-  memoSelectedPri=p;
-  document.querySelectorAll('.memo-pri').forEach(b=>{
-    b.classList.toggle('sel',b.dataset.pri===p);
+function escapeHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+// ----------- TODO -----------
+// Categories with id (stable) and label (editable). User can add/rename/delete/reorder.
+// Default categories: urgent, important, normal
+let todoCats=ld('todoCats',[
+  {id:'urgent',label:'紧急'},
+  {id:'important',label:'重要'},
+  {id:'normal',label:'普通'}
+]);
+let todoCurrent=ld('todoCurrent','normal'); // current view = which category to show + which to write into
+
+function todoSetView(catId){
+  todoCurrent=catId;
+  sv('todoCurrent',todoCurrent);
+  buildTodoCatTabs();
+  renderMemoList('todo');
+}
+
+function buildTodoCatTabs(){
+  const wrap=document.getElementById('todoCatTabs');
+  if(!wrap)return;
+  wrap.innerHTML='';
+  todoCats.forEach(cat=>{
+    const b=document.createElement('button');
+    b.className='cat-tab'+(todoCurrent===cat.id?' on':'');
+    b.dataset.catid=cat.id;
+    b.textContent=cat.label;
+    b.onclick=(e)=>{
+      if(b.classList.contains('drag-mode')){return;} // ignore in drag mode
+      // If this is a single tap and already on, skip; otherwise switch
+      if(!b.dataset.justFinishedLongPress)todoSetView(cat.id);
+    };
+    
+    // Long press for edit popover
+    let pressTimer=null,longPressed=false;
+    const startLongPress=()=>{
+      pressTimer=setTimeout(()=>{
+        longPressed=true;
+        b.dataset.justFinishedLongPress='1';
+        showCatEditPopover(b,cat.id);
+        if(navigator.vibrate)navigator.vibrate(40);
+      },550);
+    };
+    const cancelLongPress=()=>{
+      if(pressTimer)clearTimeout(pressTimer);
+      setTimeout(()=>{delete b.dataset.justFinishedLongPress;},100);
+    };
+    b.addEventListener('touchstart',startLongPress,{passive:true});
+    b.addEventListener('touchend',cancelLongPress);
+    b.addEventListener('touchmove',cancelLongPress,{passive:true});
+    b.addEventListener('mousedown',startLongPress);
+    b.addEventListener('mouseup',cancelLongPress);
+    b.addEventListener('mouseleave',cancelLongPress);
+    
+    wrap.appendChild(b);
+  });
+  
+  // Add subtle "+" button
+  const addBtn=document.createElement('button');
+  addBtn.className='cat-add';
+  addBtn.textContent='+';
+  addBtn.title='添加分类';
+  addBtn.onclick=todoAddCategory;
+  wrap.appendChild(addBtn);
+  
+  setTimeout(()=>applyUITheme(),50);
+}
+
+function todoAddCategory(){
+  const wrap=document.getElementById('todoCatTabs');
+  if(!wrap)return;
+  // Replace + with input
+  const addBtn=wrap.querySelector('.cat-add');
+  if(!addBtn)return;
+  const inp=document.createElement('input');
+  inp.className='cat-tab-input';
+  inp.placeholder='分类名';
+  inp.maxLength=8;
+  addBtn.replaceWith(inp);
+  inp.focus();
+  const finish=()=>{
+    const v=inp.value.trim();
+    if(v){
+      const newId='cat_'+Date.now();
+      todoCats.push({id:newId,label:v});
+      sv('todoCats',todoCats);
+      todoCurrent=newId;
+      sv('todoCurrent',todoCurrent);
+    }
+    buildTodoCatTabs();
+    if(inp.value.trim())renderMemoList('todo');
+  };
+  inp.addEventListener('blur',finish);
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();inp.blur();}
+    if(e.key==='Escape'){inp.value='';inp.blur();}
   });
 }
 
-function memoAdd(){
-  const inp=document.getElementById('memoInp');
+function showCatEditPopover(button,catId){
+  // Close any existing popover
+  document.querySelectorAll('.cat-edit-pop').forEach(p=>p.remove());
+  
+  const cat=todoCats.find(c=>c.id===catId);
+  if(!cat)return;
+  
+  const pop=document.createElement('div');
+  pop.className='cat-edit-pop';
+  
+  const renameBtn=document.createElement('button');
+  renameBtn.textContent='改名';
+  renameBtn.onclick=()=>{
+    pop.remove();
+    todoRenameCategory(catId);
+  };
+  pop.appendChild(renameBtn);
+  
+  // Only allow delete if there's more than 1 category
+  if(todoCats.length>1){
+    const delBtn=document.createElement('button');
+    delBtn.className='danger';
+    delBtn.textContent='删除';
+    delBtn.onclick=()=>{
+      pop.remove();
+      todoDeleteCategory(catId);
+    };
+    pop.appendChild(delBtn);
+  }
+  
+  document.body.appendChild(pop);
+  
+  // Position the popover below the button
+  const rect=button.getBoundingClientRect();
+  pop.style.left=rect.left+'px';
+  pop.style.top=(rect.bottom+6)+'px';
+  
+  // Close on outside click
+  setTimeout(()=>{
+    const closeOnce=(e)=>{
+      if(!pop.contains(e.target))pop.remove();
+    };
+    document.addEventListener('click',closeOnce,{once:true});
+    document.addEventListener('touchend',closeOnce,{once:true});
+  },50);
+}
+
+function todoRenameCategory(catId){
+  const cat=todoCats.find(c=>c.id===catId);
+  if(!cat)return;
+  const wrap=document.getElementById('todoCatTabs');
+  const button=wrap.querySelector(`[data-catid="${catId}"]`);
+  if(!button)return;
+  const inp=document.createElement('input');
+  inp.className='cat-tab-input';
+  inp.value=cat.label;
+  inp.maxLength=8;
+  button.replaceWith(inp);
+  inp.focus();
+  inp.select();
+  const finish=()=>{
+    const v=inp.value.trim();
+    if(v&&v!==cat.label){
+      cat.label=v;
+      sv('todoCats',todoCats);
+    }
+    buildTodoCatTabs();
+  };
+  inp.addEventListener('blur',finish);
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();inp.blur();}
+    if(e.key==='Escape'){inp.value=cat.label;inp.blur();}
+  });
+}
+
+function todoDeleteCategory(catId){
+  // Move all todos in this category to first remaining category
+  const remaining=todoCats.filter(c=>c.id!==catId);
+  if(!remaining.length)return;
+  const moveTo=remaining[0].id;
+  (memos.todo||[]).forEach(t=>{
+    if((t.priority||'normal')===catId)t.priority=moveTo;
+  });
+  todoCats=remaining;
+  sv('todoCats',todoCats);
+  sv('memos',memos);
+  if(todoCurrent===catId){
+    todoCurrent=moveTo;
+    sv('todoCurrent',todoCurrent);
+  }
+  buildTodoCatTabs();
+  renderMemoList('todo');
+}
+
+function todoAdd(){
+  const inp=document.getElementById('todoInp');
   const text=inp.value.trim();if(!text)return;
-  if(!memos[memoCurrent])memos[memoCurrent]=[];
-  const item={id:'m'+Date.now(),text,done:false,createdAt:Date.now()};
-  if(memoCurrent==='todo')item.priority=memoSelectedPri;
-  memos[memoCurrent].unshift(item);
-  sv('memos',memos);inp.value='';renderMemos();
+  memos.todo.unshift({id:'m'+Date.now(),text,done:false,createdAt:Date.now(),priority:todoCurrent});
+  sv('memos',memos);
+  inp.value='';
+  renderMemoList('todo');
 }
 
-function memoToggle(id){
-  const list=memos[memoCurrent];
-  const item=list.find(i=>i.id===id);
-  if(item){item.done=!item.done;sv('memos',memos);renderMemos();}
+// ----------- SHOPPING -----------
+function shopAdd(){
+  const inp=document.getElementById('shopInp');
+  const text=inp.value.trim();if(!text)return;
+  memos.shopping.unshift({id:'s'+Date.now(),text,done:false,createdAt:Date.now()});
+  sv('memos',memos);inp.value='';renderMemoList('shopping');
 }
 
-function memoDel(id){
-  memos[memoCurrent]=memos[memoCurrent].filter(i=>i.id!==id);
-  sv('memos',memos);renderMemos();
+// ----------- INGREDIENT -----------
+function ingAdd(){
+  const inp=document.getElementById('ingInp');
+  const text=inp.value.trim();if(!text)return;
+  memos.ingredient.unshift({id:'i'+Date.now(),text,done:false,createdAt:Date.now()});
+  sv('memos',memos);inp.value='';renderMemoList('ingredient');
+  ingDetectBulk();
+}
+function ingBulk(){
+  const inp=document.getElementById('ingInp');
+  const text=inp.value.trim();if(!text)return;
+  // Split by commas (both English ',' and Chinese '，'), semicolons (';' '；'), Chinese '、', and newlines
+  const parts=text.split(/[,，;;；、\n\r]+/).map(s=>s.trim()).filter(s=>s.length>0);
+  if(!parts.length)return;
+  const now=Date.now();
+  parts.reverse().forEach((p,i)=>{
+    memos.ingredient.unshift({id:'i'+(now+i),text:p,done:false,createdAt:now+i});
+  });
+  sv('memos',memos);inp.value='';renderMemoList('ingredient');
+  ingDetectBulk();
+}
+function ingSmartAdd(){
+  // If the text contains splitter chars, use bulk; otherwise add one
+  const inp=document.getElementById('ingInp');
+  const text=inp.value;
+  if(/[,，;；、\n\r]/.test(text))ingBulk();
+  else ingAdd();
+}
+function ingDetectBulk(){
+  const inp=document.getElementById('ingInp');
+  const btn=document.getElementById('ingAddBtn');
+  if(!inp||!btn)return;
+  if(/[,，;；、\n\r]/.test(inp.value)){
+    btn.textContent='批量';
+    btn.style.fontSize='10px';
+    btn.style.letterSpacing='.15em';
+    btn.style.fontFamily="'Noto Serif SC',serif";
+  }else{
+    btn.textContent='+';
+    btn.style.fontSize='18px';
+    btn.style.letterSpacing='0';
+    btn.style.fontFamily="'EB Garamond',serif";
+  }
 }
 
-function renderMemos(){
-  const list=memos[memoCurrent]||[];
-  const el=document.getElementById('memoList');
+// ----------- SHARED memo list (for todo/shop/ing) -----------
+function memoToggle(type,id){
+  const item=memos[type].find(i=>i.id===id);
+  if(item){item.done=!item.done;sv('memos',memos);renderMemoList(type);}
+}
+function memoDel(type,id){
+  memos[type]=memos[type].filter(i=>i.id!==id);
+  sv('memos',memos);renderMemoList(type);
+}
+function memoStartEdit(type,id){
+  const item=memos[type].find(i=>i.id===id);
+  if(!item)return;
+  const el=document.querySelector(`[data-mid="${id}"] .memo-text`);
+  if(!el)return;
+  const cur=item.text;
+  const ta=document.createElement('textarea');
+  ta.className='memo-text-edit';
+  ta.value=cur;
+  ta.rows=Math.max(1,Math.ceil(cur.length/30));
+  el.replaceWith(ta);
+  ta.focus();
+  ta.setSelectionRange(ta.value.length,ta.value.length);
+  const finish=()=>{
+    const nv=ta.value.trim();
+    if(nv&&nv!==cur){item.text=nv;sv('memos',memos);}
+    renderMemoList(type);
+  };
+  ta.addEventListener('blur',finish);
+  ta.addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ta.blur();}
+    if(e.key==='Escape'){ta.value=cur;ta.blur();}
+  });
+}
+function renderMemoList(type){
+  let list=memos[type]||[];
+  // Filter by todoCurrent for todo
+  if(type==='todo'){
+    list=list.filter(i=>(i.priority||'normal')===todoCurrent);
+  }
+  const elId={todo:'todoList',shopping:'shopList',ingredient:'ingList'}[type];
+  const el=document.getElementById(elId);
   if(!list.length){
-    el.innerHTML='<div class="empty-msg">尚无条目</div>';
+    el.innerHTML='<div class="insp-empty">尚 无 条 目</div>';
     setTimeout(()=>applyUITheme(),50);return;
   }
-  // Sort: undone first, then by priority (urgent > important > normal), then by creation time
   const sorted=list.slice().sort((a,b)=>{
     if(a.done!==b.done)return a.done?1:-1;
-    if(memoCurrent==='todo'){
-      const priOrder={urgent:0,important:1,normal:2};
-      const pa=priOrder[a.priority||'normal'];
-      const pb=priOrder[b.priority||'normal'];
-      if(pa!==pb)return pa-pb;
-    }
     return b.createdAt-a.createdAt;
   });
   el.innerHTML=sorted.map(item=>{
-    let priDot='';
-    if(memoCurrent==='todo'&&item.priority){
-      const priColor={urgent:'#A8313A',important:'#C8A86A',normal:'transparent'}[item.priority];
-      if(priColor!=='transparent')priDot=`<span class="memo-priority-dot" style="background:${priColor}"></span>`;
-    }
-    return `<div class="memo-item${item.done?' done':''}">
-      <div class="memo-check${item.done?' checked':''}" onclick="memoToggle('${item.id}')"></div>
-      ${priDot}
-      <div class="memo-text">${escapeHtml(item.text)}</div>
-      <button class="memo-del" onclick="memoDel('${item.id}')">✕</button>
+    return `<div class="memo-item${item.done?' done':''}" data-mid="${item.id}">
+      <div class="memo-check${item.done?' checked':''}" onclick="memoToggle('${type}','${item.id}')"></div>
+      <div class="memo-text" onclick="memoStartEdit('${type}','${item.id}')">${escapeHtml(item.text)}</div>
+      <button class="memo-del" onclick="memoDel('${type}','${item.id}')">✕</button>
     </div>`;
   }).join('');
   setTimeout(()=>applyUITheme(),50);
 }
 
-function escapeHtml(s){
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+// ----------- INSPIRATION -----------
+function inspSetView(v){
+  inspView=v;
+  document.querySelectorAll('.insp-view').forEach(b=>{
+    b.classList.toggle('on',b.dataset.iv===v);
+  });
+  renderInsp();
+}
+function inspSetFilterTag(t){
+  inspFilterTag=(inspFilterTag===t)?null:t;
+  renderInsp();
+}
+function inspClearFilterTag(){
+  inspFilterTag=null;
+  renderInsp();
+}
+function inspToggleAddTag(t){
+  if(inspAddTags.includes(t))inspAddTags=inspAddTags.filter(x=>x!==t);
+  else inspAddTags.push(t);
+  document.querySelectorAll('#inspTagRow .insp-opt-btn[data-tag]').forEach(b=>{
+    b.classList.toggle('sel',inspAddTags.includes(b.dataset.tag));
+  });
+}
+function inspToggleOpts(){
+  const inp=document.getElementById('inspInp');
+  const opts=document.getElementById('inspOpts');
+  if(!inp||!opts)return;
+  if(inp.value.trim().length>0){
+    if(opts.style.display==='none'){
+      opts.style.display='flex';
+      renderInspTagButtons();
+    }
+  }else{
+    opts.style.display='none';
+  }
+}
+function renderInspTagButtons(){
+  // Render tag buttons in the add area, with long-press support for renaming
+  const row=document.getElementById('inspTagRow');
+  if(!row)return;
+  // Clear existing tag buttons (keep the label)
+  Array.from(row.querySelectorAll('.insp-opt-btn,.cat-tab-input')).forEach(el=>el.remove());
+  inspTags.forEach(tag=>{
+    const b=document.createElement('button');
+    b.className='insp-opt-btn'+(inspAddTags.includes(tag)?' sel':'');
+    b.dataset.tag=tag;
+    b.textContent=tag;
+    b.onclick=()=>{
+      if(b.dataset.justFinishedLongPress)return;
+      inspToggleAddTag(tag);
+    };
+    let pressTimer=null;
+    const startLp=()=>{
+      pressTimer=setTimeout(()=>{
+        b.dataset.justFinishedLongPress='1';
+        inspRenameTag(tag);
+        if(navigator.vibrate)navigator.vibrate(40);
+      },550);
+    };
+    const cancelLp=()=>{
+      if(pressTimer)clearTimeout(pressTimer);
+      setTimeout(()=>{delete b.dataset.justFinishedLongPress;},100);
+    };
+    b.addEventListener('touchstart',startLp,{passive:true});
+    b.addEventListener('touchend',cancelLp);
+    b.addEventListener('touchmove',cancelLp,{passive:true});
+    b.addEventListener('mousedown',startLp);
+    b.addEventListener('mouseup',cancelLp);
+    b.addEventListener('mouseleave',cancelLp);
+    row.appendChild(b);
+  });
+  setTimeout(()=>applyUITheme(),50);
+}
+function inspRenameTag(oldTag){
+  const row=document.getElementById('inspTagRow');
+  const btn=row.querySelector(`[data-tag="${oldTag}"]`);
+  if(!btn)return;
+  const inp=document.createElement('input');
+  inp.className='cat-tab-input';
+  inp.value=oldTag;
+  inp.maxLength=4;
+  btn.replaceWith(inp);
+  inp.focus();
+  inp.select();
+  const finish=()=>{
+    const v=inp.value.trim();
+    if(v&&v!==oldTag){
+      // Update in tags list
+      const idx=inspTags.indexOf(oldTag);
+      if(idx>=0)inspTags[idx]=v;
+      sv('inspTags',inspTags);
+      // Update all inspirations using this tag
+      inspirations.forEach(i=>{
+        if(i.tags){
+          i.tags=i.tags.map(t=>t===oldTag?v:t);
+        }
+      });
+      sv('inspirations',inspirations);
+      // Update inspAddTags if present
+      const aidx=inspAddTags.indexOf(oldTag);
+      if(aidx>=0)inspAddTags[aidx]=v;
+    }
+    renderInspTagButtons();
+    renderInsp();
+  };
+  inp.addEventListener('blur',finish);
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();inp.blur();}
+    if(e.key==='Escape'){inp.value=oldTag;inp.blur();}
+  });
+}
+function inspAdd(){
+  const inp=document.getElementById('inspInp');
+  const text=inp.value.trim();if(!text)return;
+  // State = current view (no separate "何时" picker anymore)
+  inspirations.unshift({
+    id:'ins'+Date.now(),
+    content:text,
+    state:inspView,
+    tags:[...inspAddTags],
+    createdAt:Date.now()
+  });
+  sv('inspirations',inspirations);
+  // Reset
+  inp.value='';
+  inspAddTags=[];
+  document.getElementById('inspOpts').style.display='none';
+  renderInsp();
+}
+function inspChangeState(id,direction){
+  // direction: 'up' (远思→不久→此刻) or 'down' (此刻→不久→远思)
+  const item=inspirations.find(i=>i.id===id);
+  if(!item)return;
+  const order=['far','soon','present'];
+  let idx=order.indexOf(item.state||'far');
+  if(direction==='up'&&idx<order.length-1)idx++;
+  else if(direction==='down'&&idx>0)idx--;
+  item.state=order[idx];
+  sv('inspirations',inspirations);
+  renderInsp();
+}
+function inspDel(id){
+  inspirations=inspirations.filter(i=>i.id!==id);
+  sv('inspirations',inspirations);
+  renderInsp();
+}
+function inspStartEdit(id){
+  const item=inspirations.find(i=>i.id===id);
+  if(!item)return;
+  const card=document.querySelector(`[data-iid="${id}"]`);
+  if(!card)return;
+  const textEl=card.querySelector('.insp-text');
+  if(!textEl)return;
+  const cur=item.content;
+  const ta=document.createElement('textarea');
+  ta.className='memo-text-edit';
+  ta.value=cur;
+  ta.rows=Math.max(2,Math.ceil(cur.length/30));
+  ta.style.marginRight='24px';
+  textEl.replaceWith(ta);
+  ta.focus();
+  ta.setSelectionRange(ta.value.length,ta.value.length);
+  const finish=()=>{
+    const nv=ta.value.trim();
+    if(nv&&nv!==cur){item.content=nv;sv('inspirations',inspirations);}
+    renderInsp();
+  };
+  ta.addEventListener('blur',finish);
+  ta.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){ta.value=cur;ta.blur();}
+  });
+}
+function renderInsp(){
+  // Update filter hint
+  const hint=document.getElementById('inspFilterHint');
+  if(hint){
+    if(inspFilterTag){
+      hint.style.display='flex';
+      hint.innerHTML=`<span style="opacity:.5">筛选 ·</span> <span>${escapeHtml(inspFilterTag)}</span> <button onclick="inspClearFilterTag()">✕</button>`;
+    }else{
+      hint.style.display='none';
+    }
+  }
+  // Filter items
+  let items=inspirations.slice();
+  items=items.filter(i=>(i.state||'far')===inspView);
+  if(inspFilterTag){
+    items=items.filter(i=>(i.tags||[]).includes(inspFilterTag));
+  }
+  const el=document.getElementById('inspList');
+  if(!items.length){
+    el.innerHTML=`<div class="insp-empty">此 处 无 内 容</div>`;
+    setTimeout(()=>applyUITheme(),50);return;
+  }
+  // Sort by createdAt DESC
+  items.sort((a,b)=>b.createdAt-a.createdAt);
+  el.innerHTML=items.map(i=>{
+    const state=i.state||'far';
+    const stateLabel=STATE_LABELS[state];
+    // Tags are clickable - filter by clicking
+    const tagPills=(i.tags||[]).map(t=>
+      `<span class="insp-tag-pill" onclick="inspSetFilterTag('${escapeHtml(t)}')">${escapeHtml(t)}</span>`
+    ).join('');
+    const d=new Date(i.createdAt);
+    const timeStr=`${d.getMonth()+1}.${d.getDate()}`;
+    let upBtn='',downBtn='';
+    if(state!=='present')upBtn=`<button class="insp-act-btn insp-act-up" onclick="inspChangeState('${i.id}','up')" title="升级">↑</button>`;
+    if(state!=='far')downBtn=`<button class="insp-act-btn insp-act-up" onclick="inspChangeState('${i.id}','down')" title="降级">↓</button>`;
+    return `<div class="insp-card" data-iid="${i.id}">
+      <div class="insp-actions">
+        ${upBtn}${downBtn}
+        <button class="insp-act-btn" onclick="inspDel('${i.id}')" title="删除">✕</button>
+      </div>
+      <div class="insp-text" onclick="inspStartEdit('${i.id}')">${escapeHtml(i.content)}</div>
+      <div class="insp-meta">
+        <span class="insp-state-tag">${stateLabel}</span>
+        ${tagPills}
+        <span class="insp-time">${timeStr}</span>
+      </div>
+    </div>`;
+  }).join('');
+  setTimeout(()=>applyUITheme(),50);
 }
 
-// Bind enter key in memo input
+// Init memo tabs and bind enter keys
 setTimeout(()=>{
-  const mi=document.getElementById('memoInp');
-  if(mi)mi.addEventListener('keydown',e=>{if(e.key==='Enter')memoAdd();});
-},500);
+  buildMemoTabs();
+  // Bind Enter on todo/shop/ing inputs
+  ['todoInp','shopInp','ingInp'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){
+      el.addEventListener('keydown',e=>{
+        if(e.key==='Enter'&&!e.shiftKey){
+          e.preventDefault();
+          if(id==='todoInp')todoAdd();
+          else if(id==='shopInp')shopAdd();
+          else if(id==='ingInp')ingSmartAdd();
+        }
+      });
+    }
+  });
+},200);
 
 // ================================================================
-// INIT
+// 森 GROVE
 // ================================================================
+function openHistoryEntry(){
+  if(pomoVer==='森'){
+    openGarden();
+  }else{
+    openCellar();
+  }
+}
+
+function updateEntryLabel(){
+  const lbl=document.getElementById('entryBtnLbl');
+  if(lbl)lbl.textContent=pomoVer==='森'?'森':'箧';
+}
+
+function openGarden(){
+  document.getElementById('gardenOverlay').classList.add('on');
+  // Auto-set scene based on current hour to match time-of-day
+  autoSetGardenScene();
+  renderGardenFromData();
+}
+function closeGarden(){
+  document.getElementById('gardenOverlay').classList.remove('on');
+}
+
+function autoSetGardenScene(){
+  const h=hourFloat();
+  let mode;
+  if(h>=4&&h<8)mode='dawn';        // 黎明
+  else if(h>=8&&h<17)mode='day';   // 白天
+  else if(h>=17&&h<20)mode='dusk'; // 黄昏
+  else mode='night';                // 深夜
+  setGardenTime(mode);
+}
+
+// ================================================================
+// 库 CELLAR
+// ================================================================
+function openCellar(){
+  document.getElementById('cellarOverlay').classList.add('on');
+  renderCellar();
+}
+function closeCellar(){
+  document.getElementById('cellarOverlay').classList.remove('on');
+}
+
+function fmtBoxDate(dk){return dk.replace(/-/g,'.');}
+
+function renderCellar(){
+  const boxes=getBoxes();
+  const sealed=boxes.filter(b=>b.length===BOX_SIZE);
+  const bg=document.getElementById('cellarBg');
+  const empty=document.getElementById('cellarEmpty');
+  
+  document.getElementById('cstatBoxes').textContent=sealed.length;
+  document.getElementById('cstatToms').textContent=sealed.reduce((s,b)=>s+b.length,0);
+  const uniqDays=new Set(sealed.flat().map(t=>t.dateKey));
+  document.getElementById('cstatDays').textContent=uniqDays.size;
+  
+  bg.style.display='block';
+  
+  // Adaptive density - based on filled boxes count (6/10/14/18)
+  let PER_ROW;
+  const n=sealed.length;
+  if(n<=24)PER_ROW=6;        // 1-24 boxes: 6 per row
+  else if(n<=80)PER_ROW=10;  // 25-80 boxes: 10 per row
+  else if(n<=168)PER_ROW=14; // 81-168 boxes: 14 per row
+  else PER_ROW=18;           // 169+: 18 per row
+  
+  // Hide empty message - we always show shelves now
+  empty.style.display='none';
+  
+  // Always render at least MIN_ROWS shelf levels (visual structure)
+  const MIN_ROWS=4;
+  const dataRows=Math.ceil(sealed.length/PER_ROW);
+  const totalRows=Math.max(MIN_ROWS,dataRows);
+  
+  let html='';
+  for(let r=0;r<totalRows;r++){
+    html+=`<div class="shelf-row" data-cols="${PER_ROW}" style="grid-template-columns:repeat(${PER_ROW},1fr)">`;
+    for(let c=0;c<PER_ROW;c++){
+      const idx=r*PER_ROW+c;
+      if(idx<sealed.length){
+        const box=sealed[idx];
+        const sealDate=box[box.length-1].dateKey;
+        const boxId='box_'+idx;
+        const viewed=viewedBoxes.includes(boxId);
+        let tomsHtml='';
+        for(let i=0;i<25;i++){
+          tomsHtml+=`<div class="cb-tom" style="--i:${i}"></div>`;
+        }
+        html+=`<div class="shelf-cell"><div class="cb" data-idx="${idx}" data-viewed="${viewed?'1':'0'}">
+          <div class="cb-back"></div>
+          <div class="cb-inner">
+            <div class="cb-grid">${tomsHtml}</div>
+          </div>
+          <div class="cb-front"></div>
+          <div class="cb-lid"><div class="cb-lid-face"></div></div>
+          <div class="cb-tape"></div>
+          <div class="cb-wax">梵</div>
+          <div class="cb-date">${fmtBoxDate(sealDate)}</div>
+        </div></div>`;
+      }else{
+        html+=`<div class="shelf-cell"></div>`;
+      }
+    }
+    html+='</div>';
+  }
+  bg.innerHTML=html;
+  
+  bg.querySelectorAll('.cb').forEach(cb=>{
+    cb.addEventListener('click',()=>onClickCellarBox(cb));
+  });
+}
+
+function onClickCellarBox(cbEl){
+  const idx=parseInt(cbEl.dataset.idx,10);
+  const viewed=cbEl.dataset.viewed==='1';
+  const boxes=getBoxes().filter(b=>b.length===BOX_SIZE);
+  const box=boxes[idx];
+  const sealDate=box[box.length-1].dateKey;
+  
+  if(!viewed){
+    playSealAnimation(sealDate,()=>{
+      const boxId='box_'+idx;
+      if(!viewedBoxes.includes(boxId)){
+        viewedBoxes.push(boxId);
+        sv('viewedBoxes',viewedBoxes);
+      }
+      cbEl.dataset.viewed='1';
+      // Keep box CLOSED after sealing animation - user must click to open
+    });
+  }else{
+    cbEl.classList.toggle('open');
+  }
+}
+
+function playSealAnimation(sealDateKey,onComplete){
+  const overlay=document.getElementById('sealAnim');
+  const tomsContainer=document.getElementById('sealTomatoes');
+  const box=document.getElementById('sealBox');
+  const dateEl=document.getElementById('sbDate');
+  const msg=document.getElementById('sealMsg');
+  
+  box.classList.remove('show','tape','seal','date');
+  msg.classList.remove('show');
+  dateEl.textContent=fmtBoxDate(sealDateKey);
+  
+  tomsContainer.innerHTML='';
+  tomsContainer.style.opacity='1';
+  for(let i=0;i<25;i++){
+    const t=document.createElement('div');
+    t.className='seal-tom';
+    tomsContainer.appendChild(t);
+  }
+  
+  overlay.classList.add('on');
+  
+  setTimeout(()=>{
+    document.querySelectorAll('.seal-tom').forEach((t,i)=>{
+      const rect=t.getBoundingClientRect();
+      const stage=document.getElementById('sealStage').getBoundingClientRect();
+      const cx=stage.left+stage.width/2;
+      const cy=stage.top+stage.height/2;
+      const dx=cx-(rect.left+rect.width/2);
+      const dy=cy-(rect.top+rect.height/2);
+      t.style.setProperty('--gx',dx+'px');
+      t.style.setProperty('--gy',dy+'px');
+      setTimeout(()=>t.classList.add('gather'),i*25);
+    });
+  },200);
+  
+  setTimeout(()=>{
+    box.classList.add('show');
+    tomsContainer.style.opacity='0';
+  },1700);
+  
+  setTimeout(()=>box.classList.add('tape'),2400);
+  setTimeout(()=>box.classList.add('seal'),3000);
+  setTimeout(()=>box.classList.add('date'),3500);
+  setTimeout(()=>msg.classList.add('show'),4000);
+  
+  setTimeout(()=>{
+    overlay.classList.remove('on');
+    if(onComplete)onComplete();
+  },5500);
+}
+
+function setGardenTime(time){
+  const scene=document.getElementById('gardenScene');
+  scene.className='garden-scene '+time;
+  document.querySelectorAll('.time-btn').forEach(b=>b.classList.remove('on'));
+  const map={dawn:'ttd',day:'tta',dusk:'ttu',night:'ttn'};
+  document.getElementById(map[time]).classList.add('on');
+}
+
+function buildTreeSvg(seed,isToday,tomCount){
+  const positions=[
+    [35,34],[55,29],[65,45],[42,51],[25,48],[52,60],[72,58],[31,64],[48,41]
+  ];
+  let toms='';
+  for(let i=0;i<tomCount;i++){
+    const [x,y]=positions[(seed+i*2)%positions.length];
+    const r=4.2+((seed+i)%3)*0.45;
+    toms+=`<circle cx="${x}" cy="${y}" r="${r}" fill="url(#tomG${seed})" opacity="0.96"/>`;
+    toms+=`<path d="M${x-2},${y-r-1} l2,-3 l2,3 l3,-1 l-2,3 l2,2 l-3,-1 l-2,3 l-1,-3 l-3,1 l2,-2 l-2,-3 z" fill="#4F7044" opacity="0.9"/>`;
+  }
+  return `<svg class="tree-svg" viewBox="0 0 100 126" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="tomG${seed}" cx="35%" cy="30%" r="70%">
+        <stop offset="0%" stop-color="#E8826E"/>
+        <stop offset="58%" stop-color="#A8313A"/>
+        <stop offset="100%" stop-color="#7C2820"/>
+      </radialGradient>
+      <linearGradient id="trkG${seed}" x1="0" x2="1" y1="0" y2="1">
+        <stop offset="0%" stop-color="#9A7145"/>
+        <stop offset="100%" stop-color="#5D3C24"/>
+      </linearGradient>
+    </defs>
+    <path d="M48 67 C45 86 42 103 35 123 L63 123 C56 101 54 85 52 67 Z" fill="url(#trkG${seed})" opacity="0.9"/>
+    <path d="M50 75 C37 62 31 52 20 39" stroke="#6B4728" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.65"/>
+    <path d="M50 75 C61 58 68 49 80 37" stroke="#6B4728" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.65"/>
+    <ellipse cx="34" cy="40" rx="25" ry="20" fill="#617D4F" opacity="0.72"/>
+    <ellipse cx="56" cy="32" rx="30" ry="22" fill="#86A66C" opacity="0.68"/>
+    <ellipse cx="69" cy="48" rx="26" ry="22" fill="#58744A" opacity="0.76"/>
+    <ellipse cx="44" cy="58" rx="34" ry="24" fill="#78985F" opacity="0.72"/>
+    <ellipse cx="25" cy="57" rx="22" ry="18" fill="#AFC78E" opacity="0.5"/>
+    <ellipse cx="61" cy="63" rx="28" ry="20" fill="#47623E" opacity="0.7"/>
+    ${toms}
+    ${isToday?'<ellipse cx="50" cy="123" rx="27" ry="5" fill="#D4B16A" opacity="0.55"/>':''}
+  </svg>`;
+}
+
+function treeSizeByCount(count){
+  if(count<30)return 50;
+  if(count<80)return 38;
+  if(count<200)return 26;
+  return 18;
+}
+
+function layoutTrees(treeData){
+  const treeField=document.getElementById('treeField');
+  treeField.innerHTML='';
+  const count=treeData.length;
+  if(count===0)return;
+  const size=treeSizeByCount(count);
+  const cols=Math.ceil(Math.sqrt(count*1.78));
+  const rows=Math.ceil(count/cols);
+  let totalToms=0;
+  
+  for(let i=0;i<count;i++){
+    const col=i%cols;
+    const row=Math.floor(i/cols);
+    // Tighter ranges so trees stay inside the field
+    const xBase=cols===1?50:(col/(cols-1))*80+10;
+    const yBase=rows===1?60:(row/(rows-1))*65+20;
+    const jitterX=(((i*37)%100)/100-0.5)*Math.min(4,60/cols);
+    const jitterY=(((i*53)%100)/100-0.5)*Math.min(4,50/rows);
+    const scaleDepth=0.78+(yBase/100)*0.4;
+    const alpha=0.6+(yBase/100)*0.4;
+    const wrap=document.createElement('div');
+    wrap.className='tree-wrap'+(i===count-1?' today':'');
+    const xFinal=Math.max(8,Math.min(92,xBase+jitterX));
+    const yFinal=Math.max(15,Math.min(92,yBase+jitterY));
+    wrap.style.left=`${xFinal}%`;
+    wrap.style.top=`${yFinal}%`;
+    wrap.style.setProperty('--tree-size',`${size*scaleDepth}px`);
+    wrap.style.setProperty('--sway',`${3.4+((i*17)%40)/10}s`);
+    wrap.style.setProperty('--delay',`${-((i*13)%30)/10}s`);
+    wrap.style.setProperty('--alpha',alpha.toFixed(2));
+    wrap.style.setProperty('--z',String(Math.round(yBase*10)));
+    const tomCount=treeData[i];
+    totalToms+=tomCount;
+    const visibleToms=Math.max(1,Math.ceil(tomCount*9/BOX_SIZE));
+    wrap.innerHTML=buildTreeSvg(i+3,i===count-1,Math.min(9,visibleToms));
+    treeField.appendChild(wrap);
+  }
+  
+  document.getElementById('gstatTrees').textContent=count;
+  document.getElementById('gstatToms').textContent=totalToms;
+  document.getElementById('gstatDays').textContent=count;
+}
+
+function renderGardenFromData(){
+  // Build tree data using BOX_SIZE chunks (25 tomatoes per tree)
+  // Each tree in the forest is a chunk of 25 tomatoes from the flat list
+  const flat=getAllTomatoesFlat();
+  const treeData=[];
+  for(let i=0;i<flat.length;i+=BOX_SIZE){
+    const chunk=flat.slice(i,i+BOX_SIZE);
+    treeData.push(chunk.length);
+  }
+  
+  // Show or hide empty state
+  const emptyEl=document.getElementById('gardenEmpty');
+  if(treeData.length===0){
+    emptyEl.classList.remove('hide');
+    document.getElementById('treeField').innerHTML='';
+    document.getElementById('gstatTrees').textContent=0;
+    document.getElementById('gstatToms').textContent=0;
+    document.getElementById('gstatDays').textContent=0;
+    return;
+  }
+  emptyEl.classList.add('hide');
+  
+  layoutTrees(treeData);
+}
+
+
 function init(){
   initCanvas();
   todayRecs=allDays[todayK()]||[];
