@@ -15,16 +15,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;500&family=EB+Garamond:ital,wght@0,400;0,500;1,300;1,400&family=Cormorant:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{background:#1E2820;width:100%;height:100%}
-body{font-family:'EB Garamond','Noto Serif SC',serif;-webkit-font-smoothing:antialiased;user-select:none;background:transparent;position:fixed;inset:0;overflow:hidden;touch-action:pan-y}
+html{background:#1E2820}
+html,body{width:100%;height:100%;overflow:hidden;touch-action:pan-y}
+body{font-family:'EB Garamond','Noto Serif SC',serif;-webkit-font-smoothing:antialiased;user-select:none;background:#1E2820;position:relative}
 
 /* ============ GRADIENT BG ============ */
-.gradient-bg{position:fixed;
-  /* Force background to extend into safe areas (full screen behind status bar and home indicator) */
-  top:calc(0px - env(safe-area-inset-top,0px));
-  bottom:calc(0px - env(safe-area-inset-bottom,0px));
-  left:0;right:0;
-  z-index:0;overflow:hidden;transition:background 3s ease}
+.gradient-bg{position:fixed;inset:0;z-index:0;overflow:hidden;transition:background 3s ease}
 .layer{position:absolute;border-radius:50%;filter:blur(120px);transition:background 3s ease}
 .layer.l0{animation:f0 14s ease-in-out infinite alternate}
 .layer.l1{animation:f1 17s ease-in-out infinite alternate}
@@ -48,14 +44,10 @@ body{font-family:'EB Garamond','Noto Serif SC',serif;-webkit-font-smoothing:anti
 canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events:none}
 
 /* ============ APP SHELL ============ */
-.app{position:fixed;
-  top:calc(0px - env(safe-area-inset-top,0px));
-  bottom:calc(0px - env(safe-area-inset-bottom,0px));
-  left:0;right:0;
-  z-index:5;display:flex;flex-direction:column;max-width:440px;margin:0 auto}
+.app{position:relative;z-index:5;height:100%;display:flex;flex-direction:column;max-width:440px;margin:0 auto}
 
 /* Header */
-.hdr{padding:calc(env(safe-area-inset-top,0px) * 2 + 12px) 24px 4px;text-align:center;flex-shrink:0;
+.hdr{padding:max(env(safe-area-inset-top),32px) 24px 4px;text-align:center;flex-shrink:0;
   display:flex;justify-content:space-between;align-items:flex-start}
 .hdr-c{font-family:'Noto Serif SC',serif;font-weight:200;font-size:30px;letter-spacing:.2em;
   transition:color 2s,text-shadow 2s;
@@ -268,17 +260,14 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
 .garden-btn:hover{background:rgba(255,255,255,.08)}
 .garden-btn svg{width:11px;height:11px;opacity:.7}
 
-.garden-overlay{position:fixed;
-  top:calc(0px - env(safe-area-inset-top,0px));
-  bottom:calc(0px - env(safe-area-inset-bottom,0px));
-  left:0;right:0;z-index:1000;
+.garden-overlay{position:fixed;inset:0;z-index:1000;
   background:rgba(14,18,16,.95);backdrop-filter:blur(20px);
   display:none;flex-direction:column;animation:gOverlayIn .4s ease}
 .garden-overlay.on{display:flex}
 @keyframes gOverlayIn{from{opacity:0}to{opacity:1}}
 
 .garden-header{display:flex;justify-content:space-between;align-items:center;
-  padding:calc(14px + env(safe-area-inset-top,0px)) 18px 14px;
+  padding:max(env(safe-area-inset-top),14px) 18px 14px;
   border-bottom:1px solid rgba(255,255,255,.05)}
 .garden-title{font-family:'Noto Serif SC',serif;font-weight:200;
   font-size:16px;letter-spacing:.25em}
@@ -1272,10 +1261,7 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
 .la-btn-yang .la-sub{color:rgba(232,196,180,.8)}
 
 /* ====== MENU OVERLAYS - immersive, breathing ====== */
-.menu-overlay{position:fixed;
-  top:calc(0px - env(safe-area-inset-top,0px));
-  bottom:calc(0px - env(safe-area-inset-bottom,0px));
-  left:0;right:0;z-index:1000;
+.menu-overlay{position:fixed;inset:0;z-index:1000;
   display:none;flex-direction:column;
   animation:hovIn .5s ease;
   overflow:hidden}
