@@ -2196,33 +2196,10 @@ const COLORS=[
   '#C9A961','#B8923E','#9C7A35',
 ];
 const DEF_TAGS=[
-  // 学习类
-  {id:'t1',name:'学习历史',color:'#5C3326'},   // Hermès Ebene 乌木色
-  {id:'t2',name:'学习生物',color:'#5A6B3D'},   // Hermès Vert Olive 橄榄绿
-  {id:'t3',name:'学习理化',color:'#7B4F2A'},   // Hermès Cuivre 紫铜
-  // 运动/身体
-  {id:'t4',name:'运动',color:'#3B5934'},       // Hermès Vert Cypres 柏树绿
-  {id:'t5',name:'瑜伽',color:'#9CA67E'},       // Hermès Sauge 鼠尾草绿
-  {id:'t6',name:'拉伸放松',color:'#B8C49E'},   // Hermès Vert Amande 杏仁绿
-  // 餐饮
-  {id:'t7',name:'做饭',color:'#C9A961'},       // Hermès Gold (06)
-  {id:'t8',name:'吃饭',color:'#D44E2E'},       // Hermès Rouge Tomate 番茄红
-  {id:'t9',name:'喝酒',color:'#6B1F26'},       // Hermès Rouge Sellier 马具红
-  // 娱乐
-  {id:'t10',name:'看电影',color:'#2A2347'},    // Hermès Bleu Nuit 午夜蓝
-  {id:'t11',name:'逛淘宝',color:'#A03E5C'},    // Hermès Framboise 覆盆子
-  {id:'t12',name:'玩手机',color:'#594060'},    // Hermès Bleu Encre 墨水蓝紫
-  // 生活
-  {id:'t13',name:'美容仪',color:'#E5C9A8'},    // Hermès Parchemin 羊皮纸米
-  {id:'t14',name:'家人聊天',color:'#D4B896'},  // Hermès Nata 奶油白米
-  {id:'t15',name:'出门逛街',color:'#8B7E6A'},  // Hermès Etoupe 经典灰棕
+  {id:'t1',name:'梵App开发',color:'#5C3326'},   // Hermès Ebene 乌木色
 ];
 
 let tags=ld('tags',DEF_TAGS),allDays=ld('days',{}),todayRecs=[],selTagId=null,editing=false;
-// One-time migration: reset to new Hermès-coded defaults if user has old default tag sets
-const isOldDefault1=tags.length===6&&tags.some(t=>t.name==='休息')&&tags.some(t=>t.name==='工作');
-const isOldDefault2=tags.length===15&&tags.find(t=>t.name==='学习历史')&&tags.find(t=>t.name==='学习历史').color==='#5C4030';
-if(isOldDefault1||isOldDefault2){tags=DEF_TAGS.slice();sv('tags',tags);}
 let allTomatoes=ld('tomatoes',{}),todayTomatoes=[];
 let tState='idle',tStart=null,tPauseStart=null,tPausedTotal=0,tInterval=null;
 let pmW=25,pmR=5,pmState='idle',pmEnd=null,pmInt=null,pmTotal=0;
