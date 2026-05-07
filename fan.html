@@ -2150,7 +2150,25 @@ function timerEndBowl(){
 // DATA STORE
 // ================================================================
 function ld(k,f){try{const d=localStorage.getItem('fan_'+k);return d?JSON.parse(d):f}catch{return f}}
-function sv(k,v){localStorage.setItem('fan_'+k,JSON.stringify(v))}
+function sv(k,v){
+  try{
+    localStorage.setItem('fan_'+k,JSON.stringify(v));
+    return true;
+  }catch(err){
+    console.error('Storage failed for key',k,err);
+    // Only alert user once per session for storage errors
+    if(!window._svAlertShown){
+      window._svAlertShown=true;
+      const isQuota=err.name==='QuotaExceededError'||err.code===22;
+      if(isQuota){
+        alert('存储空间已满，无法保存新数据。\n建议：到日历页面做"完整备份"导出，然后清理旧记录。');
+      }else{
+        alert('数据保存失败：'+err.message+'\n建议立即做"完整备份"以防数据丢失。');
+      }
+    }
+    return false;
+  }
+}
 
 const COLORS=[
   // Greens - Hermès greens
@@ -2202,6 +2220,7 @@ let pmW=25,pmR=5,pmState='idle',pmEnd=null,pmInt=null,pmTotal=0;
 let calY,calM;
 
 function todayK(){const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function dkOf(ts){const d=new Date(ts);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
 function pad(n){return n.toString().padStart(2,'0')}
 function fmtD(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);
   if(h>0)return h+'h'+(m>0?' '+m+'m':'');if(m>0)return m+'m';return s+'s'}
@@ -2677,6 +2696,8 @@ function startTimer(){
   const tag=tags.find(t=>t.id===selTagId);if(!tag)return;
   singingBowl(220,2.5);
   tState='running';tStart=Date.now();tPausedTotal=0;
+  // Persist timer state so we can recover after PWA reload
+  saveTimerState();
   document.getElementById('tIdle').style.display='none';
   document.getElementById('tRun').style.display='block';
   document.getElementById('tPaused').style.display='none';
@@ -2687,6 +2708,52 @@ function startTimer(){
   document.getElementById('actR').style.display='flex';
   tInterval=setInterval(updTimerDisplay,1000);updTimerDisplay();
 }
+function saveTimerState(){
+  // Save timer state for crash/reload recovery
+  if(tState==='idle'){
+    try{localStorage.removeItem('fan_timerActive')}catch{}
+    return;
+  }
+  try{
+    localStorage.setItem('fan_timerActive',JSON.stringify({
+      tagId:selTagId,tState,tStart,tPauseStart,tPausedTotal
+    }));
+  }catch{}
+}
+function recoverTimer(){
+  // Called on app load — if a timer was running, restore it
+  let saved;
+  try{saved=JSON.parse(localStorage.getItem('fan_timerActive')||'null')}catch{return;}
+  if(!saved||!saved.tStart)return;
+  // Verify the tag still exists
+  const tag=tags.find(t=>t.id===saved.tagId);
+  if(!tag){
+    try{localStorage.removeItem('fan_timerActive')}catch{}
+    return;
+  }
+  selTagId=saved.tagId;
+  tState=saved.tState;
+  tStart=saved.tStart;
+  tPauseStart=saved.tPauseStart;
+  tPausedTotal=saved.tPausedTotal||0;
+  // Update UI to show running state
+  document.getElementById('tIdle').style.display='none';
+  document.getElementById('tRun').style.display='block';
+  document.getElementById('tTag').textContent=tag.name;
+  const now=new Date(tStart);
+  document.getElementById('tMeta').textContent=pad(now.getHours())+':'+pad(now.getMinutes())+' 开始';
+  if(tState==='paused'){
+    document.getElementById('tPaused').style.display='block';
+    document.getElementById('actI').style.display='none';
+    document.getElementById('actP').style.display='flex';
+  }else{
+    document.getElementById('tPaused').style.display='none';
+    document.getElementById('actI').style.display='none';
+    document.getElementById('actR').style.display='flex';
+    tInterval=setInterval(updTimerDisplay,1000);
+  }
+  updTimerDisplay();
+}
 function updTimerDisplay(){
   if(!tStart)return;
   let el=tState==='paused'?Math.floor((tPauseStart-tStart-tPausedTotal)/1000):Math.floor((Date.now()-tStart-tPausedTotal)/1000);
@@ -2696,11 +2763,13 @@ function updTimerDisplay(){
 }
 function pauseTimer(){
   if(tState!=='running')return;tState='paused';tPauseStart=Date.now();
+  saveTimerState();
   document.getElementById('tPaused').style.display='block';
   document.getElementById('actR').style.display='none';document.getElementById('actP').style.display='flex';
 }
 function resumeTimer(){
   if(tState!=='paused')return;tPausedTotal+=Date.now()-tPauseStart;tState='running';
+  saveTimerState();
   document.getElementById('tPaused').style.display='none';
   document.getElementById('actP').style.display='none';document.getElementById('actR').style.display='flex';
 }
@@ -2711,10 +2780,23 @@ function stopTimer(){
   clearInterval(tInterval);
   const end=Date.now(),dur=Math.floor((end-tStart-tPausedTotal)/1000);
   const tag=tags.find(t=>t.id===selTagId);
-  if(dur>0&&tag)todayRecs.push({tagId:selTagId,tagName:tag.name,tagColor:tag.color,start:tStart,end,duration:dur});
-  saveRecs();resetTimer();renderRecs();
+  if(dur>0&&tag){
+    const newRec={tagId:selTagId,tagName:tag.name,tagColor:tag.color,start:tStart,end,duration:dur};
+    // Save to the date the timer STARTED (handles cross-midnight correctly)
+    const recDk=dkOf(tStart);
+    if(!allDays[recDk])allDays[recDk]=[];
+    allDays[recDk].push(newRec);
+    // Refresh in-memory todayRecs (todayK might have changed across midnight)
+    todayRecs=allDays[todayK()]||[];
+    if(!allDays[todayK()])allDays[todayK()]=todayRecs;
+    sv('days',allDays);
+  }
+  // Clear timer persist
+  try{localStorage.removeItem('fan_timerActive')}catch{}
+  resetTimer();renderRecs();
 }
 function resetTimer(){
+  if(tInterval){clearInterval(tInterval);tInterval=null;}
   tState='idle';tStart=null;tPausedTotal=0;tPauseStart=null;
   document.getElementById('tIdle').style.display='block';document.getElementById('tRun').style.display='none';
   document.getElementById('actR').style.display='none';document.getElementById('actP').style.display='none';
@@ -2740,8 +2822,26 @@ function renderRecs(){
   });
   setTimeout(()=>applyUITheme(),50);
 }
-function delRec(i){todayRecs.splice(i,1);saveRecs();renderRecs()}
-function saveRecs(){allDays[todayK()]=todayRecs;sv('days',allDays)}
+function delRec(i){
+  // Find the record to delete and remove it from its actual day bucket
+  const rec=todayRecs[i];
+  if(!rec){return;}
+  const recDk=dkOf(rec.start);
+  if(allDays[recDk]){
+    const idx=allDays[recDk].findIndex(r=>r.start===rec.start&&r.end===rec.end&&r.tagId===rec.tagId);
+    if(idx>=0)allDays[recDk].splice(idx,1);
+  }
+  // Refresh todayRecs from current day
+  todayRecs=allDays[todayK()]||[];
+  if(!allDays[todayK()])allDays[todayK()]=todayRecs;
+  sv('days',allDays);
+  renderRecs();
+}
+function saveRecs(){
+  // Ensure today's bucket reflects current todayRecs
+  allDays[todayK()]=todayRecs;
+  sv('days',allDays);
+}
 
 // ================================================================
 // END DAY / SUMMARY
@@ -2964,7 +3064,15 @@ function importData(event){
           alert('备份文件似乎不包含数据。请确认是从「完整备份」导出的文件。');
           return;
         }
-        if(!confirm(`将导入 ${keys.length} 项数据。\n当前的数据将被替换。\n确定继续？`))return;
+        if(!confirm(`将导入 ${keys.length} 项数据。\n当前的数据将被完全替换。\n确定继续？`))return;
+        // First, clear ALL existing fan_* keys to avoid stale data
+        const existingKeys=[];
+        for(let i=0;i<localStorage.length;i++){
+          const k=localStorage.key(i);
+          if(k&&k.startsWith('fan_'))existingKeys.push(k);
+        }
+        existingKeys.forEach(k=>localStorage.removeItem(k));
+        // Then write the backup data
         keys.forEach(k=>localStorage.setItem(k,obj.data[k]));
         alert('导入成功！页面将刷新。');
         location.reload();
@@ -3011,10 +3119,79 @@ function updPomoDig(){
 function startPomo(){
   playTomatoPluck();
   pmState='work';pmTotal=Math.max(1,Math.round(pmW*60));pmEnd=Date.now()+pmTotal*1000;
+  savePomoState();
   document.getElementById('pmAI').style.display='none';document.getElementById('pmAR').style.display='flex';
   document.getElementById('pmPh').textContent='专注中';
   const ink=document.getElementById('pmInk');const sz=Math.max(innerWidth,innerHeight)*2.5;
   ink.style.width=sz+'px';ink.style.height=sz+'px';ink.classList.add('on');
+  pmInt=setInterval(tickPomo,1000);tickPomo();
+}
+function savePomoState(){
+  if(pmState==='idle'){
+    try{localStorage.removeItem('fan_pomoActive')}catch{}
+    return;
+  }
+  try{
+    localStorage.setItem('fan_pomoActive',JSON.stringify({pmState,pmEnd,pmW,pmR,pmTotal}));
+  }catch{}
+}
+function recoverPomo(){
+  let saved;
+  try{saved=JSON.parse(localStorage.getItem('fan_pomoActive')||'null')}catch{return;}
+  if(!saved||!saved.pmEnd)return;
+  
+  const now=Date.now();
+  
+  // If a WORK pomo finished while PWA was killed, retroactively save the tomato
+  if(saved.pmState==='work'&&now>=saved.pmEnd){
+    // Tomato completed — save with the actual completion time (saved.pmEnd)
+    const newTom={completedAt:saved.pmEnd,duration:saved.pmW||25};
+    const tomDk=dkOf(newTom.completedAt);
+    if(!allTomatoes[tomDk])allTomatoes[tomDk]=[];
+    // Avoid duplicate saves: check if this completedAt already exists
+    const exists=allTomatoes[tomDk].some(t=>t.completedAt===newTom.completedAt);
+    if(!exists){
+      allTomatoes[tomDk].push(newTom);
+      sv('tomatoes',allTomatoes);
+      todayTomatoes=allTomatoes[todayK()]||[];
+      if(!allTomatoes[todayK()])allTomatoes[todayK()]=todayTomatoes;
+      renderTomatoes();
+    }
+    
+    // Now check if the rest period would have also ended
+    const restEnd=saved.pmEnd+(saved.pmR||5)*60*1000;
+    if(now>=restEnd){
+      // Both work and rest ended — clean up
+      try{localStorage.removeItem('fan_pomoActive')}catch{}
+      return;
+    }
+    // Rest is still going — restore rest state
+    pmState='rest';pmEnd=restEnd;
+    pmW=saved.pmW||25;pmR=saved.pmR||5;pmTotal=(saved.pmR||5)*60;
+    savePomoState();
+    document.getElementById('pmAI').style.display='none';
+    document.getElementById('pmAR').style.display='flex';
+    document.getElementById('pmPh').textContent='休息中';
+    pmInt=setInterval(tickPomo,1000);tickPomo();
+    return;
+  }
+  
+  // If a REST pomo finished while PWA was killed, just clean up
+  if(saved.pmState==='rest'&&now>=saved.pmEnd){
+    try{localStorage.removeItem('fan_pomoActive')}catch{}
+    return;
+  }
+  
+  // Otherwise, restore the active timer (it's still running)
+  pmState=saved.pmState;pmEnd=saved.pmEnd;
+  pmW=saved.pmW||25;pmR=saved.pmR||5;pmTotal=saved.pmTotal||25*60;
+  document.getElementById('pmAI').style.display='none';
+  document.getElementById('pmAR').style.display='flex';
+  document.getElementById('pmPh').textContent=pmState==='work'?'专注中':'休息中';
+  if(pmState==='work'){
+    const ink=document.getElementById('pmInk');const sz=Math.max(innerWidth,innerHeight)*2.5;
+    ink.style.width=sz+'px';ink.style.height=sz+'px';ink.classList.add('on');
+  }
   pmInt=setInterval(tickPomo,1000);tickPomo();
 }
 function tickPomo(){
@@ -3022,27 +3199,36 @@ function tickPomo(){
   document.getElementById('pmDig').textContent=pad(Math.floor(left/60))+':'+pad(left%60);
   if(left<=0){clearInterval(pmInt);
     if(pmState==='work'){
-      // Save tomato
-      const newTom={completedAt:Date.now(),duration:pmW};
+      // Save tomato — use pmEnd (the actual scheduled completion time)
+      // NOT Date.now() — because if iOS froze the app in background, Date.now()
+      // could be much later than the real completion moment, causing wrong day assignment
+      const completedAt=pmEnd;
+      const newTom={completedAt,duration:pmW};
       newTomatoIds.add(newTom.completedAt);
-      todayTomatoes.push(newTom);
-      allTomatoes[todayK()]=todayTomatoes;sv('tomatoes',allTomatoes);
+      const tomDk=dkOf(completedAt);
+      if(!allTomatoes[tomDk])allTomatoes[tomDk]=[];
+      // Avoid duplicate (in case both visibilitychange-triggered tickPomo and recovery save the same tomato)
+      const exists=allTomatoes[tomDk].some(t=>t.completedAt===completedAt);
+      if(!exists){
+        allTomatoes[tomDk].push(newTom);
+      }
+      // Refresh in-memory todayTomatoes (handles midnight rollover)
+      todayTomatoes=allTomatoes[todayK()]||[];
+      if(!allTomatoes[todayK()])allTomatoes[todayK()]=todayTomatoes;
+      sv('tomatoes',allTomatoes);
       renderTomatoes();
       playTomatoLand();
-      // Check if a box just got sealed (current box now full at 25)
-      const flat=getAllTomatoesFlat();
-      if(flat.length%BOX_SIZE===0&&flat.length>0){
-        // A box was just completed
-        const justSealedIdx=Math.floor(flat.length/BOX_SIZE)-1;
-        // Mark for animation when user opens 库
-        // (animation plays on first click of unviewed box in cellar)
-      }
+      // Rest period starts NOW (not from pmEnd) — user just saw work end
       pmState='rest';pmTotal=pmR*60;pmEnd=Date.now()+pmTotal*1000;
+      savePomoState();
       document.getElementById('pmPh').textContent='休息中';pmInt=setInterval(tickPomo,1000);
     }else{playTomatoLand();resetPomo();}}
 }
 function cancelPomo(){clearInterval(pmInt);resetPomo()}
-function resetPomo(){pmState='idle';
+function resetPomo(){
+  if(pmInt){clearInterval(pmInt);pmInt=null;}
+  pmState='idle';
+  savePomoState();
   const ink=document.getElementById('pmInk');ink.classList.remove('on');ink.style.width='0';ink.style.height='0';
   document.getElementById('pmAI').style.display='flex';document.getElementById('pmAR').style.display='none';
   updPomoDig();}
@@ -3180,12 +3366,12 @@ function showPomoVerSwitch(anchorEl, touchX, touchY){
   const linBtn=document.createElement('button');
   linBtn.textContent='森';
   if(pomoVer==='森')linBtn.classList.add('on');
-  linBtn.onclick=(e)=>{e.stopPropagation();pop.remove();pomoVer='森';sv('pomoVer','森');renderTomatoes();};
+  linBtn.onclick=(e)=>{e.stopPropagation();pop.remove();pomoVer='森';sv('pomoVer','森');renderTomatoes();updateEntryLabel();};
   
   const qieBtn=document.createElement('button');
   qieBtn.textContent='箧';
   if(pomoVer==='箧')qieBtn.classList.add('on');
-  qieBtn.onclick=(e)=>{e.stopPropagation();pop.remove();pomoVer='箧';sv('pomoVer','箧');renderTomatoes();};
+  qieBtn.onclick=(e)=>{e.stopPropagation();pop.remove();pomoVer='箧';sv('pomoVer','箧');renderTomatoes();updateEntryLabel();};
   
   pop.appendChild(linBtn);
   pop.appendChild(qieBtn);
@@ -3327,6 +3513,10 @@ document.getElementById('addInp').addEventListener('keydown',function(e){if(e.ke
 // MEMO (灵感 / 待办 / 购物 / 食材)
 // ================================================================
 let memos=ld('memos',{todo:[],shopping:[],ingredient:[]});
+// Defensive: ensure all expected sub-arrays exist (in case loaded data is partial)
+if(!Array.isArray(memos.todo))memos.todo=[];
+if(!Array.isArray(memos.shopping))memos.shopping=[];
+if(!Array.isArray(memos.ingredient))memos.ingredient=[];
 let inspirations=ld('inspirations',[]);
 let inspTags=ld('inspTags',['思','业','修']);
 let memoTabOrder=ld('memoTabOrder',['todo','shopping','ingredient','inspiration']);
@@ -4350,6 +4540,16 @@ function init(){
   renderTags();renderRecs();initPomo();updPomoDig();
   document.getElementById('nT').classList.add('on');
   applyGradient();applyUITheme();
+  // Recover any timer/pomodoro that was running when app was last closed
+  recoverTimer();
+  recoverPomo();
+  // When iOS returns from background, immediately sync timers
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible'){
+      if(tState==='running'||tState==='paused')updTimerDisplay();
+      if(pmState==='work'||pmState==='rest')tickPomo();
+    }
+  });
   mainLoop();
 }
 init();
