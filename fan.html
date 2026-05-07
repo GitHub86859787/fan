@@ -400,12 +400,12 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
   letter-spacing:.1em;cursor:pointer;transition:all .3s,color 2s}
 
 /* ============ SUMMARY ============ */
-.sum-bg{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.6);backdrop-filter:blur(15px);
+.sum-bg{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.25);backdrop-filter:blur(20px);
   display:none;justify-content:center;align-items:center;padding:20px;opacity:0;transition:opacity .3s}
 .sum-bg.show{display:flex;opacity:1}
 .sum-box{width:100%;max-width:360px;max-height:80vh;overflow-y:auto;padding:28px 22px;
-  border-radius:22px;background:rgba(16,16,20,.94);border:1px solid rgba(255,255,255,.08);
-  backdrop-filter:blur(30px);scrollbar-width:none;color:rgba(255,255,255,.85)}
+  border-radius:22px;background:rgba(20,24,22,.65);border:1px solid rgba(255,255,255,.1);
+  backdrop-filter:blur(40px);scrollbar-width:none;color:rgba(255,255,255,.85)}
 .sum-box::-webkit-scrollbar{display:none}
 .sum-box h2{font-family:'Noto Serif SC',serif;font-weight:200;font-size:18px;
   text-align:center;letter-spacing:.08em;margin-bottom:20px}
@@ -556,7 +556,16 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
 .insp-card{padding:14px 16px;border-radius:14px;
   background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);
   backdrop-filter:blur(10px);position:relative;
-  animation:recIn .4s cubic-bezier(.16,1,.3,1)}
+  animation:recIn .4s cubic-bezier(.16,1,.3,1);
+  display:flex;align-items:flex-start;gap:11px;transition:opacity .3s}
+.insp-card.done{opacity:.4}
+.insp-card.done .insp-text{text-decoration:line-through}
+.insp-check{width:18px;height:18px;border-radius:50%;border:1.5px solid currentColor;
+  flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  opacity:.4;transition:all .3s;margin-top:1px}
+.insp-check.checked{opacity:1;background:currentColor}
+.insp-check.checked::after{content:'✓';font-size:10px;color:rgba(0,0,0,.5)}
+.insp-card-body{flex:1;min-width:0}
 .insp-text{font-family:'Noto Serif SC',serif;font-weight:300;font-size:13px;
   letter-spacing:.04em;line-height:1.65;white-space:pre-wrap;word-break:break-word;
   margin-right:24px;cursor:pointer;transition:color 2s}
@@ -1986,7 +1995,7 @@ function applyUITheme(){
   // Memo
   document.querySelectorAll('.memo-tab,.memo-text,.memo-input,.memo-add-btn').forEach(e=>e.style.color=textCol);
   document.querySelectorAll('.memo-pri,.memo-del').forEach(e=>e.style.color=tlCol);
-  document.querySelectorAll('.memo-check').forEach(e=>e.style.color=textCol);
+  document.querySelectorAll('.memo-check,.insp-check').forEach(e=>e.style.color=textCol);
   // Categories
   document.querySelectorAll('.cat-tab,.cat-tab-input').forEach(e=>e.style.color=textCol);
   document.querySelectorAll('.cat-add').forEach(e=>e.style.color=tlCol);
@@ -4122,6 +4131,13 @@ function inspDel(id){
   sv('inspirations',inspirations);
   renderInsp();
 }
+function inspToggleDone(id){
+  const item=inspirations.find(i=>i.id===id);
+  if(!item)return;
+  item.done=!item.done;
+  sv('inspirations',inspirations);
+  renderInsp();
+}
 function inspStartEdit(id){
   const item=inspirations.find(i=>i.id===id);
   if(!item)return;
@@ -4171,10 +4187,15 @@ function renderInsp(){
     setTimeout(()=>applyUITheme(),50);return;
   }
   // Sort by createdAt DESC
-  items.sort((a,b)=>b.createdAt-a.createdAt);
+  // Sort: undone first, then by createdAt DESC
+  items.sort((a,b)=>{
+    if(!!a.done!==!!b.done)return a.done?1:-1;
+    return b.createdAt-a.createdAt;
+  });
   el.innerHTML=items.map(i=>{
     const state=i.state||'far';
     const stateLabel=STATE_LABELS[state];
+    const isDone=!!i.done;
     // Tags are clickable - filter by clicking
     const tagPills=(i.tags||[]).map(t=>
       `<span class="insp-tag-pill" onclick="inspSetFilterTag('${escapeHtml(t)}')">${escapeHtml(t)}</span>`
@@ -4184,16 +4205,19 @@ function renderInsp(){
     let upBtn='',downBtn='';
     if(state!=='present')upBtn=`<button class="insp-act-btn insp-act-up" onclick="inspChangeState('${i.id}','up')" title="升级">↑</button>`;
     if(state!=='far')downBtn=`<button class="insp-act-btn insp-act-up" onclick="inspChangeState('${i.id}','down')" title="降级">↓</button>`;
-    return `<div class="insp-card" data-iid="${i.id}">
-      <div class="insp-actions">
-        ${upBtn}${downBtn}
-        <button class="insp-act-btn" onclick="inspDel('${i.id}')" title="删除">✕</button>
-      </div>
-      <div class="insp-text" onclick="inspStartEdit('${i.id}')">${escapeHtml(i.content)}</div>
-      <div class="insp-meta">
-        <span class="insp-state-tag">${stateLabel}</span>
-        ${tagPills}
-        <span class="insp-time">${timeStr}</span>
+    return `<div class="insp-card${isDone?' done':''}" data-iid="${i.id}">
+      <div class="insp-check${isDone?' checked':''}" onclick="inspToggleDone('${i.id}')"></div>
+      <div class="insp-card-body">
+        <div class="insp-actions">
+          ${upBtn}${downBtn}
+          <button class="insp-act-btn" onclick="inspDel('${i.id}')" title="删除">✕</button>
+        </div>
+        <div class="insp-text" onclick="inspStartEdit('${i.id}')">${escapeHtml(i.content)}</div>
+        <div class="insp-meta">
+          <span class="insp-state-tag">${stateLabel}</span>
+          ${tagPills}
+          <span class="insp-time">${timeStr}</span>
+        </div>
       </div>
     </div>`;
   }).join('');
