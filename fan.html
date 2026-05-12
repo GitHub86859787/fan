@@ -3057,7 +3057,9 @@ function guanCommitReason(){
   // Hide input + seal, show "已封存"
   const toggle=document.getElementById('gs1ReasonToggle');
   toggle.textContent='✓ 已 封 存';
-  toggle.style.color='rgba(200,220,180,.85)';
+  toggle.style.color='rgba(255,250,244,.45)';
+  toggle.style.fontSize='9px';
+  toggle.style.letterSpacing='.4em';
   toggle.classList.remove('hidden');
   document.getElementById('gs1ReasonInput').classList.remove('show');
   document.getElementById('gs1SealBtn').classList.remove('show');
@@ -3072,6 +3074,8 @@ function guanCommitReason(){
     document.getElementById('gs1ReasonInput').value='';
     toggle.textContent='+ 缘由';
     toggle.style.color='';
+    toggle.style.fontSize='';
+    toggle.style.letterSpacing='';
     gs1LastEntryTs=null;
   },4000);
 }
