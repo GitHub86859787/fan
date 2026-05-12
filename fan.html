@@ -17,7 +17,8 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:#1E2820;height:100%}
 html,body{width:100%;touch-action:pan-y}
-body{height:100vh;height:100dvh;font-family:'EB Garamond','Noto Serif SC',serif;-webkit-font-smoothing:antialiased;user-select:none;background:#1E2820;position:relative;overscroll-behavior:none}
+body{height:100vh;height:100dvh;font-family:'EB Garamond','Noto Serif SC',serif;-webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;background:#1E2820;position:relative;overscroll-behavior:none}
+input,textarea,[contenteditable="true"]{-webkit-touch-callout:default!important;-webkit-user-select:text!important;user-select:text!important}
 input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:text;-webkit-touch-callout:default}
 
 /* ============ GRADIENT BG ============ */
@@ -486,31 +487,37 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
 
 /* Version switch popover */
 .ver-pop{position:absolute;
-  background:
-    linear-gradient(135deg,rgba(96,52,40,.92) 0%,rgba(70,38,30,.94) 100%);
-  color:#F2DCC4;
-  border:1px solid rgba(200,150,100,.25);border-radius:14px;
+  background:linear-gradient(140deg,
+    rgba(232,90,44,.32) 0%,
+    rgba(216,108,72,.22) 60%,
+    rgba(180,80,42,.35) 100%);
+  backdrop-filter:blur(35px) saturate(160%);
+  -webkit-backdrop-filter:blur(35px) saturate(160%);
+  color:rgba(255,250,244,.95);
+  border:1px solid rgba(255,210,175,.28);
+  border-radius:14px;
   padding:8px;display:flex;flex-direction:column;gap:3px;
   z-index:200;
-  backdrop-filter:blur(20px);
   box-shadow:
-    0 12px 30px rgba(0,0,0,.55),
-    0 2px 8px rgba(0,0,0,.4),
-    inset 0 1px 0 rgba(255,220,180,.18),
-    inset 0 -1px 0 rgba(0,0,0,.2);
+    0 20px 50px rgba(180,80,42,.4),
+    inset 0 1px 0 rgba(255,230,200,.18);
   animation:popIn .3s cubic-bezier(.16,1,.3,1)}
 @keyframes popIn{from{opacity:0;transform:scale(.85) translateY(8px)}
   to{opacity:1;transform:scale(1) translateY(0)}}
 .ver-pop button{padding:11px 22px;border:none;background:none;
-  color:#F2DCC4;font-family:'Noto Serif SC',serif;font-weight:300;font-size:14px;
+  color:rgba(255,250,244,.95);
+  font-family:'Noto Serif SC',serif;font-weight:300;font-size:14px;
   letter-spacing:.4em;cursor:pointer;border-radius:9px;text-align:center;
-  min-width:100px;transition:background .25s}
-.ver-pop button:hover{background:rgba(255,220,180,.08)}
-.ver-pop button.on{background:rgba(255,220,180,.14);font-weight:400}
+  min-width:100px;transition:all .25s;border:1px solid transparent}
+.ver-pop button:hover{background:rgba(255,250,244,.1)}
+.ver-pop button.on{
+  background:rgba(255,250,244,.2);
+  border-color:rgba(255,250,244,.4);
+  font-weight:400}
 .ver-pop-tip{font-family:'Cormorant',serif;font-style:italic;
-  font-size:9px;letter-spacing:.15em;color:rgba(242,220,196,.5);
+  font-size:9px;letter-spacing:.15em;color:rgba(255,250,244,.6);
   text-align:center;padding:4px 0 2px;margin-top:4px;
-  border-top:1px dashed rgba(200,150,100,.22)}
+  border-top:1px dashed rgba(255,210,175,.25)}
 
 /* ============ 森 GROVE ============ */
 .tomato-header{display:flex;justify-content:space-between;align-items:center;
@@ -716,12 +723,12 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
   cursor:pointer}
 .memo-as-box{position:relative;width:90%;max-width:300px;
   padding:18px 16px 14px;border-radius:18px;
-  background:rgba(255,255,255,.06);
-  backdrop-filter:blur(32px) saturate(170%);
-  -webkit-backdrop-filter:blur(32px) saturate(170%);
-  border:1px solid rgba(255,250,244,.16);
+  background:rgba(255,250,244,.16);
+  backdrop-filter:blur(40px) saturate(115%);
+  -webkit-backdrop-filter:blur(40px) saturate(115%);
+  border:1px solid rgba(255,250,244,.22);
   color:rgba(255,250,244,.95);
-  box-shadow:0 20px 60px rgba(20,15,10,.25);
+  box-shadow:0 20px 60px rgba(20,15,10,.3);
   animation:popIn .3s cubic-bezier(.16,1,.3,1)}
 .memo-as-title{text-align:center;
   font-family:'Noto Serif SC',serif;font-weight:200;
@@ -2671,52 +2678,65 @@ function sv(k,v){
 }
 
 const COLORS=[
-  // ===== 红 — 全部带棕底/橙底/酒底的暖红 =====
-  '#8B0E1F',  // Hermès Rouge H 爱马仕红 (1925) ⭐
-  '#3F0A12',  // Hermès Bourgogne 勃艮第
-  '#D72A1A',  // Hermès Rouge Tomate 番茄红
-  '#A8442F',  // Hermès Alezan 栗红
-  '#5A1A1F',  // Rolls-Royce Bohemian Red
-  '#EE1F25',  // 鲜朱红
-  '#D64535',  // 暖红橙
-  '#A01830',  // 暗酒红
-  '#A6001A',  // 深朱红
-  '#8A2030',  // 深酒红
-  '#8B2942',  // 深玫红
-  '#C94555',  // 玫红
+  // ===== 桃粉肤色 — 你的招牌（浅→深） =====
+  '#F2D8D0',  // 浅桃粉
+  '#F0D0D0',  // 浅粉
+  '#F0D0C0',  // 暖肤粉
+  '#F5BFC4',  // Chanel Pink
+  '#E8C8C0',  // 中桃粉
+  '#E6C8C0',  // LP Dusty Pink
+  '#F5B8B8',  // 浅腮红
+  '#F2A3B3',  // Hermès Rose Confetti
+  '#F0B0A8',  // 桃肤
+  '#D8B0A8',  // 玫瑰雾
+  '#E8A898',  // 杏桃
+  '#E87888',  // 中玫红
+  '#E85A8A',  // Hermès Rose Mexico ⭐
 
-  // ===== 橙/桃 — Hermès 招牌橙 + 你的桃肤家族 =====
-  '#FF6F00',  // Hermès Orange H 招牌橙 ⭐⭐
+  // ===== 橙桃 — 暖橙家族（浅→深） =====
+  '#F5B898',  // 浅桃米
+  '#F0A088',  // 桃粉橙
+  '#F5A878',  // 浅杏橙
+  '#F09070',  // 桃橙
+  '#F07848',  // 暖橙
   '#E47A2D',  // Hermès Potiron 南瓜
+  '#FF6F00',  // Hermès Orange H 招牌橙 ⭐⭐
   '#E6471C',  // Hermès Capucine 旱金莲
   '#B5301A',  // Hermès Sanguine 血橙
-  '#F07848',  // 暖橙
-  '#F09070',  // 桃橙
-  '#F5A878',  // 浅杏橙
-  '#F0A088',  // 桃粉
-  '#F5B898',  // 浅桃米
 
-  // ===== 黄/金 =====
-  '#F4C430',  // Hermès Soleil 太阳黄
+  // ===== 黄（浅→深） =====
   '#EBDAB0',  // 米麦黄
-  '#B8923E',  // Hermès Gold
-  '#C9A961',  // Rolls-Royce Champagne
-  '#A37E2C',  // Rolex Gold
+  '#F4C430',  // Hermès Soleil 太阳黄
 
-  // ===== 粉 — 暖粉系 =====
-  '#F2A3B3',  // Hermès Rose Confetti
-  '#F5BFC4',  // Chanel Pink
-  '#E6C8C0',  // LP Dusty Pink
+  // ===== 红 — 全暖红（浅→深） =====
+  '#C94555',  // 玫红
+  '#D64535',  // 暖红橙
+  '#EE1F25',  // 鲜朱红
+  '#D72A1A',  // Hermès Rouge Tomate
+  '#A8442F',  // Hermès Alezan 栗红
+  '#8B2942',  // 深玫红
+  '#A01830',  // 暗酒红
+  '#8A2030',  // 深酒红
+  '#A6001A',  // 深朱红
+  '#8B0E1F',  // Hermès Rouge H 爱马仕红 ⭐
+  '#5A1A1F',  // Rolls Bohemian Red
+  '#3F0A12',  // Hermès Bourgogne
 
-  // ===== 紫 — 一个代表 =====
-  '#5C2D6B',  // Rolls-Royce Purple Spirit (飞天女神紫)
+  // ===== 紫 =====
+  '#5C2D6B',  // Rolls-Royce Purple Spirit
 
-  // ===== 蓝 — 一个代表 =====
+  // ===== 蓝 — Tiffany / 雾灰（浅→深） =====
+  '#C8D8E0',  // 浅水蓝
+  '#A8C8D8',  // 浅雾蓝
+  '#78B8D0',  // 中蓝
+  '#85AAC0',  // 雾灰蓝
   '#0ABAB5',  // Tiffany Blue ⭐
+  '#0098A8',  // Deep Tiffany
+  '#101828',  // 极深海军蓝
 
-  // ===== 绿 — 沉静莫兰迪 + 深英伦绿 =====
-  '#B5CC8C',  // BV Pistachio 开心果
+  // ===== 绿 — 沉静莫兰迪 + 深英伦（浅→深） =====
   '#B5C2B0',  // LP Sage 鼠尾草
+  '#B5CC8C',  // BV Pistachio 开心果
   '#99B5A8',  // Hermès Vert d'Eau 鸭蛋绿
   '#5F6B3E',  // Rolls-Royce Olivin 橄榄
   '#316B3A',  // BV Green
@@ -2724,22 +2744,40 @@ const COLORS=[
   '#0F4E2C',  // Hermès Vert Anglais 元祖英伦绿 ⭐
   '#004D2C',  // 深英伦绿
 
-  // ===== 棕驼 — 全部暖色 =====
-  '#B89478',  // Rolls-Royce Rose Gold 玫瑰金
-  '#B89272',  // 浅驼
-  '#C19A6B',  // LP Camel 驼色
+  // ===== 米白 — 静奢"白"（浅→深） =====
+  '#F5F2EA',  // 暖白
+  '#F0EDE4',  // 浅米
+  '#EFE6D8',  // Hermès Craie 粉笔白 (永久色)
+  '#E8DDC8',  // LP Cashmere
+  '#D8C9A8',  // Hermès Parchemin 羊皮纸 (永久色)
+
+  // ===== 中米/暖驼（浅→深） =====
+  '#F0E8DA',  // 浅暖米
+  '#E8DDD0',  // 中米
+  '#E8D8C8',  // 暖驼米
+  '#C9B99A',  // 沙驼
+  '#C8B59A',  // Hermès Argile 粘土
+
+  // ===== 驼/沙 — Burberry / LP（浅→深） =====
+  '#D8C0A0',  // Beige Sable 沙米
   '#D4B896',  // LP Sand
+  '#D2B48C',  // Burberry Trench 风衣色
+  '#C8A078',  // 杏驼
+  '#C19A6B',  // LP Camel 驼色
   '#A0876C',  // LP Vicuña 维库纳
   '#5C3326',  // Hermès Ebene 乌木 (默认色)
 
-  // ===== 中性 — 暖米/驼灰 =====
-  '#E8DDC8',  // LP Cashmere 羊绒
-  '#D8C9A8',  // Hermès Parchemin 羊皮纸 (永久色)
-  '#C8B59A',  // Hermès Argile 粘土
-  '#EFE6D8',  // Hermès Craie 粉笔白 (永久色)
+  // ===== 暖灰 — 静奢"灰"（浅→深→黑） =====
+  '#C0B8B0',  // 浅大象灰
+  '#A8A098',  // 中灰
+  '#888480',  // 深暖灰
   '#8B7E6A',  // Hermès Etoupe 烟驼 (永久色)
+  '#6A6058',  // 极深暖灰
+  '#2C2C2A',  // 暖深黑
   '#1A1A1A',  // Chanel Noir
+  '#0A0A0A',  // 纯黑
 ];
+
 const DEF_TAGS=[
   {id:'t1',name:'梵App开发',color:'#5C3326'},   // Hermès Ebene 乌木色
 ];
@@ -2983,6 +3021,11 @@ function guanToggleReason(){
   const input=document.getElementById('gs1ReasonInput');
   toggle.classList.add('hidden');
   input.classList.add('show');
+  // Cancel auto-collapse — user is writing now
+  if(window._gs1ResetTimer){
+    clearTimeout(window._gs1ResetTimer);
+    window._gs1ResetTimer=null;
+  }
   setTimeout(()=>input.focus(),50);
 }
 
@@ -2997,7 +3040,7 @@ function guanReasonOnInput(){
   }
 }
 
-// Commit reason (called by 封存 button or auto-commit on timeout)
+// Commit reason (called by 封存 button)
 function guanCommitReason(){
   if(!gs1LastEntryTs)return;
   const reason=(document.getElementById('gs1ReasonInput').value||'').trim();
@@ -3014,6 +3057,19 @@ function guanCommitReason(){
   toggle.classList.remove('hidden');
   document.getElementById('gs1ReasonInput').classList.remove('show');
   document.getElementById('gs1SealBtn').classList.remove('show');
+  
+  // After 封存, set a short timer to reset
+  if(window._gs1ResetTimer)clearTimeout(window._gs1ResetTimer);
+  window._gs1ResetTimer=setTimeout(()=>{
+    const rec=document.getElementById('gs1Recorded');
+    rec.classList.remove('show');
+    document.getElementById('gs1Preview').style.display='inline';
+    document.getElementById('gs1Detail').classList.remove('show');
+    document.getElementById('gs1ReasonInput').value='';
+    toggle.textContent='+ 缘由';
+    toggle.style.color='';
+    gs1LastEntryTs=null;
+  },4000);
 }
 
 // Track most recent entry for reason updates
