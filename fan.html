@@ -1532,7 +1532,7 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
 .gs1-reason-input:focus{background:rgba(255,250,244,.08)}
 
 /* 封存 button — refined pill tag, zen */
-.gs1-seal-btn{display:none;margin:10px auto 0;
+.gs1-seal-btn{display:none;margin:14px auto 0;
   padding:4px 16px;
   background:rgba(255,250,244,.08);
   border:1px solid rgba(255,250,244,.18);
@@ -1544,6 +1544,9 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
 .gs1-seal-btn.show{display:block;animation:fadeIn .25s ease}
 .gs1-seal-btn:hover{background:rgba(255,250,244,.14);color:rgba(255,250,244,.85)}
 .gs1-seal-btn:active{transform:scale(.96)}
+
+/* When detail is expanded, tighten gap to confirm-row below */
+.gs1-detail.show + .gs1-confirm-row{margin-top:6px}
 
 
 /* Meaning popover */
