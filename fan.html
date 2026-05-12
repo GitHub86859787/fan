@@ -1442,9 +1442,10 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
 .seal-msg.show{opacity:1}
 
 /* ============ 观 (GUAN) PAGE ============ */
-.guan-card{padding:24px 18px;border-radius:18px;
+.guan-card{padding:24px 18px 14px;border-radius:18px;
   background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
-  backdrop-filter:blur(10px);margin-bottom:16px;transition:all 2s}
+  backdrop-filter:blur(10px);margin-bottom:16px;
+  transition:color 2s,background 2s,border-color 2s}
 .guan-card-label{font-size:8px;letter-spacing:.4em;text-transform:uppercase;
   text-align:center;opacity:.55;margin-bottom:18px;transition:color 2s}
 
@@ -1504,10 +1505,10 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
 .gs1-recorded.show{display:inline-block}
 
 /* Intensity 5-dot + 缘由 */
-/* 缘由 — optional, paper note style */
+/* 缘由 — paper note with seal button floating bottom-right */
 .gs1-detail{max-height:0;overflow:hidden;opacity:0;
   transition:max-height .4s cubic-bezier(.16,1,.3,1),opacity .3s}
-.gs1-detail.show{max-height:200px;opacity:1;margin-top:18px}
+.gs1-detail.show{max-height:160px;opacity:1;margin-top:14px}
 .gs1-reason-toggle{display:block;width:100%;padding:6px 0;
   background:transparent;border:none;cursor:pointer;
   font-family:'Cormorant Garamond','Cormorant',serif;font-style:italic;
@@ -1516,33 +1517,41 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
 .gs1-reason-toggle:hover{color:rgba(255,250,244,.7)}
 .gs1-reason-toggle:active{transform:scale(.97)}
 .gs1-reason-toggle.hidden{display:none}
-.gs1-reason-input{width:100%;padding:10px 14px;
-  background:rgba(255,250,244,.05);
+
+/* Wrap textarea + seal — seal sits below, tightly */
+.gs1-input-wrap{display:none}
+.gs1-input-wrap.show{display:block}
+
+.gs1-reason-input{width:100%;padding:14px 16px;
+  background:rgba(255,250,244,.04);
   border:none;
   border-radius:12px;
-  color:rgba(255,250,244,.9);font-size:11.5px;
-  font-family:'Noto Serif SC',serif;font-weight:300;line-height:1.7;
-  resize:none;outline:none;letter-spacing:.04em;min-height:60px;
-  display:none;
+  color:rgba(255,250,244,.92);font-size:12px;
+  font-family:'Noto Serif SC',serif;font-weight:300;line-height:1.8;
+  resize:none;outline:none;letter-spacing:.04em;height:96px;
+  text-align:left;
   transition:background .3s}
-.gs1-reason-input.show{display:block}
-.gs1-reason-input::placeholder{color:rgba(255,250,244,.28);
+.gs1-reason-input::placeholder{color:rgba(255,250,244,.25);
   font-style:italic;font-family:'Cormorant Garamond',serif;font-size:13px;
   letter-spacing:.03em}
-.gs1-reason-input:focus{background:rgba(255,250,244,.08)}
+.gs1-reason-input:focus{background:rgba(255,250,244,.07)}
 
-/* 封存 button — appears when there's content to seal */
-.gs1-seal-btn{display:none;margin:10px auto 0;
-  padding:7px 22px;
-  background:rgba(255,250,244,.18);
-  border:1px solid rgba(255,250,244,.3);
-  color:rgba(255,250,244,.95);
-  border-radius:100px;
+/* 封存 — appears only when typing */
+.gs1-seal-btn{
+  display:none;
+  width:fit-content;
+  margin:12px auto 0;
+  padding:3px 10px;
+  background:transparent;
+  border:none;
+  color:rgba(255,250,244,.55);
   font-family:'Noto Serif SC',serif;font-weight:300;
-  font-size:11px;letter-spacing:.4em;text-indent:.4em;
-  cursor:pointer;transition:all .25s}
-.gs1-seal-btn.show{display:block;animation:fadeIn .25s ease}
-.gs1-seal-btn:active{transform:scale(.96);background:rgba(255,250,244,.28)}
+  font-size:9px;letter-spacing:.4em;text-indent:.4em;
+  cursor:pointer;
+  transition:color .25s}
+.gs1-seal-btn.show{display:block}
+.gs1-seal-btn:hover{color:rgba(255,250,244,.9)}
+.gs1-seal-btn:active{transform:scale(.95)}
 
 
 /* Meaning popover */
@@ -2037,8 +2046,10 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
           <!-- 缘由 — optional, click to expand -->
           <div class="gs1-detail" id="gs1Detail">
             <button class="gs1-reason-toggle" id="gs1ReasonToggle" onclick="guanToggleReason()">+ 缘由</button>
-            <textarea class="gs1-reason-input" id="gs1ReasonInput" placeholder="缘由..." rows="2" oninput="guanReasonOnInput()"></textarea>
-            <button class="gs1-seal-btn" id="gs1SealBtn" onclick="guanCommitReason()">封 存</button>
+            <div class="gs1-input-wrap" id="gs1InputWrap">
+              <textarea class="gs1-reason-input" id="gs1ReasonInput" placeholder="缘由..." rows="2" oninput="guanReasonOnInput()"></textarea>
+              <button class="gs1-seal-btn" id="gs1SealBtn" onclick="guanCommitReason()">封 存</button>
+            </div>
           </div>
           
           <div class="gs1-confirm-row">
@@ -3009,23 +3020,40 @@ function guanSetSlider(i){
 }
 
 // Show confirm button only — no reason UI yet (appears after record)
+// ALSO resets any leftover reason state (user may re-drag after writing)
 function guanShowConfirm(){
   document.getElementById('gs1Preview').style.display='none';
   document.getElementById('gs1Confirm').classList.add('show');
   document.getElementById('gs1Recorded').classList.remove('show');
   document.getElementById('gs1Detail').classList.remove('show');
+  // Clean up reason state completely
+  document.getElementById('gs1InputWrap').classList.remove('show');
+  document.getElementById('gs1SealBtn').classList.remove('show');
+  document.getElementById('gs1ReasonInput').value='';
+  const toggle=document.getElementById('gs1ReasonToggle');
+  toggle.classList.remove('hidden');
+  toggle.textContent='+ 缘由';
+  toggle.style.color='';
+  // Cancel any pending timer
+  if(window._gs1ResetTimer){
+    clearTimeout(window._gs1ResetTimer);
+    window._gs1ResetTimer=null;
+  }
 }
 
 function guanToggleReason(){
   const toggle=document.getElementById('gs1ReasonToggle');
+  const wrap=document.getElementById('gs1InputWrap');
   const input=document.getElementById('gs1ReasonInput');
   toggle.classList.add('hidden');
-  input.classList.add('show');
+  wrap.classList.add('show');
   // Cancel auto-collapse — user is writing now
   if(window._gs1ResetTimer){
     clearTimeout(window._gs1ResetTimer);
     window._gs1ResetTimer=null;
   }
+  // Hide "已记录" — past-tense info no longer needed, focus shifts to writing
+  document.getElementById('gs1Recorded').classList.remove('show');
   setTimeout(()=>input.focus(),50);
 }
 
@@ -3050,19 +3078,17 @@ function guanCommitReason(){
     entry.reason=reason;
     sv('energyLog',energyLog);
   }
-  // Hide input + seal, show "已封存"
+  // Hide input + seal, show "✓ 已封存"
   const toggle=document.getElementById('gs1ReasonToggle');
   toggle.textContent='✓ 已 封 存';
   toggle.style.color='rgba(200,220,180,.85)';
   toggle.classList.remove('hidden');
-  document.getElementById('gs1ReasonInput').classList.remove('show');
+  document.getElementById('gs1InputWrap').classList.remove('show');
   document.getElementById('gs1SealBtn').classList.remove('show');
   
   // After 封存, set a short timer to reset
   if(window._gs1ResetTimer)clearTimeout(window._gs1ResetTimer);
   window._gs1ResetTimer=setTimeout(()=>{
-    const rec=document.getElementById('gs1Recorded');
-    rec.classList.remove('show');
     document.getElementById('gs1Preview').style.display='inline';
     document.getElementById('gs1Detail').classList.remove('show');
     document.getElementById('gs1ReasonInput').value='';
@@ -3118,7 +3144,8 @@ function guanConfirmRecord(){
   reasonToggle.textContent = '+ 缘由';
   reasonToggle.style.color = '';
   reasonToggle.classList.remove('hidden');
-  document.getElementById('gs1ReasonInput').classList.remove('show');
+  document.getElementById('gs1InputWrap').classList.remove('show');
+  document.getElementById('gs1SealBtn').classList.remove('show');
   document.getElementById('gs1ReasonInput').value = '';
   document.getElementById('gs1Detail').classList.add('show');
   
@@ -3135,7 +3162,7 @@ function guanConfirmRecord(){
     document.getElementById('gs1Preview').style.display='inline';
     document.getElementById('gs1Detail').classList.remove('show');
     document.getElementById('gs1ReasonInput').value = '';
-    document.getElementById('gs1ReasonInput').classList.remove('show');
+    document.getElementById('gs1InputWrap').classList.remove('show');
     document.getElementById('gs1SealBtn').classList.remove('show');
     reasonToggle.classList.remove('hidden');
     reasonToggle.textContent = '+ 缘由';
