@@ -188,14 +188,15 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
   text-indent:.4em}
 
 /* Tag chips — use each tag's own color (like timer page) */
-.rec-edit-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:18px;
-  padding:0;background:transparent;border:none;max-height:none;
+.rec-edit-tags{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:14px;
+  padding:0;background:transparent;border:none;
+  max-height:60px;overflow-y:auto;
   justify-content:center}
-.rec-edit-tag{padding:4px 9px;border-radius:100px;cursor:pointer;
+.rec-edit-tag{padding:3px 7px;border-radius:100px;cursor:pointer;
   font-family:'Noto Serif SC',serif;font-weight:300;
-  font-size:10px;letter-spacing:.04em;
+  font-size:9px;letter-spacing:.04em;
   border:1px solid transparent;
-  background:transparent;color:rgba(255,250,244,.7);
+  background:transparent;color:rgba(255,250,244,.6);
   transition:all .2s}
 .rec-edit-tag.on{color:rgba(255,250,244,.98);font-weight:400}
 .rec-edit-tag:active{transform:scale(.95)}
@@ -204,11 +205,11 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
 .rec-edit-time-display{display:flex;justify-content:center;align-items:center;
   gap:8px;margin-bottom:2px;padding:2px 0}
 .rec-edit-time-btn{font-family:'EB Garamond',serif;
-  font-weight:400;font-size:28px;line-height:1;letter-spacing:.08em;
+  font-weight:400;font-size:22px;line-height:1;letter-spacing:.08em;
   color:rgba(255,250,244,.75);background:transparent;border:none;cursor:pointer;
   padding:3px 6px;transition:opacity .2s}
 .rec-edit-time-btn:active{opacity:.5}
-.rec-edit-time-arrow{font-family:'EB Garamond',serif;font-size:18px;font-weight:400;
+.rec-edit-time-arrow{font-family:'EB Garamond',serif;font-size:14px;font-weight:400;
   color:rgba(255,250,244,.35)}
 .rec-edit-duration{text-align:center;font-family:'Noto Serif SC',serif;
   font-weight:300;font-size:10px;color:rgba(255,250,244,.5);
@@ -671,6 +672,95 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
 .export-btn{flex:1;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.08);
   background:rgba(255,255,255,.04);font-family:'EB Garamond',serif;font-size:10px;
   letter-spacing:.1em;cursor:pointer;transition:all .3s,color 2s}
+
+/* Calendar event marks */
+.cal-d .cal-ev-mark{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);
+  width:2px;height:5px;border-radius:1px;opacity:.5}
+.cal-d.has .cal-ev-mark{bottom:9px}
+/* Trip range bar */
+.cal-d.trip-range::before{content:'';position:absolute;
+  bottom:1px;left:0;right:0;height:2px;
+  background:currentColor;opacity:.12}
+.cal-d.trip-start::before{left:50%;border-radius:1px 0 0 1px}
+.cal-d.trip-end::before{right:50%;border-radius:0 1px 1px 0}
+
+/* Day detail — event card */
+.day-ev-card{padding:10px 14px;border-radius:10px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+  margin-top:8px}
+.day-ev-title{font-family:'Noto Serif SC',serif;font-weight:300;
+  font-size:9px;letter-spacing:.25em;opacity:.65;margin-bottom:3px}
+.day-ev-meta{font-family:'Cormorant',serif;font-style:italic;
+  font-size:9px;opacity:.4;letter-spacing:.03em}
+.day-ev-note{font-family:'Cormorant',serif;font-style:italic;
+  font-size:9px;opacity:.35;margin-top:2px}
+
+/* Day detail — energy record */
+.day-en-card{padding:8px 14px;border-radius:10px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+  margin-top:6px;display:flex;align-items:center;gap:8px}
+.day-en-emoji{font-size:14px}
+.day-en-info{font-family:'Cormorant',serif;font-style:italic;
+  font-size:9px;opacity:.5}
+.day-en-reason{font-family:'Noto Serif SC',serif;font-weight:300;
+  font-size:8px;opacity:.4;margin-top:1px;font-style:normal}
+
+/* Add event modal */
+.ev-bg{position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.25);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  display:none;align-items:center;justify-content:center}
+.ev-bg.show{display:flex}
+.ev-box{width:90%;max-width:290px;
+  background:rgba(255,255,255,.06);
+  backdrop-filter:blur(32px) saturate(170%);-webkit-backdrop-filter:blur(32px) saturate(170%);
+  border:1px solid rgba(255,250,244,.16);border-radius:20px;
+  padding:20px 16px 14px;color:rgba(255,250,244,.95);
+  box-shadow:0 20px 60px rgba(20,15,10,.3);
+  animation:popIn .3s cubic-bezier(.16,1,.3,1)}
+.ev-title{font-family:'Noto Serif SC',serif;font-weight:200;
+  font-size:11px;letter-spacing:.4em;text-indent:.4em;
+  text-align:center;opacity:.75;margin-bottom:14px}
+.ev-field{margin-bottom:8px}
+.ev-label{font-family:'Cormorant',serif;font-style:italic;
+  font-size:10px;color:rgba(255,250,244,.45);letter-spacing:.04em;
+  margin-bottom:3px;display:block}
+.ev-input{width:100%;padding:7px 11px;
+  background:rgba(255,250,244,.05);border:none;border-radius:8px;
+  color:rgba(255,250,244,.9);font-family:'Noto Serif SC',serif;font-weight:300;
+  font-size:11px;letter-spacing:.04em;outline:none}
+.ev-input:focus{background:rgba(255,250,244,.09)}
+.ev-input::placeholder{color:rgba(255,250,244,.22);font-style:italic;
+  font-family:'Cormorant',serif}
+.ev-row{display:flex;gap:8px}
+.ev-row .ev-field{flex:1}
+.ev-types{display:flex;gap:5px;flex-wrap:wrap}
+.ev-type{padding:3px 10px;border-radius:100px;
+  background:transparent;border:1px solid rgba(255,250,244,.15);
+  color:rgba(255,250,244,.55);font-family:'Noto Serif SC',serif;font-weight:300;
+  font-size:9px;letter-spacing:.2em;cursor:pointer;transition:all .2s}
+.ev-type.sel{background:rgba(255,250,244,.14);
+  border-color:rgba(255,250,244,.32);color:rgba(255,250,244,.95)}
+.ev-acts{display:flex;gap:8px;margin-top:14px}
+.ev-acts .btn{padding:9px 0;font-size:10px;color:rgba(255,250,244,.85)}
+.ev-del{text-align:center;margin-top:10px}
+.ev-del a{font-family:'Cormorant',serif;font-style:italic;
+  font-size:9px;color:rgba(255,120,100,.5);cursor:pointer;
+  text-decoration:none;letter-spacing:.03em}
+
+/* Today schedule banner on timer page */
+.today-sched{
+  font-family:'Cormorant',serif;font-style:italic;
+  font-size:10px;letter-spacing:.08em;
+  text-align:center;margin-bottom:16px;
+  animation:schedBreathe 6s ease forwards}
+@keyframes schedBreathe{
+  0%{opacity:0;transform:translateY(-4px)}
+  12%{opacity:.35;transform:translateY(0)}
+  75%{opacity:.35}
+  100%{opacity:0;transform:translateY(-2px)}}
+.today-sched .ts-dot{display:inline-block;width:3px;height:3px;
+  border-radius:50%;background:currentColor;opacity:.4;
+  vertical-align:middle;margin:0 8px}
 
 /* ============ SUMMARY ============ */
 .sum-bg{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.25);backdrop-filter:blur(20px);
@@ -1791,6 +1881,7 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
   <div class="main">
     <!-- TIMER -->
     <div class="pg on" id="pgT">
+      <div class="today-sched" id="todaySched" style="display:none"></div>
       <div class="t-card" id="tCard">
         <div id="tIdle"><div class="t-idle">选择标签 · 轻触开始</div></div>
         <div id="tRun" style="display:none">
@@ -1920,6 +2011,51 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
         <button class="export-btn" onclick="exportFullBackup()">完整备份</button>
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
         <button class="export-btn" onclick="document.getElementById('importFile').click()">导入备份</button>
+      </div>
+    </div>
+
+    <!-- ============ 添加/编辑 日程事件 ============ -->
+    <div class="ev-bg" id="evBg" onclick="if(event.target===this)closeEvModal()">
+      <div class="ev-box">
+        <div class="ev-title" id="evModalTitle">添 加 事 件</div>
+        <div class="ev-field">
+          <label class="ev-label"><em>title</em></label>
+          <input class="ev-input" id="evInpTitle" placeholder="事件名称...">
+        </div>
+        <div class="ev-row">
+          <div class="ev-field">
+            <label class="ev-label"><em>start</em></label>
+            <input class="ev-input" id="evInpStart" type="date">
+          </div>
+          <div class="ev-field">
+            <label class="ev-label"><em>end</em></label>
+            <input class="ev-input" id="evInpEnd" type="date">
+          </div>
+        </div>
+        <div class="ev-field">
+          <label class="ev-label"><em>time (optional)</em></label>
+          <input class="ev-input" id="evInpTime" type="time" placeholder="如 14:00">
+        </div>
+        <div class="ev-field">
+          <label class="ev-label"><em>type</em></label>
+          <div class="ev-types" id="evTypes">
+            <span class="ev-type sel" data-t="trip">行 程</span>
+            <span class="ev-type" data-t="schedule">日 程</span>
+            <span class="ev-type" data-t="birthday">生 日</span>
+            <span class="ev-type" data-t="holiday">节 日</span>
+          </div>
+        </div>
+        <div class="ev-field">
+          <label class="ev-label"><em>note</em></label>
+          <input class="ev-input" id="evInpNote" placeholder="备注...">
+        </div>
+        <div class="ev-acts">
+          <button class="btn" onclick="closeEvModal()">取 消</button>
+          <button class="btn btn-strong" onclick="saveEvent()">保 存</button>
+        </div>
+        <div class="ev-del" id="evDelRow" style="display:none">
+          <a onclick="deleteEvent()">删 除 此 事 件</a>
+        </div>
       </div>
     </div>
 
@@ -3910,11 +4046,24 @@ function showSum(recs,dk){
 function closeSum(){document.getElementById('sumBg').classList.remove('show')}
 
 function expDayTXT(dk){
-  const recs=allDays[dk]||[];if(!recs.length)return;
+  const recs=allDays[dk]||[];
+  const evs=getEventsForDate(dk);
+  if(!recs.length&&!evs.length)return;
   let txt=`梵 · ${dk}\n${'─'.repeat(28)}\n\n`;let tot=0;
   recs.forEach(r=>{const s=new Date(r.start),e=new Date(r.end);
     txt+=`${pad(s.getHours())}:${pad(s.getMinutes())}—${pad(e.getHours())}:${pad(e.getMinutes())} ${r.tagName} (${fmtD(r.duration)})\n`;tot+=r.duration;});
-  txt+=`\n${'─'.repeat(28)}\n总计: ${fmtD(tot)}\n`;
+  if(tot)txt+=`\n总计: ${fmtD(tot)}\n`;
+  if(evs.length){
+    txt+=`\n${'─'.repeat(28)}\n日程事件:\n`;
+    evs.forEach(ev=>{
+      const typeLbl=EV_TYPE_LABELS[ev.type]||ev.type;
+      txt+=`[${typeLbl}] ${ev.title}`;
+      if(ev.start!==(ev.end||ev.start))txt+=` (${ev.start} ~ ${ev.end})`;
+      if(ev.time)txt+=` ${ev.time}`;
+      if(ev.note)txt+=` — ${ev.note}`;
+      txt+='\n';
+    });
+  }
   download(txt,`梵_${dk}.txt`,'text/plain');
 }
 function expDayCSV(dk){
@@ -3992,6 +4141,23 @@ function exportAllCSV(){
         solar:fmtSolar(d),
         ganzhi:getGanzhi(d).full,
         detail:`[${pri}|${status}] ${content}`
+      });
+    });
+  }
+  
+  // Calendar events (trips, schedules, birthdays, holidays)
+  if(calEvents&&calEvents.length){
+    calEvents.forEach(ev=>{
+      const d=new Date(ev.start+'T00:00:00');
+      const range=ev.start===(ev.end||ev.start)?ev.start:`${ev.start} ~ ${ev.end}`;
+      const typeLbl=EV_TYPE_LABELS[ev.type]||ev.type;
+      const detail=`[${typeLbl}] ${ev.title} (${range})${ev.time?' '+ev.time:''}${ev.note?' '+ev.note:''}`;
+      records.push({
+        ts:d.getTime(),
+        type:'calendar',
+        solar:range,
+        ganzhi:getGanzhi(d).full,
+        detail:detail
       });
     });
   }
@@ -4089,7 +4255,20 @@ function exportAllJSON(rangeStart,rangeEnd){
     time_records:timeRecords,
     energy_records:energyRecords,
     thoughts:thoughts,
-    todos:todoRecords
+    todos:todoRecords,
+    calendar_events:(calEvents||[]).filter(ev=>{
+      if(!rangeStart||!rangeEnd)return true;
+      return ev.start<=rangeEnd&&(ev.end||ev.start)>=rangeStart;
+    }).map(ev=>({
+      title:ev.title,
+      type:ev.type,
+      type_label:EV_TYPE_LABELS[ev.type]||ev.type,
+      start:ev.start,
+      end:ev.end||ev.start,
+      time:ev.time||null,
+      note:ev.note||null,
+      recurring:!!ev.recurring
+    }))
   };
   
   // Record this export in history (for showing previously exported ranges)
@@ -4702,25 +4881,24 @@ function renderTomatoes(){
   if(pomoVer==='箧'){
     row.style.display='flex';
     treeWrap.style.display='none';
-    // Show CURRENT BOX content (cross-day, not full yet) - this is the key change
-    const currentBox=getCurrentBox();
+    // Show TODAY's tomatoes only (resets each day)
     row.innerHTML='';
-    if(!currentBox.length){
+    if(!todayTomatoes.length){
       row.innerHTML='<div class="tomato-empty">完成第一个番茄</div>';
     }else{
-      currentBox.forEach((t,i)=>{
+      todayTomatoes.forEach((t,i)=>{
         const el=document.createElement('div');
         el.className='tomato';
         row.appendChild(el);
       });
     }
   }else{
-    // 森 version - tree with growing tomatoes
+    // 森 version - tree with TODAY's tomatoes
     row.style.display='none';
     treeWrap.style.display='flex';
     treeWrap.innerHTML='';
     
-    const treeCount=getCurrentTreeCount();
+    const treeCount=todayTomatoes.length;
     const currentBox=getCurrentBox();
     
     if(treeCount===0){
@@ -4892,27 +5070,208 @@ function renderCal(){
   for(let day=1;day<=dim;day++){
     const d=document.createElement('div'),k=calY+'-'+pad(calM+1)+'-'+pad(day);
     const isT=k===tk,has=allDays[k]&&allDays[k].length>0;
-    d.className='cal-d'+(isT?' today':'')+(has?' has':'');d.textContent=day;
-    if(has)d.onclick=()=>showDayD(k);g.appendChild(d);
+    const evs=getEventsForDate(k);
+    const hasEv=evs.length>0;
+    const isTrip=evs.some(e=>e.type==='trip');
+    let cls='cal-d'+(isT?' today':'')+(has?' has':'');
+    if(isTrip){
+      cls+=' trip-range';
+      // Check if trip start or end
+      const tripEv=evs.find(e=>e.type==='trip');
+      if(tripEv){
+        if(k===tripEv.start)cls+=' trip-start';
+        if(k===(tripEv.end||tripEv.start))cls+=' trip-end';
+      }
+    }
+    d.className=cls;
+    let inner=String(day);
+    if(hasEv)inner+=`<div class="cal-ev-mark" style="background:currentColor"></div>`;
+    d.innerHTML=inner;
+    // All non-empty dates are clickable
+    if(has||hasEv){
+      d.onclick=()=>showDayD(k);
+    }else{
+      // Empty date — tap to add event directly
+      d.onclick=()=>openEvModal(k);
+    }
+    g.appendChild(d);
   }
   document.getElementById('dayD').classList.remove('show');
   setTimeout(()=>applyUITheme(),50);
 }
 function showDayD(dk){
-  const recs=allDays[dk]||[];if(!recs.length)return;
+  const recs=allDays[dk]||[];
+  const evs=getEventsForDate(dk);
+  const enLogs=(typeof energyLog!=='undefined'?energyLog:[]).filter(e=>{
+    const d=new Date(e.ts);
+    return dkOf(e.ts)===dk;
+  });
+  if(!recs.length&&!evs.length&&!enLogs.length)return;
   const dd=document.getElementById('dayD'),ds=dk.replace(/(\d{4})-(\d{2})-(\d{2})/,'$1年$2月$3日');
   let tot=0,html=`<h3>${ds}</h3>`;
+  // Time records
   recs.forEach(r=>{const s=new Date(r.start),e=new Date(r.end);tot+=r.duration;
     html+=`<div class="rec"><div class="r-dot" style="background:${r.tagColor}"></div>
     <div class="r-info"><div class="r-nm">${r.tagName}</div>
     <div class="r-tm">${pad(s.getHours())}:${pad(s.getMinutes())}—${pad(e.getHours())}:${pad(e.getMinutes())}</div></div>
     <div class="r-dur">${fmtD(r.duration)}</div></div>`;});
-  html+=`<div style="text-align:center;margin-top:12px;font-size:9px;letter-spacing:.1em;opacity:.5">总计 ${fmtD(tot)}</div>`;
-  html+=`<div class="export-row" style="margin-top:12px">
+  if(tot)html+=`<div style="text-align:center;margin-top:8px;font-size:9px;letter-spacing:.1em;opacity:.5">总计 ${fmtD(tot)}</div>`;
+  // Energy records
+  enLogs.forEach(en=>{
+    const t=new Date(en.ts);
+    const tm=pad(t.getHours())+':'+pad(t.getMinutes());
+    html+=`<div class="day-en-card">
+      <span class="day-en-emoji">${en.emoji||''}</span>
+      <div><div class="day-en-info"><em>${tm} · ${en.state||''}</em></div>
+      ${en.reason?`<div class="day-en-reason">${en.reason}</div>`:''}</div></div>`;
+  });
+  // Calendar events
+  evs.forEach(ev=>{
+    const range=ev.start===ev.end?ev.start:`${ev.start} — ${ev.end}`;
+    html+=`<div class="day-ev-card" onclick="openEvModal('${dk}','${ev.id}')">
+      <div class="day-ev-title">${ev.title}</div>
+      <div class="day-ev-meta"><em>${range} · ${EV_TYPE_LABELS[ev.type]||ev.type}${ev.time?' · '+ev.time:''}</em></div>
+      ${ev.note?`<div class="day-ev-note"><em>${ev.note}</em></div>`:''}
+    </div>`;
+  });
+  // Actions
+  if(recs.length)html+=`<div class="export-row" style="margin-top:12px">
     <button class="export-btn" onclick="showSum(allDays['${dk}'],'${dk}')">查看图表</button>
     <button class="export-btn" onclick="expDayCSV('${dk}')">CSV</button>
     <button class="export-btn" onclick="expDayTXT('${dk}')">TXT</button></div>`;
+  // Always show add event button
+  html+=`<div style="text-align:center;margin-top:10px">
+    <button class="export-btn" onclick="openEvModal('${dk}')" style="opacity:.6">+ 添加事件</button></div>`;
   dd.innerHTML=html;dd.classList.add('show');setTimeout(()=>applyUITheme(),50);
+}
+
+// ================================================================
+// CALENDAR EVENTS (日程事件)
+// ================================================================
+let calEvents=ld('calEvents',[]);
+let evEditId=null;
+let evSelType='trip';
+const EV_TYPE_LABELS={trip:'行程',schedule:'日程',birthday:'生日',holiday:'节日'};
+
+function openEvModal(dateStr,editId){
+  evEditId=editId||null;
+  const modal=document.getElementById('evBg');
+  document.getElementById('evModalTitle').textContent=evEditId?'编 辑 事 件':'添 加 事 件';
+  document.getElementById('evDelRow').style.display=evEditId?'':'none';
+  if(evEditId){
+    const ev=calEvents.find(e=>e.id===evEditId);
+    if(ev){
+      document.getElementById('evInpTitle').value=ev.title||'';
+      document.getElementById('evInpStart').value=ev.start||'';
+      document.getElementById('evInpEnd').value=ev.end||ev.start||'';
+      document.getElementById('evInpTime').value=ev.time||'';
+      document.getElementById('evInpNote').value=ev.note||'';
+      evSelType=ev.type||'trip';
+    }
+  }else{
+    document.getElementById('evInpTitle').value='';
+    document.getElementById('evInpStart').value=dateStr||'';
+    document.getElementById('evInpEnd').value=dateStr||'';
+    document.getElementById('evInpTime').value='';
+    document.getElementById('evInpNote').value='';
+    evSelType='trip';
+  }
+  document.querySelectorAll('.ev-type').forEach(t=>{
+    t.classList.toggle('sel',t.dataset.t===evSelType);
+  });
+  modal.classList.add('show');
+}
+function closeEvModal(){
+  document.getElementById('evBg').classList.remove('show');
+  evEditId=null;
+}
+function saveEvent(){
+  const title=document.getElementById('evInpTitle').value.trim();
+  if(!title){closeEvModal();return}
+  const start=document.getElementById('evInpStart').value;
+  const end=document.getElementById('evInpEnd').value||start;
+  const time=document.getElementById('evInpTime').value;
+  const note=document.getElementById('evInpNote').value.trim();
+  const recurring=(evSelType==='birthday'||evSelType==='holiday');
+  if(evEditId){
+    const ev=calEvents.find(e=>e.id===evEditId);
+    if(ev){Object.assign(ev,{title,start,end,time,note,type:evSelType,recurring});}
+  }else{
+    calEvents.push({id:'ev'+Date.now(),title,start,end,time,note,type:evSelType,recurring});
+  }
+  sv('calEvents',calEvents);
+  closeEvModal();
+  renderCal();
+}
+function deleteEvent(){
+  if(!evEditId)return;
+  calEvents=calEvents.filter(e=>e.id!==evEditId);
+  sv('calEvents',calEvents);
+  closeEvModal();
+  renderCal();
+}
+
+// Type selector
+document.querySelectorAll('.ev-type').forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll('.ev-type').forEach(x=>x.classList.remove('sel'));
+    t.classList.add('sel');
+    evSelType=t.dataset.t;
+  };
+});
+
+// Get events for a specific date key (YYYY-MM-DD)
+function getEventsForDate(dk){
+  return calEvents.filter(ev=>{
+    if(ev.recurring){
+      // Match month-day regardless of year
+      const sMD=ev.start.slice(5), eMD=(ev.end||ev.start).slice(5), dMD=dk.slice(5);
+      return dMD>=sMD && dMD<=eMD;
+    }
+    return dk>=ev.start && dk<=(ev.end||ev.start);
+  });
+}
+
+// Long press on calendar day to add event
+let calLpTimer=null;
+function setupCalLongPress(){
+  const g=document.getElementById('calG');
+  g.addEventListener('touchstart',function(e){
+    const day=e.target.closest('.cal-d:not(.empty)');
+    if(!day)return;
+    calLpTimer=setTimeout(()=>{
+      calLpTimer=null;
+      if(navigator.vibrate)navigator.vibrate(15);
+      const dayNum=parseInt(day.textContent);
+      const dk=calY+'-'+pad(calM+1)+'-'+pad(dayNum);
+      openEvModal(dk);
+    },600);
+  },{passive:true});
+  g.addEventListener('touchend',()=>{if(calLpTimer){clearTimeout(calLpTimer);calLpTimer=null}});
+  g.addEventListener('touchmove',()=>{if(calLpTimer){clearTimeout(calLpTimer);calLpTimer=null}});
+}
+
+// Today schedule banner
+let todaySchedShown=ld('todaySchedShown','');
+function showTodaySchedule(){
+  const tk=todayK();
+  if(todaySchedShown===tk)return; // only once per day
+  const evs=getEventsForDate(tk);
+  if(!evs.length)return;
+  const el=document.getElementById('todaySched');
+  // Pick first event with time, or first event
+  const withTime=evs.find(e=>e.time);
+  const ev=withTime||evs[0];
+  let txt='<span class="ts-dot"></span>';
+  if(ev.time)txt+=ev.time+' ';
+  txt+=ev.title;
+  txt+='<span class="ts-dot"></span>';
+  el.innerHTML=txt;
+  el.style.display='';
+  todaySchedShown=tk;
+  sv('todaySchedShown',todaySchedShown);
+  // Auto-remove from DOM after animation
+  setTimeout(()=>{el.style.display='none'},6500);
 }
 
 // ================================================================
@@ -5334,7 +5693,25 @@ function ingDetectBulk(){
 // ----------- SHARED memo list (for todo/shop/ing) -----------
 function memoToggle(type,id){
   const item=memos[type].find(i=>i.id===id);
-  if(item){item.done=!item.done;sv('memos',memos);renderMemoList(type);}
+  if(!item)return;
+  item.done=!item.done;
+  if(item.done)item.doneAt=Date.now();else delete item.doneAt;
+  sv('memos',memos);
+  // Visual feedback first
+  const card=document.querySelector(`[data-mid="${id}"]`);
+  if(card){
+    const check=card.querySelector('.memo-check');
+    if(item.done){
+      card.classList.add('done');
+      if(check)check.classList.add('checked');
+    }else{
+      card.classList.remove('done');
+      if(check)check.classList.remove('checked');
+    }
+    setTimeout(()=>renderMemoList(type),650);
+  }else{
+    renderMemoList(type);
+  }
 }
 function memoDel(type,id){
   memos[type]=memos[type].filter(i=>i.id!==id);
@@ -5540,8 +5917,24 @@ function inspToggleDone(id){
   const item=inspirations.find(i=>i.id===id);
   if(!item)return;
   item.done=!item.done;
+  if(item.done)item.doneAt=Date.now(); else delete item.doneAt;
   sv('inspirations',inspirations);
-  renderInsp();
+  // Visual feedback first — show check + strikethrough immediately
+  const card=document.querySelector(`[data-iid="${id}"]`);
+  if(card){
+    const check=card.querySelector('.insp-check');
+    if(item.done){
+      card.classList.add('done');
+      if(check)check.classList.add('checked');
+    }else{
+      card.classList.remove('done');
+      if(check)check.classList.remove('checked');
+    }
+    // Delay re-render so user sees the change before item moves
+    setTimeout(()=>renderInsp(),650);
+  }else{
+    renderInsp();
+  }
 }
 function inspStartEdit(id){
   const item=inspirations.find(i=>i.id===id);
@@ -5933,7 +6326,8 @@ function layoutTrees(treeData){
   
   document.getElementById('gstatTrees').textContent=count;
   document.getElementById('gstatToms').textContent=totalToms;
-  document.getElementById('gstatDays').textContent=count;
+  const allFlat=getAllTomatoesFlat();
+  document.getElementById('gstatDays').textContent=new Set(allFlat.map(t=>t.dateKey)).size;
 }
 
 function renderGardenFromData(){
@@ -5962,11 +6356,54 @@ function renderGardenFromData(){
 }
 
 
+// Auto-cleanup: remove done items from before today
+function cleanupDoneItems(){
+  const tk=todayK();
+  // Inspirations
+  const inspBefore=inspirations.length;
+  inspirations=inspirations.filter(i=>{
+    if(!i.done)return true;
+    const doneDk=i.doneAt?dkOf(i.doneAt):(i.createdAt?dkOf(i.createdAt):tk);
+    return doneDk>=tk;
+  });
+  if(inspirations.length!==inspBefore)sv('inspirations',inspirations);
+  // Todos
+  const todoBefore=(memos.todo||[]).length;
+  memos.todo=(memos.todo||[]).filter(t=>{
+    if(!t.done)return true;
+    const doneDk=t.doneAt?dkOf(t.doneAt):(t.createdAt?dkOf(t.createdAt):tk);
+    return doneDk>=tk;
+  });
+  if((memos.todo||[]).length!==todoBefore)sv('memos',memos);
+  // Shopping
+  const shopBefore=(memos.shopping||[]).length;
+  memos.shopping=(memos.shopping||[]).filter(t=>{
+    if(!t.done)return true;
+    const doneDk=t.doneAt?dkOf(t.doneAt):(t.createdAt?dkOf(t.createdAt):tk);
+    return doneDk>=tk;
+  });
+  if((memos.shopping||[]).length!==shopBefore)sv('memos',memos);
+  // Ingredient
+  const ingBefore=(memos.ingredient||[]).length;
+  memos.ingredient=(memos.ingredient||[]).filter(t=>{
+    if(!t.done)return true;
+    const doneDk=t.doneAt?dkOf(t.doneAt):(t.createdAt?dkOf(t.createdAt):tk);
+    return doneDk>=tk;
+  });
+  if((memos.ingredient||[]).length!==ingBefore)sv('memos',memos);
+}
+
 function init(){
+  // Clean up done items from before today
+  cleanupDoneItems();
   initCanvas();
   todayRecs=allDays[todayK()]||[];
   todayTomatoes=allTomatoes[todayK()]||[];
   renderTags();renderRecs();initPomo();updPomoDig();
+  setupCalLongPress();
+  showTodaySchedule();
+  setupCalLongPress();
+  showTodaySchedule();
   document.getElementById('nT').classList.add('on');
   applyGradient();applyUITheme();
   // Recover any timer/pomodoro that was running when app was last closed
