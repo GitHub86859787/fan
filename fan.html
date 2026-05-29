@@ -17,7 +17,7 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:#1E2820;height:100%}
 html,body{width:100%;touch-action:pan-y}
-body{min-height:100vh;min-height:100dvh;height:100%;font-family:'EB Garamond','Noto Serif SC',serif;-webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;background:#1E2820;position:relative;overscroll-behavior:none;overflow:hidden}
+body{min-height:100vh;min-height:100dvh;height:100%;font-family:'EB Garamond','Noto Serif SC',serif;-webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;background:#1E2820;position:relative;overscroll-behavior:none}
 input,textarea,[contenteditable="true"]{-webkit-touch-callout:default!important;-webkit-user-select:text!important;user-select:text!important}
 input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:text;-webkit-touch-callout:default}
 
@@ -5298,8 +5298,7 @@ function showDayD(dk){
     const tm=pad(t.getHours())+':'+pad(t.getMinutes());
     const stateObj=GUAN_STATES.find(s=>s.name===en.state);
     const icon=stateObj?stateObj.icon:(en.emoji||'');
-    html+=`<div class="day-en-card">
-      <span class="day-en-emoji">${icon}</span>
+    html+=`<div class="day-en-card" style="padding-left:4px">
       <div style="flex:1"><div class="day-en-info"><em>${tm} · ${en.state||''}${icon?' '+icon:''}</em></div>
       ${en.reason?`<div class="day-en-reason">${en.reason}</div>`:''}</div></div>`;
   });
