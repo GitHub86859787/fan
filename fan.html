@@ -4281,141 +4281,140 @@ function exportAllCSV(){
 }
 
 function exportAllJSON(rangeStart,rangeEnd){
-  // AI-friendly JSON with standardized fields and dual time format
-  // Optional rangeStart/rangeEnd are dateKey strings (YYYY-MM-DD), inclusive
-  // If not provided, export all
-  
+  // Daily-organized export — each day is a complete picture
   const inRange=(dk)=>{
     if(!rangeStart||!rangeEnd)return true;
     return dk>=rangeStart&&dk<=rangeEnd;
   };
-  const tsInRange=(ts)=>{
-    if(!rangeStart||!rangeEnd)return true;
-    const dk=dkOf(ts);
-    return dk>=rangeStart&&dk<=rangeEnd;
-  };
   
-  // Time records — with ganzhi_end
-  const timeRecords=[];
-  Object.entries(allDays).sort().forEach(([dk,recs])=>{
-    if(!inRange(dk))return;
-    recs.forEach(r=>{
-      const s=new Date(r.start), e=new Date(r.end);
-      timeRecords.push({
-        solar_start:fmtSolar(s),
-        solar_end:fmtSolar(e),
-        ganzhi_start:getGanzhi(s).full,
-        ganzhi_end:getGanzhi(e).full,
-        duration_minutes:Math.round(r.duration/60),
-        tag:r.tagName
+  // Collect ALL dates in range (including blank ones)
+  const allDates=new Set();
+  Object.keys(allDays).forEach(dk=>{if(inRange(dk))allDates.add(dk)});
+  (energyLog||[]).forEach(e=>{const dk=dkOf(e.ts);if(inRange(dk))allDates.add(dk)});
+  (inspirations||[]).forEach(i=>{const dk=dkOf(i.createdAt);if(inRange(dk))allDates.add(dk)});
+  (calEvents||[]).forEach(ev=>{
+    if(!ev.start)return;
+    const s=new Date(ev.start+'T00:00:00');
+    const e=new Date((ev.end||ev.start)+'T00:00:00');
+    for(let d=new Date(s);d<=e;d.setDate(d.getDate()+1)){
+      const dk=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+      if(inRange(dk))allDates.add(dk);
+    }
+  });
+  (calMarks||[]).forEach(m=>{if(inRange(m.date))allDates.add(m.date)});
+  // Fill gaps
+  if(rangeStart&&rangeEnd){
+    const s=new Date(rangeStart+'T00:00:00');
+    const e=new Date(rangeEnd+'T00:00:00');
+    for(let d=new Date(s);d<=e;d.setDate(d.getDate()+1)){
+      allDates.add(d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()));
+    }
+  }
+  
+  const sortedDates=[...allDates].sort();
+  const days=[];
+  const blankDays=[];
+  
+  sortedDates.forEach(dk=>{
+    const recs=(allDays[dk]||[]).slice().sort((a,b)=>a.start-b.start);
+    const dayEnergy=(energyLog||[]).filter(e=>dkOf(e.ts)===dk).sort((a,b)=>a.ts-b.ts);
+    const dayThoughts=(inspirations||[]).filter(i=>dkOf(i.createdAt)===dk);
+    const dayEvents=getEventsForDate(dk);
+    const dayMarks=getMarksForDate(dk);
+    const dayCompleted=[
+      ...(memos.todo||[]).filter(t=>t.done&&dkOf(t.doneAt||t.createdAt)===dk),
+      ...(doneArchive||[]).filter(a=>{
+        if(a._type==='购物'||a._type==='食材')return false;
+        return dkOf(a.doneAt||a.createdAt)===dk;
+      })
+    ];
+    
+    const hasData=recs.length||dayEnergy.length||dayThoughts.length||
+      dayEvents.length||dayMarks.length||dayCompleted.length;
+    
+    if(!hasData){blankDays.push(dk);return}
+    
+    const gz=getGanzhi(new Date(dk+'T12:00:00'));
+    const dayObj={};
+    dayObj['日期']=dk;
+    dayObj['干支']=gz.year+'年 '+gz.month+'月 '+gz.day+'日';
+    
+    // Total focus
+    const totalSec=recs.reduce((s,r)=>s+(r.duration||0),0);
+    if(totalSec>0){
+      const h=Math.floor(totalSec/3600),m=Math.round((totalSec%3600)/60);
+      dayObj['专注']=h>0?h+'h'+(m>0?m+'m':''):m+'m';
+    }
+    
+    // Activities with inline 干支时辰
+    if(recs.length){
+      dayObj['做了']=recs.map(r=>{
+        const s=new Date(r.start),e=new Date(r.end);
+        const sGz=getGanzhi(s),eGz=getGanzhi(e);
+        const dur=r.duration||(e-s)/1000;
+        const h=Math.floor(dur/3600),m=Math.round((dur%3600)/60);
+        const durStr=h>0?h+'h'+(m>0?m+'m':''):m+'m';
+        return `${pad(s.getHours())}:${pad(s.getMinutes())}-${pad(e.getHours())}:${pad(e.getMinutes())} ${sGz.hour}时→${eGz.hour}时 ${r.tagName} ${durStr}`;
       });
-    });
-  });
-  
-  // Energy records — include intensity and reason
-  const energyRecords=(energyLog||[]).filter(e=>tsInRange(e.ts||0)).map(e=>{
-    const d=new Date(e.ts);
-    const rec={
-      solar:e.solar||fmtSolar(d),
-      ganzhi:e.ganzhi||getGanzhi(d).full,
-      state:e.state||(typeof GUAN_STATES!=='undefined'&&GUAN_STATES[e.idx]?GUAN_STATES[e.idx].name:'')
-    };
-    if(typeof e.intensity==='number')rec.intensity=e.intensity;
-    if(e.reason)rec.reason=e.reason;
-    return rec;
-  });
-  
-  // Thoughts
-  const stateMap={present:'此刻',soon:'不久',far:'远思'};
-  const thoughts=(inspirations||[]).filter(i=>tsInRange(i.createdAt||0)).map(i=>{
-    const d=new Date(i.createdAt);
-    return {
-      solar:fmtSolar(d),
-      ganzhi:getGanzhi(d).full,
-      state:stateMap[i.state]||i.state,
-      tags:i.tags||[],
-      content:i.content||'',
-      done:!!i.done
-    };
-  });
-  
-  // Todos (all)
-  const todoRecords=(memos.todo||[]).filter(t=>tsInRange(t.createdAt||0)).map(t=>{
-    const d=new Date(t.createdAt);
-    return {
-      created_solar:fmtSolar(d),
-      created_ganzhi:getGanzhi(d).full,
-      priority:t.priority||'normal',
-      status:t.done?'done':'pending',
-      content:t.text||''
-    };
-  });
-  
-  const data={
-    app:'梵',
-    exported:new Date().toISOString(),
-    export_for:'AI分析',
-    note:'每条记录包含solar(公历)和ganzhi(干支)双时间,便于交叉关联',
-    date_range:(rangeStart&&rangeEnd)?`${rangeStart} to ${rangeEnd}`:'全部',
-    time_records:timeRecords,
-    energy_records:energyRecords,
-    thoughts:thoughts,
-    todos:todoRecords,
-    completed_todos:(()=>{
-      // Only todo + inspiration (not shopping/ingredient)
-      const allDone=[
-        ...(memos.todo||[]).filter(t=>t.done&&tsInRange(t.doneAt||t.createdAt||0)),
-        ...(inspirations||[]).filter(i=>i.done&&tsInRange(i.doneAt||i.createdAt||0)),
-        ...(doneArchive||[]).filter(a=>{
-          if(a._type==='购物'||a._type==='食材')return false;
-          return tsInRange(a.doneAt||a.createdAt||0);
-        })
-      ];
-      return allDone.map(t=>{
-        const d=new Date(t.doneAt||t.createdAt||0);
-        return {
-          type:t._type||t.priority||'待办',
-          content:t.text||t.content||'',
-          done_at:fmtSolar(d),
-          status:'done'
-        };
+    }
+    
+    // Energy with inline 干支时辰 + reason
+    if(dayEnergy.length){
+      dayObj['能量']=dayEnergy.map(e=>{
+        const d=new Date(e.ts);
+        const gz=getGanzhi(d);
+        const state=e.state||(GUAN_STATES[e.idx]?GUAN_STATES[e.idx].name:'');
+        let str=`${pad(d.getHours())}:${pad(d.getMinutes())} ${gz.hour}时 ${state}`;
+        if(e.reason)str+=' — '+e.reason;
+        return str;
       });
-    })(),
-    calendar_events:(calEvents||[]).filter(ev=>{
-      if(!rangeStart||!rangeEnd)return true;
-      return ev.start<=rangeEnd&&(ev.end||ev.start)>=rangeStart;
-    }).map(ev=>({
-      title:ev.title,
-      type:ev.type,
-      type_label:EV_TYPE_LABELS[ev.type]||ev.type,
-      start:ev.start,
-      end:ev.end||ev.start,
-      time:ev.time||null,
-      note:ev.note||null,
-      recurring:!!ev.recurring
-    })),
-    emoji_marks:(calMarks||[]).filter(m=>{
-      if(!rangeStart||!rangeEnd)return true;
-      return m.date>=rangeStart&&m.date<=rangeEnd;
-    }).map(m=>{
-      const history=getEmojiHistory(m.emoji);
-      const idx=history.findIndex(h=>h.id===m.id);
-      return {
-        date:m.date,
-        emoji:m.emoji,
-        note:m.note||null,
-        count:idx+1,
-        total_of_type:history.length
-      };
-    })
-  };
+    }
+    
+    // Thoughts — just content
+    if(dayThoughts.length){
+      dayObj['灵感']=dayThoughts.map(i=>i.content||i.text||'');
+    }
+    
+    // Completed todos
+    if(dayCompleted.length){
+      dayObj['完成']=dayCompleted.map(t=>t.text||t.content||'');
+    }
+    
+    // Calendar events
+    if(dayEvents.length){
+      dayObj['事件']=dayEvents.map(ev=>{
+        let str=ev.title;
+        if(ev.time)str+=' '+ev.time;
+        if(ev.note)str+=' — '+ev.note;
+        return str;
+      });
+    }
+    
+    // Emoji marks
+    if(dayMarks.length){
+      dayObj['印记']=dayMarks.map(m=>m.emoji+(m.note?' '+m.note:''));
+    }
+    
+    days.push(dayObj);
+  });
   
-  // Record this export in history (for showing previously exported ranges)
+  // Pending todos
+  const pending=[];
+  (memos.todo||[]).filter(t=>!t.done).forEach(t=>{
+    const pri=t.priority==='urgent'?'急':t.priority==='important'?'重要':'';
+    pending.push(pri?`[${pri}] ${t.text}`:t.text);
+  });
+  
+  const data={};
+  data['日']=days;
+  if(blankDays.length)data['空白天']=blankDays;
+  if(pending.length)data['未完成']=pending;
+  
+  // Record export history
   const expHist=ld('exportHistory',[]);
   expHist.unshift({
-    range:data.date_range,
-    rangeStart:rangeStart||null,
-    rangeEnd:rangeEnd||null,
+    range:(rangeStart&&rangeEnd)?`${rangeStart} to ${rangeEnd}`:'全部',
+    rangeStart:rangeStart||null,rangeEnd:rangeEnd||null,
     exportedAt:Date.now()
   });
   if(expHist.length>50)expHist.length=50;
