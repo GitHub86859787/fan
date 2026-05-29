@@ -4346,41 +4346,60 @@ function exportAllJSON(rangeStart,rangeEnd){
       dayObj['专注']=h>0?h+'h'+(m>0?m+'m':''):m+'m';
     }
     
-    // Activities with inline 干支时辰
-    if(recs.length){
-      dayObj['做了']=recs.map(r=>{
-        const s=new Date(r.start),e=new Date(r.end);
-        const sGz=getGanzhi(s),eGz=getGanzhi(e);
-        const dur=r.duration||(e-s)/1000;
-        const h=Math.floor(dur/3600),m=Math.round((dur%3600)/60);
-        const durStr=h>0?h+'h'+(m>0?m+'m':''):m+'m';
-        return `${pad(s.getHours())}:${pad(s.getMinutes())}-${pad(e.getHours())}:${pad(e.getMinutes())} ${sGz.hour}时→${eGz.hour}时 ${r.tagName} ${durStr}`;
-      });
-    }
+    // Build unified timeline: activities + energy + thoughts + completed, sorted by time
+    const timeline=[];
     
-    // Energy with inline 干支时辰 + reason
-    if(dayEnergy.length){
-      dayObj['能量']=dayEnergy.map(e=>{
-        const d=new Date(e.ts);
-        const gz=getGanzhi(d);
-        const state=e.state||(GUAN_STATES[e.idx]?GUAN_STATES[e.idx].name:'');
-        let str=`${pad(d.getHours())}:${pad(d.getMinutes())} ${gz.hour}时 ${state}`;
-        if(e.reason)str+=' — '+e.reason;
-        return str;
+    // Activities
+    recs.forEach(r=>{
+      const s=new Date(r.start),e=new Date(r.end);
+      const sGz=getGanzhi(s),eGz=getGanzhi(e);
+      const dur=r.duration||(e-s)/1000;
+      const h=Math.floor(dur/3600),m=Math.round((dur%3600)/60);
+      const durStr=h>0?h+'h'+(m>0?m+'m':''):m+'m';
+      timeline.push({
+        ts:r.start,
+        text:`${pad(s.getHours())}:${pad(s.getMinutes())}-${pad(e.getHours())}:${pad(e.getMinutes())} ${sGz.hour}时→${eGz.hour}时 ${r.tagName} ${durStr}`
       });
-    }
+    });
     
-    // Thoughts — just content
-    if(dayThoughts.length){
-      dayObj['灵感']=dayThoughts.map(i=>i.content||i.text||'');
-    }
+    // Energy
+    dayEnergy.forEach(e=>{
+      const d=new Date(e.ts);
+      const egz=getGanzhi(d);
+      const state=e.state||(GUAN_STATES[e.idx]?GUAN_STATES[e.idx].name:'');
+      let str=`${pad(d.getHours())}:${pad(d.getMinutes())} ${egz.hour}时 ⚡${state}`;
+      if(e.reason)str+=' — '+e.reason;
+      timeline.push({ts:e.ts,text:str});
+    });
+    
+    // Thoughts
+    dayThoughts.forEach(i=>{
+      const d=new Date(i.createdAt);
+      const igz=getGanzhi(d);
+      const content=i.content||i.text||'';
+      timeline.push({
+        ts:i.createdAt,
+        text:`${pad(d.getHours())}:${pad(d.getMinutes())} ${igz.hour}时 💭${content}`
+      });
+    });
     
     // Completed todos
-    if(dayCompleted.length){
-      dayObj['完成']=dayCompleted.map(t=>t.text||t.content||'');
+    dayCompleted.forEach(t=>{
+      const d=new Date(t.doneAt||t.createdAt);
+      timeline.push({
+        ts:t.doneAt||t.createdAt,
+        text:`${pad(d.getHours())}:${pad(d.getMinutes())} ✅${t.text||t.content||''}`
+      });
+    });
+    
+    // Sort by timestamp
+    timeline.sort((a,b)=>a.ts-b.ts);
+    
+    if(timeline.length){
+      dayObj['时间线']=timeline.map(t=>t.text);
     }
     
-    // Calendar events
+    // Calendar events (not time-based, just day-level)
     if(dayEvents.length){
       dayObj['事件']=dayEvents.map(ev=>{
         let str=ev.title;
