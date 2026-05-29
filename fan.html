@@ -682,9 +682,7 @@ canvas#fx{position:fixed;inset:0;z-index:2;width:100%;height:100%;pointer-events
   letter-spacing:.1em;cursor:pointer;transition:all .3s,color 2s}
 
 /* Calendar event marks */
-.cal-d .cal-ev-mark{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);
-  width:2px;height:5px;border-radius:1px;opacity:.45}
-.cal-d.has .cal-ev-mark{bottom:9px}
+.cal-d.has-mk::after{display:none}
 .cal-emoji-mark{position:absolute;bottom:1px;left:50%;transform:translateX(-50%);
   font-size:8px;line-height:1;white-space:nowrap;pointer-events:none}
 /* Trip range — direct background on cells */
@@ -5237,12 +5235,15 @@ function renderCal(){
     }
     d.className=cls;
     let inner=String(day);
-    // Emoji marks below date number
-    if(hasMk){
-      const emojis=marks.map(m=>m.emoji).join('');
-      inner+=`<div class="cal-emoji-mark">${emojis}</div>`;
+    // Combine all emoji marks: user marks + 🗓 for events
+    const allEmoji=[];
+    if(hasMk)marks.forEach(m=>allEmoji.push(m.emoji));
+    if(hasEv&&!isTrip)allEmoji.push('🗓');
+    if(allEmoji.length){
+      inner+=`<div class="cal-emoji-mark">${allEmoji.join('')}</div>`;
+      cls+=' has-mk';
+      d.className=cls;
     }
-    if(hasEv&&!hasMk)inner+=`<div class="cal-ev-mark" style="background:currentColor"></div>`;
     d.innerHTML=inner;
     // All dates clickable
     if(has||hasEv||hasMk){
