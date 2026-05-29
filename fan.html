@@ -5173,7 +5173,9 @@ function renderCal(){
   for(let i=0;i<first;i++){const d=document.createElement('div');d.className='cal-d empty';g.appendChild(d)}
   for(let day=1;day<=dim;day++){
     const d=document.createElement('div'),k=calY+'-'+pad(calM+1)+'-'+pad(day);
-    const isT=k===tk,has=allDays[k]&&allDays[k].length>0;
+    const isT=k===tk,hasRecs=allDays[k]&&allDays[k].length>0;
+    const hasEnergy=(energyLog||[]).some(e=>dkOf(e.ts)===k);
+    const has=hasRecs||hasEnergy;
     const evs=getEventsForDate(k);
     const marks=getMarksForDate(k);
     const hasEv=evs.length>0;
