@@ -4361,6 +4361,26 @@ function exportAllJSON(rangeStart,rangeEnd){
     energy_records:energyRecords,
     thoughts:thoughts,
     todos:todoRecords,
+    completed_todos:(()=>{
+      // Only todo + inspiration (not shopping/ingredient)
+      const allDone=[
+        ...(memos.todo||[]).filter(t=>t.done&&tsInRange(t.doneAt||t.createdAt||0)),
+        ...(inspirations||[]).filter(i=>i.done&&tsInRange(i.doneAt||i.createdAt||0)),
+        ...(doneArchive||[]).filter(a=>{
+          if(a._type==='购物'||a._type==='食材')return false;
+          return tsInRange(a.doneAt||a.createdAt||0);
+        })
+      ];
+      return allDone.map(t=>{
+        const d=new Date(t.doneAt||t.createdAt||0);
+        return {
+          type:t._type||t.priority||'待办',
+          content:t.text||t.content||'',
+          done_at:fmtSolar(d),
+          status:'done'
+        };
+      });
+    })(),
     calendar_events:(calEvents||[]).filter(ev=>{
       if(!rangeStart||!rangeEnd)return true;
       return ev.start<=rangeEnd&&(ev.end||ev.start)>=rangeStart;
@@ -4409,46 +4429,40 @@ function exportAllJSON(rangeStart,rangeEnd){
 
 // Export all pending items: todo + inspiration + shopping + ingredient
 function exportAllPending(){
+  const pendInsp=(inspirations||[]).filter(i=>!i.done);
   const pendTodo=(memos.todo||[]).filter(i=>!i.done);
   const pendShop=(memos.shopping||[]).filter(i=>!i.done);
   const pendIng=(memos.ingredient||[]).filter(i=>!i.done);
-  const pendInsp=(inspirations||[]).filter(i=>!i.done);
-  const total=pendTodo.length+pendShop.length+pendIng.length+pendInsp.length;
-  if(!total){
-    alert('暂无未完成的内容');
-    return;
+  const total=pendInsp.length+pendTodo.length+pendShop.length+pendIng.length;
+  if(!total){alert('暂无未完成的内容');return;}
+  
+  let txt='';
+  const addSection=(name,items,getText)=>{
+    if(!items.length)return;
+    txt+=`【${name}】\n`;
+    items.forEach((item,i)=>{
+      txt+=`${i+1}. ${getText(item)}\n`;
+    });
+    txt+='\n';
+  };
+  
+  addSection('灵感',pendInsp,i=>i.content||i.text||'');
+  addSection('待办',pendTodo,i=>i.text||'');
+  addSection('购物',pendShop,i=>i.text||'');
+  addSection('食材',pendIng,i=>i.text||'');
+  
+  txt=txt.trim();
+  
+  // Copy to clipboard + download
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>{
+      alert('已复制到剪贴板');
+    }).catch(()=>{
+      download(txt,`梵_备忘_${todayK()}.txt`,'text/plain');
+    });
+  }else{
+    download(txt,`梵_备忘_${todayK()}.txt`,'text/plain');
   }
-  
-  const mapItem=(i)=>{
-    const d=new Date(i.createdAt||Date.now());
-    const obj={
-      solar:fmtSolar(d),
-      ganzhi:getGanzhi(d).full,
-      content:i.text||i.content||''
-    };
-    if(i.tags&&i.tags.length)obj.tags=i.tags;
-    if(i.state)obj.state=i.state;
-    if(i.priority)obj.priority=i.priority;
-    return obj;
-  };
-  
-  const data={
-    app:'梵',
-    exported:new Date().toISOString(),
-    status:'pending',
-    summary:{
-      待办:pendTodo.length,
-      购物:pendShop.length,
-      食材:pendIng.length,
-      灵感:pendInsp.length,
-      合计:total
-    },
-    待办:pendTodo.map(mapItem),
-    购物:pendShop.map(mapItem),
-    食材:pendIng.map(mapItem),
-    灵感:pendInsp.map(mapItem)
-  };
-  download(JSON.stringify(data,null,2),`梵_未完成_${todayK()}.json`,'application/json');
 }
 function download(content,name,type){
   const blob=new Blob([content],{type:type+';charset=utf-8'});
@@ -6696,40 +6710,33 @@ function renderGardenFromData(){
 
 
 // Auto-cleanup: remove done items from before today
+// Archive for done items — cleaned from UI but kept for export
+let doneArchive=ld('doneArchive',[]);
+
 function cleanupDoneItems(){
   const tk=todayK();
-  // Inspirations
-  const inspBefore=inspirations.length;
-  inspirations=inspirations.filter(i=>{
-    if(!i.done)return true;
-    const doneDk=i.doneAt?dkOf(i.doneAt):(i.createdAt?dkOf(i.createdAt):tk);
-    return doneDk>=tk;
-  });
-  if(inspirations.length!==inspBefore)sv('inspirations',inspirations);
-  // Todos
-  const todoBefore=(memos.todo||[]).length;
-  memos.todo=(memos.todo||[]).filter(t=>{
-    if(!t.done)return true;
-    const doneDk=t.doneAt?dkOf(t.doneAt):(t.createdAt?dkOf(t.createdAt):tk);
-    return doneDk>=tk;
-  });
-  if((memos.todo||[]).length!==todoBefore)sv('memos',memos);
-  // Shopping
-  const shopBefore=(memos.shopping||[]).length;
-  memos.shopping=(memos.shopping||[]).filter(t=>{
-    if(!t.done)return true;
-    const doneDk=t.doneAt?dkOf(t.doneAt):(t.createdAt?dkOf(t.createdAt):tk);
-    return doneDk>=tk;
-  });
-  if((memos.shopping||[]).length!==shopBefore)sv('memos',memos);
-  // Ingredient
-  const ingBefore=(memos.ingredient||[]).length;
-  memos.ingredient=(memos.ingredient||[]).filter(t=>{
-    if(!t.done)return true;
-    const doneDk=t.doneAt?dkOf(t.doneAt):(t.createdAt?dkOf(t.createdAt):tk);
-    return doneDk>=tk;
-  });
-  if((memos.ingredient||[]).length!==ingBefore)sv('memos',memos);
+  const archiveDone=(list,type)=>{
+    const keep=[];const archive=[];
+    (list||[]).forEach(item=>{
+      if(!item.done){keep.push(item);return}
+      const doneDk=item.doneAt?dkOf(item.doneAt):(item.createdAt?dkOf(item.createdAt):tk);
+      if(doneDk>=tk){keep.push(item)}
+      else{archive.push({...item,_type:type,_archivedAt:Date.now()})}
+    });
+    if(archive.length)doneArchive.push(...archive);
+    return keep;
+  };
+  const iBefore=inspirations.length;
+  inspirations=archiveDone(inspirations,'灵感');
+  if(inspirations.length!==iBefore)sv('inspirations',inspirations);
+  const tBefore=(memos.todo||[]).length;
+  memos.todo=archiveDone(memos.todo,'待办');
+  const sBefore=(memos.shopping||[]).length;
+  memos.shopping=archiveDone(memos.shopping,'购物');
+  const gBefore=(memos.ingredient||[]).length;
+  memos.ingredient=archiveDone(memos.ingredient,'食材');
+  if(memos.todo.length!==tBefore||memos.shopping.length!==sBefore||memos.ingredient.length!==gBefore)sv('memos',memos);
+  if(doneArchive.length)sv('doneArchive',doneArchive);
 }
 
 function init(){
