@@ -1581,6 +1581,16 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   backdrop-filter:blur(10px);margin-bottom:16px;transition:all 2s}
 .guan-card-label{font-size:8px;letter-spacing:.4em;text-transform:uppercase;
   text-align:center;opacity:.55;margin-bottom:18px;transition:color 2s}
+.sw-row{display:none;justify-content:center;gap:24px;padding:6px 0;margin-bottom:10px}
+.sw-row.show{display:flex}
+.sw-btn{display:flex;align-items:center;gap:6px;cursor:pointer;
+  padding:4px 12px;border-radius:100px;
+  border:1px solid rgba(255,250,244,.08);
+  transition:all .25s;font-size:14px}
+.sw-btn:active{transform:scale(.95)}
+.sw-btn .sw-time{font-family:'EB Garamond',serif;font-size:11px;
+  color:rgba(255,250,244,.5);letter-spacing:.05em}
+.sw-btn.recorded{border-color:rgba(255,250,244,.2);background:rgba(255,250,244,.04)}
 
 /* Slider — emoji & thumb aligned via flex math */
 .gs1-wrap{position:relative}
@@ -2222,7 +2232,11 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
     <!-- ============ 观 (GUAN) ============ -->
     <div class="pg" id="pgG">
       <div class="guan-card">
-        <div class="guan-card-label">此 刻 · 能 量</div>
+        <div class="guan-card-label" onclick="toggleSW()">此 刻 · 能 量</div>
+        <div class="sw-row" id="swRow">
+          <div class="sw-btn" id="swSunBtn" onclick="event.stopPropagation();recordSW('wake')">☀️<span class="sw-time" id="swSunTime"></span></div>
+          <div class="sw-btn" id="swMoonBtn" onclick="event.stopPropagation();recordSW('sleep')">🌙<span class="sw-time" id="swMoonTime"></span></div>
+        </div>
         <div class="gs1-wrap">
           <div class="gs1-emojis" id="gs1Emojis"></div>
           <div class="gs1-track-wrap" id="gs1Track">
@@ -3247,6 +3261,52 @@ function guanRenderDots(){}
 function guanInitVbar(){}
 function guanUpdateIntensityColor(){}
 function guanSetIntensity(){}
+
+// ===== Sleep/Wake recording =====
+let sleepWake=ld('sleepWake',{});
+
+function toggleSW(){
+  document.getElementById('swRow').classList.toggle('show');
+  updSWDisplay();
+}
+
+function recordSW(type){
+  const tk=todayK();
+  if(!sleepWake[tk])sleepWake[tk]={};
+  if(sleepWake[tk][type]){
+    // Already recorded — tap again to clear
+    delete sleepWake[tk][type];
+  }else{
+    sleepWake[tk][type]=Date.now();
+  }
+  sv('sleepWake',sleepWake);
+  updSWDisplay();
+}
+
+function updSWDisplay(){
+  const tk=todayK();
+  const data=sleepWake[tk]||{};
+  const sunBtn=document.getElementById('swSunBtn');
+  const moonBtn=document.getElementById('swMoonBtn');
+  const sunTime=document.getElementById('swSunTime');
+  const moonTime=document.getElementById('swMoonTime');
+  if(data.wake){
+    const d=new Date(data.wake);
+    sunTime.textContent=pad(d.getHours())+':'+pad(d.getMinutes());
+    sunBtn.classList.add('recorded');
+  }else{
+    sunTime.textContent='';
+    sunBtn.classList.remove('recorded');
+  }
+  if(data.sleep){
+    const d=new Date(data.sleep);
+    moonTime.textContent=pad(d.getHours())+':'+pad(d.getMinutes());
+    moonBtn.classList.add('recorded');
+  }else{
+    moonTime.textContent='';
+    moonBtn.classList.remove('recorded');
+  }
+}
 
 function guanConfirmRecord(){
   // Dedup check
@@ -4302,6 +4362,17 @@ function exportAllJSON(rangeStart,rangeEnd){
     // Build unified timeline: activities + energy + thoughts + completed, sorted by time
     const timeline=[];
     
+    // Wake/Sleep
+    const swData=(sleepWake||{})[dk]||{};
+    if(swData.wake){
+      const d=new Date(swData.wake);
+      timeline.push({ts:swData.wake,text:`${pad(d.getHours())}:${pad(d.getMinutes())} ☀️起床`});
+    }
+    if(swData.sleep){
+      const d=new Date(swData.sleep);
+      timeline.push({ts:swData.sleep,text:`${pad(d.getHours())}:${pad(d.getMinutes())} 🌙睡觉`});
+    }
+    
     // Activities
     recs.forEach(r=>{
       const s=new Date(r.start),e=new Date(r.end);
@@ -4370,17 +4441,34 @@ function exportAllJSON(rangeStart,rangeEnd){
     days.push(dayObj);
   });
   
-  // Pending todos
+  // Pending todos + undone inspirations — with creation date
   const pending=[];
+  const stateLabel={present:'此刻',soon:'不久',far:'远思'};
+  const fmtCreated=(ts)=>{
+    if(!ts)return'';
+    const d=new Date(ts);
+    return(d.getMonth()+1)+'/'+d.getDate();
+  };
   (memos.todo||[]).filter(t=>!t.done).forEach(t=>{
     const pri=t.priority==='urgent'?'急':t.priority==='important'?'重要':'';
-    pending.push(pri?`[${pri}] ${t.text}`:t.text);
+    const created=fmtCreated(t.createdAt);
+    const tag=pri&&created?`[${pri}·${created}]`:pri?`[${pri}]`:created?`[${created}]`:'';
+    pending.push(tag?`${tag} ${t.text}`:t.text);
+  });
+  
+  const pendingInsp=[];
+  (inspirations||[]).filter(i=>!i.done).forEach(i=>{
+    const state=stateLabel[i.state]||'';
+    const created=fmtCreated(i.createdAt);
+    const tag=state&&created?`[${state}·${created}]`:state?`[${state}]`:created?`[${created}]`:'';
+    pendingInsp.push(tag?`${tag} ${i.content||i.text||''}`:i.content||i.text||'');
   });
   
   const data={};
   data['日']=days;
   if(blankDays.length)data['空白天']=blankDays;
   if(pending.length)data['未完成']=pending;
+  if(pendingInsp.length)data['灵感']=pendingInsp;
   
   // Record export history
   const expHist=ld('exportHistory',[]);
@@ -5175,7 +5263,8 @@ function renderCal(){
     const d=document.createElement('div'),k=calY+'-'+pad(calM+1)+'-'+pad(day);
     const isT=k===tk,hasRecs=allDays[k]&&allDays[k].length>0;
     const hasEnergy=(energyLog||[]).some(e=>dkOf(e.ts)===k);
-    const has=hasRecs||hasEnergy;
+    const hasSW=sleepWake[k]&&(sleepWake[k].wake||sleepWake[k].sleep);
+    const has=hasRecs||hasEnergy||hasSW;
     const evs=getEventsForDate(k);
     const marks=getMarksForDate(k);
     const hasEv=evs.length>0;
@@ -5221,9 +5310,19 @@ function showDayD(dk){
     const d=new Date(e.ts);
     return dkOf(e.ts)===dk;
   });
-  if(!recs.length&&!evs.length&&!enLogs.length&&!marks.length)return;
+  const swData=(sleepWake||{})[dk]||{};
+  const hasSW=swData.wake||swData.sleep;
+  if(!recs.length&&!evs.length&&!enLogs.length&&!marks.length&&!hasSW)return;
   const dd=document.getElementById('dayD'),ds=dk.replace(/(\d{4})-(\d{2})-(\d{2})/,'$1年$2月$3日');
   let tot=0,html=`<h3>${ds}</h3>`;
+  // 0. Sleep/Wake
+  if(hasSW){
+    html+=`<div style="display:flex;justify-content:center;gap:20px;padding:6px 0;margin-bottom:10px;
+      font-family:'EB Garamond',serif;font-size:12px;color:rgba(255,250,244,.5)">`;
+    if(swData.wake){const d=new Date(swData.wake);html+=`<span>☀️ ${pad(d.getHours())}:${pad(d.getMinutes())}</span>`}
+    if(swData.sleep){const d=new Date(swData.sleep);html+=`<span>🌙 ${pad(d.getHours())}:${pad(d.getMinutes())}</span>`}
+    html+=`</div>`;
+  }
   // 1. Emoji marks FIRST
   if(marks.length){
     html+=`<div style="margin-bottom:12px">`;
@@ -6711,6 +6810,7 @@ function init(){
   todayTomatoes=allTomatoes[todayK()]||[];
   renderTags();renderRecs();initPomo();updPomoDig();
   setupCalLongPress();
+  updSWDisplay();
   showTodaySchedule();
   document.getElementById('nT').classList.add('on');
   applyGradient();applyUITheme();
