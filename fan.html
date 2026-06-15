@@ -4356,7 +4356,7 @@ function exportAllJSON(rangeStart,rangeEnd){
     const totalSec=recs.reduce((s,r)=>s+(r.duration||0),0);
     if(totalSec>0){
       const h=Math.floor(totalSec/3600),m=Math.round((totalSec%3600)/60);
-      dayObj['专注']=h>0?h+'h'+(m>0?m+'m':''):m+'m';
+      dayObj['记录时长']=h>0?h+'h'+(m>0?m+'m':''):m+'m';
     }
     
     // Build unified timeline: activities + energy + thoughts + completed, sorted by time
@@ -4380,9 +4380,11 @@ function exportAllJSON(rangeStart,rangeEnd){
       const dur=r.duration||(e-s)/1000;
       const h=Math.floor(dur/3600),m=Math.round((dur%3600)/60);
       const durStr=h>0?h+'h'+(m>0?m+'m':''):m+'m';
+      const crossDay=dkOf(r.start)!==dkOf(r.end);
+      const endPre=crossDay?'次日':'';
       timeline.push({
         ts:r.start,
-        text:`${pad(s.getHours())}:${pad(s.getMinutes())}-${pad(e.getHours())}:${pad(e.getMinutes())} ${sGz.hour}时→${eGz.hour}时 ${r.tagName} ${durStr}`
+        text:`${pad(s.getHours())}:${pad(s.getMinutes())}-${endPre}${pad(e.getHours())}:${pad(e.getMinutes())} ${sGz.hour}时→${eGz.hour}时 ${r.tagName} ${durStr}`
       });
     });
     
@@ -4407,12 +4409,27 @@ function exportAllJSON(rangeStart,rangeEnd){
       });
     });
     
-    // Completed todos
+    // Completed todos — with creation date, distinguish type
     dayCompleted.forEach(t=>{
       const d=new Date(t.doneAt||t.createdAt);
+      const created=t.createdAt?new Date(t.createdAt):null;
+      const type=t._type||'待办';
+      const isIdea=type==='灵感';
+      const icon=isIdea?'💭':'✅';
+      
+      // Show creation date if different from completion date
+      let createdTag='';
+      if(created){
+        const createdDk=dkOf(t.createdAt);
+        const doneDk=dkOf(t.doneAt||t.createdAt);
+        if(createdDk!==doneDk){
+          createdTag=` (${created.getMonth()+1}/${created.getDate()}创建)`;
+        }
+      }
+      
       timeline.push({
         ts:t.doneAt||t.createdAt,
-        text:`${pad(d.getHours())}:${pad(d.getMinutes())} ✅${t.text||t.content||''}`
+        text:`${pad(d.getHours())}:${pad(d.getMinutes())} ${icon}${t.text||t.content||''}${createdTag}`
       });
     });
     
