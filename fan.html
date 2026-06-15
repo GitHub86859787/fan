@@ -3266,7 +3266,10 @@ function guanSetIntensity(){}
 let sleepWake=ld('sleepWake',{});
 
 function toggleSW(){
-  document.getElementById('swRow').classList.toggle('show');
+  const swRow=document.getElementById('swRow');
+  const gs1Wrap=document.querySelector('#pgG .gs1-wrap');
+  const showing=swRow.classList.toggle('show');
+  if(gs1Wrap)gs1Wrap.style.display=showing?'none':'';
   updSWDisplay();
 }
 
@@ -4352,11 +4355,13 @@ function exportAllJSON(rangeStart,rangeEnd){
     dayObj['日期']=dk;
     dayObj['干支']=gz.year+'年 '+gz.month+'月 '+gz.day+'日';
     
-    // Total focus
+    // Total recorded time — always show, even 0
     const totalSec=recs.reduce((s,r)=>s+(r.duration||0),0);
     if(totalSec>0){
       const h=Math.floor(totalSec/3600),m=Math.round((totalSec%3600)/60);
       dayObj['记录时长']=h>0?h+'h'+(m>0?m+'m':''):m+'m';
+    }else{
+      dayObj['记录时长']='0m';
     }
     
     // Build unified timeline: activities + energy + thoughts + completed, sorted by time
@@ -4379,7 +4384,8 @@ function exportAllJSON(rangeStart,rangeEnd){
       const sGz=getGanzhi(s),eGz=getGanzhi(e);
       const dur=r.duration||(e-s)/1000;
       const h=Math.floor(dur/3600),m=Math.round((dur%3600)/60);
-      const durStr=h>0?h+'h'+(m>0?m+'m':''):m+'m';
+      let durStr=h>0?h+'h'+(m>0?m+'m':''):m+'m';
+      if(durStr==='0m')durStr='<1m';
       const crossDay=dkOf(r.start)!==dkOf(r.end);
       const endPre=crossDay?'次日':'';
       timeline.push({
