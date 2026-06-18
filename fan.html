@@ -845,48 +845,44 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 @keyframes wiggle{from{transform:rotate(-1deg)}to{transform:rotate(1deg)}}
 
 .memo-input-row{display:flex;gap:8px;margin-bottom:14px}
-/* Todo history (足迹) view */
+/* Todo history (归档) view */
 .cat-tab-hist{opacity:.7;font-style:italic}
-.todo-hist-toggle{display:flex;gap:6px;justify-content:center;margin-bottom:18px}
-.th-seg{padding:5px 16px;border-radius:100px;border:1px solid rgba(255,250,244,.1);
-  background:transparent;color:rgba(255,250,244,.4);
-  font-family:'Noto Serif SC',serif;font-weight:300;font-size:10px;letter-spacing:.2em;
+.todo-hist-toggle{display:flex;gap:8px;justify-content:center;margin-bottom:16px}
+.th-seg{padding:6px 18px;border-radius:100px;border:1px solid rgba(255,250,244,.12);
+  background:transparent;color:rgba(255,250,244,.5);
+  font-family:'Noto Serif SC',serif;font-weight:300;font-size:12px;letter-spacing:.15em;
   cursor:pointer;transition:all .25s}
-.th-seg.on{border-color:rgba(255,250,244,.3);color:rgba(255,250,244,.85);background:rgba(255,250,244,.06)}
+.th-seg.on{border-color:rgba(255,250,244,.35);color:rgba(255,250,244,.95);background:rgba(255,250,244,.08)}
 .th-seg:active{transform:scale(.96)}
 .th-day-head{font-family:'Cormorant Garamond',serif;font-style:italic;
-  font-size:11px;letter-spacing:.2em;color:rgba(255,250,244,.3);
-  margin:16px 0 8px;padding-bottom:4px;border-bottom:1px solid rgba(255,250,244,.05)}
-.th-item{display:flex;align-items:baseline;gap:10px;padding:5px 0}
-.th-time{font-family:'EB Garamond',serif;font-size:10px;
-  color:rgba(255,250,244,.3);min-width:36px;letter-spacing:.03em}
-.th-icon{font-size:11px;min-width:12px}
-.th-done .th-icon{color:rgba(160,200,150,.7)}
-.th-add .th-icon{color:rgba(255,250,244,.3)}
+  font-size:12px;letter-spacing:.2em;color:rgba(255,250,244,.45);
+  margin:16px 0 8px;padding-bottom:4px;border-bottom:1px solid rgba(255,250,244,.08)}
+.th-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;
+  border-bottom:1px solid rgba(255,250,244,.04)}
+.th-icon{font-size:14px;min-width:18px;line-height:1.4;margin-top:1px}
 .th-body{flex:1}
-.th-text{font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;
-  color:rgba(255,250,244,.75);letter-spacing:.02em;line-height:1.5}
-.th-add .th-text{color:rgba(255,250,244,.5)}
-.th-detail{font-family:'Cormorant Garamond',serif;font-style:italic;
-  font-size:9px;color:rgba(255,250,244,.25);margin-top:2px;letter-spacing:.03em}
+.th-text{font-family:'Noto Serif SC',serif;font-weight:300;font-size:13px;
+  color:rgba(255,250,244,.92);letter-spacing:.02em;line-height:1.5}
+.th-add .th-text{color:rgba(255,250,244,.7)}
+.th-detail{font-family:'EB Garamond',serif;
+  font-size:11px;color:rgba(255,250,244,.45);margin-top:3px;letter-spacing:.02em}
 /* Time range selector in history */
-.th-range{display:flex;gap:4px;justify-content:center;margin-bottom:16px}
-.th-range-btn{padding:3px 12px;border-radius:100px;border:none;background:transparent;
-  color:rgba(255,250,244,.3);font-family:'Noto Serif SC',serif;font-weight:300;
-  font-size:9px;letter-spacing:.15em;cursor:pointer;transition:all .25s}
-.th-range-btn.on{color:rgba(255,250,244,.8);background:rgba(255,250,244,.06)}
+.th-range{display:flex;gap:5px;justify-content:center;margin-bottom:14px}
+.th-range-btn{padding:5px 14px;border-radius:100px;border:none;background:transparent;
+  color:rgba(255,250,244,.4);font-family:'Noto Serif SC',serif;font-weight:300;
+  font-size:11px;letter-spacing:.1em;cursor:pointer;transition:all .25s}
+.th-range-btn.on{color:rgba(255,250,244,.92);background:rgba(255,250,244,.08)}
 /* Category management popup */
 .cat-mgmt-pop{position:fixed;z-index:300;
   background:rgba(30,25,20,.96);
   backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);
-  border:1px solid rgba(255,250,244,.1);border-radius:14px;
-  padding:14px;min-width:160px;
+  border:1px solid rgba(255,250,244,.1);border-radius:12px;
+  padding:10px 12px;min-width:150px;
   box-shadow:0 16px 50px rgba(10,8,6,.4);
   animation:popIn .25s cubic-bezier(.16,1,.3,1)}
-.cmp-section{margin-bottom:12px}
+.cmp-section{margin-bottom:8px}
 .cmp-section:last-child{margin-bottom:0}
-.cmp-label{font-family:'Cormorant Garamond',serif;font-style:italic;
-  font-size:9px;color:rgba(255,250,244,.3);margin-bottom:6px;letter-spacing:.05em}
+.cmp-label{display:none}
 .cmp-input-row{display:flex;gap:6px;align-items:center}
 .cmp-input{flex:1;padding:5px 8px;background:rgba(255,250,244,.05);border:none;
   border-radius:8px;color:rgba(255,250,244,.85);
@@ -897,10 +893,10 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   display:flex;align-items:center;justify-content:center}
 .cmp-add:active{transform:scale(.92)}
 .cmp-toggle-row{display:flex;align-items:center;justify-content:space-between;
-  cursor:pointer;padding:4px 0}
+  cursor:pointer;padding:2px 0;gap:14px}
 .cmp-toggle-label{font-family:'Noto Serif SC',serif;font-weight:300;
   font-size:11px;color:rgba(255,250,244,.7);letter-spacing:.05em}
-.cmp-switch{width:32px;height:18px;border-radius:100px;
+.cmp-switch{width:32px;height:18px;border-radius:100px;flex-shrink:0;
   background:rgba(255,250,244,.1);position:relative;transition:background .25s}
 .cmp-switch::after{content:'';position:absolute;top:2px;left:2px;
   width:14px;height:14px;border-radius:50%;background:rgba(255,250,244,.5);
@@ -6025,7 +6021,7 @@ function renderTodoHistory(){
     
     completed.forEach(t=>{
       html+=`<div class="th-item th-done">
-        <span class="th-icon">✓</span>
+        <span class="th-icon">✅</span>
         <div class="th-body"><span class="th-text">${escapeHtml(t.text)}</span>
         <div class="th-detail">添加 ${fmt(t.createdAt)} → 完成 ${fmt(t.doneAt)}</div></div>
       </div>`;
@@ -6046,7 +6042,7 @@ function renderTodoHistory(){
     }
     
     items.forEach(t=>{
-      const icon=t.doneAt?'✓':'+';
+      const icon=t.doneAt?'✅':'○';
       const cls=t.doneAt?'th-done':'th-add';
       let detail=`添加 ${fmt(t.createdAt)}`;
       if(t.doneAt)detail+=` → 完成 ${fmt(t.doneAt)}`;
