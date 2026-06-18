@@ -877,14 +877,14 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   background:rgba(30,25,20,.96);
   backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);
   border:1px solid rgba(255,250,244,.1);border-radius:12px;
-  padding:10px 12px;min-width:150px;
+  padding:10px;width:130px;
   box-shadow:0 16px 50px rgba(10,8,6,.4);
   animation:popIn .25s cubic-bezier(.16,1,.3,1)}
 .cmp-section{margin-bottom:8px}
 .cmp-section:last-child{margin-bottom:0}
 .cmp-label{display:none}
 .cmp-input-row{display:flex;gap:6px;align-items:center}
-.cmp-input{flex:1;padding:5px 8px;background:rgba(255,250,244,.05);border:none;
+.cmp-input{flex:1;min-width:0;padding:5px 6px;background:rgba(255,250,244,.05);border:none;
   border-radius:8px;color:rgba(255,250,244,.85);
   font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;outline:none}
 .cmp-input::placeholder{color:rgba(255,250,244,.2)}
@@ -5963,8 +5963,7 @@ function todoSetView(catId){
   }
 }
 
-let todoHistoryMode=ld('todoHistoryMode','done'); // 'done' or 'all'
-let todoHistRange=ld('todoHistRange','today'); // today/week/month/year
+let todoHistRange=ld('todoHistRange','today'); // today/week/month/year/all
 
 function renderTodoHistory(){
   const el=document.getElementById('todoList');
@@ -5979,89 +5978,50 @@ function renderTodoHistory(){
     return(d.getMonth()+1)+'/'+d.getDate()+' '+pad(d.getHours())+':'+pad(d.getMinutes());
   };
   
-  // Mode toggle
-  let html=`<div class="todo-hist-toggle">
-    <button class="th-seg${todoHistoryMode==='done'?' on':''}" onclick="setTodoHistMode('done')">已完成</button>
-    <button class="th-seg${todoHistoryMode==='all'?' on':''}" onclick="setTodoHistMode('all')">全部动态</button>
-  </div>`;
+  // Range selector
+  const ranges=[['today','今日'],['week','本周'],['month','本月'],['year','本年'],['all','全部']];
+  let html=`<div class="th-range">`;
+  ranges.forEach(([k,label])=>{
+    html+=`<button class="th-range-btn${todoHistRange===k?' on':''}" onclick="setTodoHistRange('${k}')">${label}</button>`;
+  });
+  html+=`</div>`;
   
-  if(todoHistoryMode==='done'){
-    // Range selector for completed
-    const ranges=[['today','今日'],['week','本周'],['month','本月'],['year','本年']];
-    html+=`<div class="th-range">`;
-    ranges.forEach(([k,label])=>{
-      html+=`<button class="th-range-btn${todoHistRange===k?' on':''}" onclick="setTodoHistRange('${k}')">${label}</button>`;
-    });
-    html+=`</div>`;
-    
-    // Filter completed by range
-    const now=new Date();
-    const inRange=(ts)=>{
-      const d=new Date(ts);
-      if(todoHistRange==='today'){
-        return d.toDateString()===now.toDateString();
-      }else if(todoHistRange==='week'){
-        const weekAgo=new Date(now);weekAgo.setDate(now.getDate()-now.getDay());weekAgo.setHours(0,0,0,0);
-        return d>=weekAgo;
-      }else if(todoHistRange==='month'){
-        return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();
-      }else if(todoHistRange==='year'){
-        return d.getFullYear()===now.getFullYear();
-      }
-      return true;
-    };
-    
-    const completed=allTodos.filter(t=>t.done&&t.doneAt&&inRange(t.doneAt))
-      .sort((a,b)=>b.doneAt-a.doneAt);
-    
-    if(!completed.length){
-      html+='<div class="insp-empty">这 段 时 间 无 完 成</div>';
-      el.innerHTML=html;setTimeout(()=>applyUITheme(),50);return;
+  // Filter completed by range
+  const now=new Date();
+  const inRange=(ts)=>{
+    if(todoHistRange==='all')return true;
+    const d=new Date(ts);
+    if(todoHistRange==='today'){
+      return d.toDateString()===now.toDateString();
+    }else if(todoHistRange==='week'){
+      const weekAgo=new Date(now);weekAgo.setDate(now.getDate()-now.getDay());weekAgo.setHours(0,0,0,0);
+      return d>=weekAgo;
+    }else if(todoHistRange==='month'){
+      return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();
+    }else if(todoHistRange==='year'){
+      return d.getFullYear()===now.getFullYear();
     }
-    
-    completed.forEach(t=>{
-      html+=`<div class="th-item th-done">
-        <span class="th-icon">✅</span>
-        <div class="th-body"><span class="th-text">${escapeHtml(t.text)}</span>
-        <div class="th-detail">添加 ${fmt(t.createdAt)} → 完成 ${fmt(t.doneAt)}</div></div>
-      </div>`;
-    });
-    
-  }else{
-    // All dynamics — each todo as ONE line with both times, sorted by latest activity
-    const items=allTodos.map(t=>({
-      text:t.text,
-      createdAt:t.createdAt,
-      doneAt:t.done?t.doneAt:null,
-      sortTs:t.done?(t.doneAt||t.createdAt):t.createdAt
-    })).sort((a,b)=>b.sortTs-a.sortTs);
-    
-    if(!items.length){
-      html+='<div class="insp-empty">尚 无 记 录</div>';
-      el.innerHTML=html;setTimeout(()=>applyUITheme(),50);return;
-    }
-    
-    items.forEach(t=>{
-      const icon=t.doneAt?'✅':'○';
-      const cls=t.doneAt?'th-done':'th-add';
-      let detail=`添加 ${fmt(t.createdAt)}`;
-      if(t.doneAt)detail+=` → 完成 ${fmt(t.doneAt)}`;
-      html+=`<div class="th-item ${cls}">
-        <span class="th-icon">${icon}</span>
-        <div class="th-body"><span class="th-text">${escapeHtml(t.text)}</span>
-        <div class="th-detail">${detail}</div></div>
-      </div>`;
-    });
+    return true;
+  };
+  
+  const completed=allTodos.filter(t=>t.done&&t.doneAt&&inRange(t.doneAt))
+    .sort((a,b)=>b.doneAt-a.doneAt);
+  
+  if(!completed.length){
+    html+='<div class="insp-empty">这 段 时 间 无 完 成</div>';
+    el.innerHTML=html;setTimeout(()=>applyUITheme(),50);return;
   }
+  
+  completed.forEach(t=>{
+    html+=`<div class="th-item th-done">
+      <span class="th-icon">✅</span>
+      <div class="th-body"><span class="th-text">${escapeHtml(t.text)}</span>
+      <div class="th-detail">添加 ${fmt(t.createdAt)} → 完成 ${fmt(t.doneAt)}</div></div>
+    </div>`;
+  });
   
   el.innerHTML=html;
   setTimeout(()=>applyUITheme(),50);
-}
-
-function setTodoHistMode(mode){
-  todoHistoryMode=mode;
-  sv('todoHistoryMode',mode);
-  renderTodoHistory();
 }
 
 function setTodoHistRange(range){
