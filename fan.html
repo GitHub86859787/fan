@@ -845,6 +845,68 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 @keyframes wiggle{from{transform:rotate(-1deg)}to{transform:rotate(1deg)}}
 
 .memo-input-row{display:flex;gap:8px;margin-bottom:14px}
+/* Todo history (足迹) view */
+.cat-tab-hist{opacity:.7;font-style:italic}
+.todo-hist-toggle{display:flex;gap:6px;justify-content:center;margin-bottom:18px}
+.th-seg{padding:5px 16px;border-radius:100px;border:1px solid rgba(255,250,244,.1);
+  background:transparent;color:rgba(255,250,244,.4);
+  font-family:'Noto Serif SC',serif;font-weight:300;font-size:10px;letter-spacing:.2em;
+  cursor:pointer;transition:all .25s}
+.th-seg.on{border-color:rgba(255,250,244,.3);color:rgba(255,250,244,.85);background:rgba(255,250,244,.06)}
+.th-seg:active{transform:scale(.96)}
+.th-day-head{font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:11px;letter-spacing:.2em;color:rgba(255,250,244,.3);
+  margin:16px 0 8px;padding-bottom:4px;border-bottom:1px solid rgba(255,250,244,.05)}
+.th-item{display:flex;align-items:baseline;gap:10px;padding:5px 0}
+.th-time{font-family:'EB Garamond',serif;font-size:10px;
+  color:rgba(255,250,244,.3);min-width:36px;letter-spacing:.03em}
+.th-icon{font-size:11px;min-width:12px}
+.th-done .th-icon{color:rgba(160,200,150,.7)}
+.th-add .th-icon{color:rgba(255,250,244,.3)}
+.th-body{flex:1}
+.th-text{font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;
+  color:rgba(255,250,244,.75);letter-spacing:.02em;line-height:1.5}
+.th-add .th-text{color:rgba(255,250,244,.5)}
+.th-detail{font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:9px;color:rgba(255,250,244,.25);margin-top:2px;letter-spacing:.03em}
+/* Time range selector in history */
+.th-range{display:flex;gap:4px;justify-content:center;margin-bottom:16px}
+.th-range-btn{padding:3px 12px;border-radius:100px;border:none;background:transparent;
+  color:rgba(255,250,244,.3);font-family:'Noto Serif SC',serif;font-weight:300;
+  font-size:9px;letter-spacing:.15em;cursor:pointer;transition:all .25s}
+.th-range-btn.on{color:rgba(255,250,244,.8);background:rgba(255,250,244,.06)}
+/* Category management popup */
+.cat-mgmt-pop{position:fixed;z-index:300;
+  background:rgba(30,25,20,.96);
+  backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);
+  border:1px solid rgba(255,250,244,.1);border-radius:14px;
+  padding:14px;min-width:160px;
+  box-shadow:0 16px 50px rgba(10,8,6,.4);
+  animation:popIn .25s cubic-bezier(.16,1,.3,1)}
+.cmp-section{margin-bottom:12px}
+.cmp-section:last-child{margin-bottom:0}
+.cmp-label{font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:9px;color:rgba(255,250,244,.3);margin-bottom:6px;letter-spacing:.05em}
+.cmp-input-row{display:flex;gap:6px;align-items:center}
+.cmp-input{flex:1;padding:5px 8px;background:rgba(255,250,244,.05);border:none;
+  border-radius:8px;color:rgba(255,250,244,.85);
+  font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;outline:none}
+.cmp-input::placeholder{color:rgba(255,250,244,.2)}
+.cmp-add{width:26px;height:26px;border-radius:8px;border:1px solid rgba(255,250,244,.12);
+  background:transparent;color:rgba(255,250,244,.5);font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center}
+.cmp-add:active{transform:scale(.92)}
+.cmp-toggle-row{display:flex;align-items:center;justify-content:space-between;
+  cursor:pointer;padding:4px 0}
+.cmp-toggle-label{font-family:'Noto Serif SC',serif;font-weight:300;
+  font-size:11px;color:rgba(255,250,244,.7);letter-spacing:.05em}
+.cmp-switch{width:32px;height:18px;border-radius:100px;
+  background:rgba(255,250,244,.1);position:relative;transition:background .25s}
+.cmp-switch::after{content:'';position:absolute;top:2px;left:2px;
+  width:14px;height:14px;border-radius:50%;background:rgba(255,250,244,.5);
+  transition:transform .25s,background .25s}
+.cmp-switch.on{background:rgba(160,200,150,.3)}
+.cmp-switch.on::after{transform:translateX(14px);background:rgba(200,230,190,.9)}
 /* Long-press action sheet for memo page */
 .memo-action-sheet{position:fixed;inset:0;z-index:250;
   display:none;justify-content:center;align-items:flex-end;
@@ -5860,12 +5922,17 @@ function memoSwitch(type){
   if(type==='inspiration')document.getElementById('memoSecInsp').style.display='block';
   if(type==='todo'){
     document.getElementById('memoSecTodo').style.display='block';
+    // Don't persist _history view across tab switches — reset to a real category
+    if(todoCurrent==='_history')todoCurrent='normal';
+    const inputRow=document.querySelector('#memoSecTodo .memo-input-row');
+    if(inputRow)inputRow.style.display='';
     buildTodoCatTabs();
   }
   if(type==='shopping')document.getElementById('memoSecShopping').style.display='block';
   if(type==='ingredient')document.getElementById('memoSecIngredient').style.display='block';
   // Render content
   if(type==='inspiration')renderInsp();
+  else if(type==='todo')renderMemoList('todo');
   else renderMemoList(type);
   exitDragMode();
 }
@@ -5889,7 +5956,122 @@ function todoSetView(catId){
   todoCurrent=catId;
   sv('todoCurrent',todoCurrent);
   buildTodoCatTabs();
-  renderMemoList('todo');
+  if(catId==='_history'){
+    const inputRow=document.querySelector('#memoSecTodo .memo-input-row');
+    if(inputRow)inputRow.style.display='none';
+    renderTodoHistory();
+  }else{
+    const inputRow=document.querySelector('#memoSecTodo .memo-input-row');
+    if(inputRow)inputRow.style.display='';
+    renderMemoList('todo');
+  }
+}
+
+let todoHistoryMode=ld('todoHistoryMode','done'); // 'done' or 'all'
+let todoHistRange=ld('todoHistRange','today'); // today/week/month/year
+
+function renderTodoHistory(){
+  const el=document.getElementById('todoList');
+  if(!el)return;
+  const allTodos=[
+    ...(memos.todo||[]),
+    ...(doneArchive||[]).filter(a=>a._type==='待办')
+  ];
+  const fmt=(ts)=>{
+    if(!ts)return'';
+    const d=new Date(ts);
+    return(d.getMonth()+1)+'/'+d.getDate()+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+  };
+  
+  // Mode toggle
+  let html=`<div class="todo-hist-toggle">
+    <button class="th-seg${todoHistoryMode==='done'?' on':''}" onclick="setTodoHistMode('done')">已完成</button>
+    <button class="th-seg${todoHistoryMode==='all'?' on':''}" onclick="setTodoHistMode('all')">全部动态</button>
+  </div>`;
+  
+  if(todoHistoryMode==='done'){
+    // Range selector for completed
+    const ranges=[['today','今日'],['week','本周'],['month','本月'],['year','本年']];
+    html+=`<div class="th-range">`;
+    ranges.forEach(([k,label])=>{
+      html+=`<button class="th-range-btn${todoHistRange===k?' on':''}" onclick="setTodoHistRange('${k}')">${label}</button>`;
+    });
+    html+=`</div>`;
+    
+    // Filter completed by range
+    const now=new Date();
+    const inRange=(ts)=>{
+      const d=new Date(ts);
+      if(todoHistRange==='today'){
+        return d.toDateString()===now.toDateString();
+      }else if(todoHistRange==='week'){
+        const weekAgo=new Date(now);weekAgo.setDate(now.getDate()-now.getDay());weekAgo.setHours(0,0,0,0);
+        return d>=weekAgo;
+      }else if(todoHistRange==='month'){
+        return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();
+      }else if(todoHistRange==='year'){
+        return d.getFullYear()===now.getFullYear();
+      }
+      return true;
+    };
+    
+    const completed=allTodos.filter(t=>t.done&&t.doneAt&&inRange(t.doneAt))
+      .sort((a,b)=>b.doneAt-a.doneAt);
+    
+    if(!completed.length){
+      html+='<div class="insp-empty">这 段 时 间 无 完 成</div>';
+      el.innerHTML=html;setTimeout(()=>applyUITheme(),50);return;
+    }
+    
+    completed.forEach(t=>{
+      html+=`<div class="th-item th-done">
+        <span class="th-icon">✓</span>
+        <div class="th-body"><span class="th-text">${escapeHtml(t.text)}</span>
+        <div class="th-detail">添加 ${fmt(t.createdAt)} → 完成 ${fmt(t.doneAt)}</div></div>
+      </div>`;
+    });
+    
+  }else{
+    // All dynamics — each todo as ONE line with both times, sorted by latest activity
+    const items=allTodos.map(t=>({
+      text:t.text,
+      createdAt:t.createdAt,
+      doneAt:t.done?t.doneAt:null,
+      sortTs:t.done?(t.doneAt||t.createdAt):t.createdAt
+    })).sort((a,b)=>b.sortTs-a.sortTs);
+    
+    if(!items.length){
+      html+='<div class="insp-empty">尚 无 记 录</div>';
+      el.innerHTML=html;setTimeout(()=>applyUITheme(),50);return;
+    }
+    
+    items.forEach(t=>{
+      const icon=t.doneAt?'✓':'+';
+      const cls=t.doneAt?'th-done':'th-add';
+      let detail=`添加 ${fmt(t.createdAt)}`;
+      if(t.doneAt)detail+=` → 完成 ${fmt(t.doneAt)}`;
+      html+=`<div class="th-item ${cls}">
+        <span class="th-icon">${icon}</span>
+        <div class="th-body"><span class="th-text">${escapeHtml(t.text)}</span>
+        <div class="th-detail">${detail}</div></div>
+      </div>`;
+    });
+  }
+  
+  el.innerHTML=html;
+  setTimeout(()=>applyUITheme(),50);
+}
+
+function setTodoHistMode(mode){
+  todoHistoryMode=mode;
+  sv('todoHistoryMode',mode);
+  renderTodoHistory();
+}
+
+function setTodoHistRange(range){
+  todoHistRange=range;
+  sv('todoHistRange',range);
+  renderTodoHistory();
 }
 
 function buildTodoCatTabs(){
@@ -5939,38 +6121,91 @@ function buildTodoCatTabs(){
   addBtn.onclick=todoAddCategory;
   wrap.appendChild(addBtn);
   
+  // Add 归档 (history) tab — separated, at the end (only if enabled)
+  if(ld('showArchive',true)){
+    const histBtn=document.createElement('button');
+    histBtn.className='cat-tab cat-tab-hist'+(todoCurrent==='_history'?' on':'');
+    histBtn.textContent='归档';
+    histBtn.onclick=()=>todoSetView('_history');
+    wrap.appendChild(histBtn);
+  }
+  
   setTimeout(()=>applyUITheme(),50);
 }
 
 function todoAddCategory(){
+  // Open management panel: add category + toggle archive visibility
+  document.querySelectorAll('.cat-mgmt-pop').forEach(p=>p.remove());
   const wrap=document.getElementById('todoCatTabs');
-  if(!wrap)return;
-  // Replace + with input
-  const addBtn=wrap.querySelector('.cat-add');
-  if(!addBtn)return;
-  const inp=document.createElement('input');
-  inp.className='cat-tab-input';
-  inp.placeholder='分类名';
-  inp.maxLength=8;
-  addBtn.replaceWith(inp);
-  inp.focus();
-  const finish=()=>{
-    const v=inp.value.trim();
-    if(v){
-      const newId='cat_'+Date.now();
-      todoCats.push({id:newId,label:v});
-      sv('todoCats',todoCats);
-      todoCurrent=newId;
-      sv('todoCurrent',todoCurrent);
-    }
-    buildTodoCatTabs();
-    if(inp.value.trim())renderMemoList('todo');
-  };
-  inp.addEventListener('blur',finish);
-  inp.addEventListener('keydown',e=>{
-    if(e.key==='Enter'){e.preventDefault();inp.blur();}
-    if(e.key==='Escape'){inp.value='';inp.blur();}
-  });
+  const addBtn=wrap?wrap.querySelector('.cat-add'):null;
+  
+  const pop=document.createElement('div');
+  pop.className='cat-mgmt-pop';
+  pop.innerHTML=`
+    <div class="cmp-section">
+      <div class="cmp-label">新建分类</div>
+      <div class="cmp-input-row">
+        <input class="cmp-input" id="cmpNewCat" placeholder="分类名" maxlength="8">
+        <button class="cmp-add" onclick="cmpDoAddCat()">+</button>
+      </div>
+    </div>
+    <div class="cmp-section">
+      <div class="cmp-toggle-row" onclick="cmpToggleArchive()">
+        <span class="cmp-toggle-label">显示归档</span>
+        <span class="cmp-switch${ld('showArchive',true)?' on':''}" id="cmpArchiveSwitch"></span>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(pop);
+  
+  if(addBtn){
+    const rect=addBtn.getBoundingClientRect();
+    pop.style.left=Math.max(10,rect.left-60)+'px';
+    pop.style.top=(rect.bottom+8)+'px';
+  }
+  
+  setTimeout(()=>document.getElementById('cmpNewCat')?.focus(),100);
+  
+  setTimeout(()=>{
+    const closeOnce=(e)=>{
+      if(pop.contains(e.target))return;
+      pop.remove();
+      document.removeEventListener('touchstart',closeOnce);
+      document.removeEventListener('click',closeOnce);
+    };
+    document.addEventListener('touchstart',closeOnce);
+    document.addEventListener('click',closeOnce);
+  },400);
+}
+
+function cmpDoAddCat(){
+  const inp=document.getElementById('cmpNewCat');
+  const v=inp?inp.value.trim():'';
+  if(!v)return;
+  const newId='cat_'+Date.now();
+  todoCats.push({id:newId,label:v});
+  sv('todoCats',todoCats);
+  todoCurrent=newId;
+  sv('todoCurrent',todoCurrent);
+  document.querySelectorAll('.cat-mgmt-pop').forEach(p=>p.remove());
+  buildTodoCatTabs();
+  renderMemoList('todo');
+}
+
+function cmpToggleArchive(){
+  const cur=ld('showArchive',true);
+  sv('showArchive',!cur);
+  const sw=document.getElementById('cmpArchiveSwitch');
+  if(sw)sw.classList.toggle('on',!cur);
+  // If hiding archive while viewing it, switch back
+  if(cur&&todoCurrent==='_history'){
+    todoCurrent='normal';
+    sv('todoCurrent',todoCurrent);
+    const inputRow=document.querySelector('#memoSecTodo .memo-input-row');
+    if(inputRow)inputRow.style.display='';
+    renderMemoList('todo');
+  }
+  buildTodoCatTabs();
 }
 
 function showCatEditPopover(button,catId){
@@ -6010,14 +6245,17 @@ function showCatEditPopover(button,catId){
   pop.style.left=rect.left+'px';
   pop.style.top=(rect.bottom+6)+'px';
   
-  // Close on outside click
+  // Close on outside click — delay longer so the long-press touchend doesn't immediately close it
   setTimeout(()=>{
     const closeOnce=(e)=>{
-      if(!pop.contains(e.target))pop.remove();
+      if(pop.contains(e.target))return;
+      pop.remove();
+      document.removeEventListener('click',closeOnce);
+      document.removeEventListener('touchstart',closeOnce);
     };
-    document.addEventListener('click',closeOnce,{once:true});
-    document.addEventListener('touchend',closeOnce,{once:true});
-  },50);
+    document.addEventListener('click',closeOnce);
+    document.addEventListener('touchstart',closeOnce);
+  },400);
 }
 
 function todoRenameCategory(catId){
