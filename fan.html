@@ -1043,7 +1043,7 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .habit-name-edit{background:rgba(255,250,244,.06);border:none;border-radius:6px;
   color:rgba(255,250,244,.9);font-family:'Noto Serif SC',serif;font-weight:300;
   font-size:13px;padding:3px 8px;outline:none;width:100%;letter-spacing:.05em}
-.habit-add-row{margin-top:20px;text-align:center}
+.habit-add-row{margin-top:30px;text-align:center}
 .habit-add-btn{background:transparent;border:1px solid rgba(255,250,244,.12);
   border-radius:100px;color:rgba(255,250,244,.5);
   font-family:'Noto Serif SC',serif;font-weight:300;
@@ -1410,6 +1410,10 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 
 .insp-empty{text-align:center;padding:30px 20px;font-family:'Cormorant',serif;
   font-style:italic;font-size:12px;letter-spacing:.15em;opacity:.35}
+.habit-empty{padding:60px 20px;line-height:1;font-family:'Noto Serif SC',serif;
+  font-weight:300;font-size:14px;letter-spacing:.2em;opacity:.5}
+.habit-empty-sub{display:block;margin-top:22px;font-family:'Cormorant Garamond',serif;
+  font-style:italic;font-size:10px;letter-spacing:.08em;opacity:.7}
 
 /* ============ 库 CELLAR · Hermès-inspired Showroom ============ */
 
@@ -2573,11 +2577,11 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
       <!-- ===== Shopping tab content ===== -->
       <div id="memoSecShopping" style="display:none">
         <div class="cat-tabs" id="shopSubTabs">
-          <button class="cat-tab on" onclick="shopSetSub('shopping')">购物</button>
+          <button class="cat-tab on" onclick="shopSetSub('shopping')">物品</button>
           <button class="cat-tab" onclick="shopSetSub('ingredient')">食材</button>
         </div>
         <div class="memo-input-row">
-          <textarea class="memo-input" id="shopInp" placeholder="添加购物..." rows="1"></textarea>
+          <textarea class="memo-input" id="shopInp" placeholder="添加物品..." rows="1"></textarea>
           <button class="memo-add-btn" id="shopAddBtn" onclick="shopSmartAdd()">+</button>
         </div>
         <div class="memo-list" id="shopList"></div>
@@ -5041,7 +5045,7 @@ function exportAllPending(){
   
   addSection('灵感',pendInsp,i=>i.content||i.text||'');
   addSection('待办',pendTodo,i=>i.text||'');
-  addSection('购物',pendShop,i=>i.text||'');
+  addSection('物品',pendShop,i=>i.text||'');
   addSection('食材',pendIng,i=>i.text||'');
   
   txt=txt.trim();
@@ -6796,7 +6800,7 @@ function ingDetectBulk(){
 }
 
 // ----------- SHOPPING (with shopping/ingredient subtabs) -----------
-let shopSub=ld('shopSub','shopping'); // 'shopping' or 'ingredient'
+let shopSub=ld('shopSub','shopping'); // 'shopping'(物品) or 'ingredient'(食材)
 
 function shopSetSub(sub){
   shopSub=sub;
@@ -6805,7 +6809,7 @@ function shopSetSub(sub){
     t.classList.toggle('on',(i===0&&sub==='shopping')||(i===1&&sub==='ingredient'));
   });
   const inp=document.getElementById('shopInp');
-  if(inp)inp.placeholder=sub==='shopping'?'添加购物...':'添加食材...';
+  if(inp)inp.placeholder=sub==='ingredient'?'添加食材...':'添加物品...';
   renderShopList();
 }
 
@@ -6833,7 +6837,7 @@ function shopSmartAdd(){
 function renderShopList(){
   // Make sure subtab placeholder is right
   const inp=document.getElementById('shopInp');
-  if(inp)inp.placeholder=shopSub==='shopping'?'添加购物...':'添加食材...';
+  if(inp)inp.placeholder=shopSub==='shopping'?'添加物品...':'添加食材...';
   renderMemoList(shopSub,'shopList');
 }
 
@@ -7113,7 +7117,7 @@ function renderHabits(){
   const el=document.getElementById('habitList');
   if(!el)return;
   if(!habits.length){
-    el.innerHTML='<div class="insp-empty">还 没 有 习 惯<br><span style="font-size:9px;opacity:.6">新建一个想养成的习惯</span></div>';
+    el.innerHTML='<div class="insp-empty habit-empty">还 没 有 习 惯<br><span class="habit-empty-sub">新建一个想养成的习惯</span></div>';
     setTimeout(()=>applyUITheme(),50);return;
   }
   const tk=todayK();
@@ -8065,7 +8069,7 @@ setTimeout(()=>{
       t.classList.toggle('on',(i===0&&shopSub==='shopping')||(i===1&&shopSub==='ingredient'));
     });
     const si=document.getElementById('shopInp');
-    if(si)si.placeholder=shopSub==='shopping'?'添加购物...':'添加食材...';
+    if(si)si.placeholder=shopSub==='shopping'?'添加物品...':'添加食材...';
   }
 },200);
 
