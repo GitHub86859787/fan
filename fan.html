@@ -901,8 +901,8 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .cmp-switch::after{content:'';position:absolute;top:2px;left:2px;
   width:14px;height:14px;border-radius:50%;background:rgba(255,250,244,.5);
   transition:transform .25s,background .25s}
-.cmp-switch.on{background:rgba(160,200,150,.3)}
-.cmp-switch.on::after{transform:translateX(14px);background:rgba(200,230,190,.9)}
+.cmp-switch.on{background:rgba(232,228,220,.25)}
+.cmp-switch.on::after{transform:translateX(14px);background:rgba(245,242,236,.9)}
 /* Long-press action sheet for memo page */
 .memo-action-sheet{position:fixed;inset:0;z-index:250;
   display:none;justify-content:center;align-items:flex-end;
@@ -961,6 +961,281 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   flex-shrink:0;align-self:flex-start}
 .memo-add-btn:active{transform:scale(.92)}
 
+/* ===== HABIT SYSTEM ===== */
+.habit-list{display:flex;flex-direction:column}
+/* Gallery layout — 2-column grid of ambient cards */
+.habit-gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.gal-card{border-radius:18px;padding:16px 15px;min-height:150px;
+  display:flex;flex-direction:column;position:relative;overflow:hidden;cursor:pointer;
+  animation:recIn .4s cubic-bezier(.16,1,.3,1);
+  box-shadow:0 6px 20px rgba(0,0,0,.18)}
+.gal-card:active{transform:scale(.97)}
+.gal-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:auto}
+.gal-emoji{font-size:28px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.25));line-height:1}
+.gal-check{width:30px;height:30px;border-radius:50%;flex-shrink:0;
+  border:1.5px solid rgba(255,255,255,.5);
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+  color:rgba(255,255,255,.95);background:rgba(255,255,255,.15);
+  backdrop-filter:blur(4px);transition:all .3s}
+.gal-check.done{background:rgba(245,242,236,.95);color:rgba(90,78,66,.9);border-color:transparent}
+.gal-check:active{transform:scale(.85)}
+.gal-name{font-family:'Noto Serif SC',serif;font-weight:400;font-size:16px;
+  color:rgba(255,255,255,.98);letter-spacing:.05em;margin-top:14px;
+  text-shadow:0 1px 6px rgba(0,0,0,.3)}
+.gal-sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;
+  color:rgba(255,255,255,.78);margin-top:3px;text-shadow:0 1px 3px rgba(0,0,0,.25)}
+.gal-slots{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
+.gal-slot{padding:4px 9px;border-radius:100px;cursor:pointer;
+  border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.1);
+  transition:all .25s}
+.gal-slot.done{background:rgba(245,242,236,.9);border-color:transparent}
+.gal-slot:active{transform:scale(.9)}
+.gal-slot-lbl{font-family:'Noto Serif SC',serif;font-weight:300;font-size:9px;
+  color:rgba(255,255,255,.9);letter-spacing:.02em;text-shadow:0 1px 2px rgba(0,0,0,.2)}
+.gal-slot.done .gal-slot-lbl{color:rgba(90,78,66,.9);text-shadow:none}
+.gal-moon{font-family:'EB Garamond',serif;font-size:12px;color:rgba(255,255,255,.9);
+  margin-top:12px;display:flex;align-items:center;gap:4px;
+  text-shadow:0 1px 3px rgba(0,0,0,.3)}
+.gal-moon-empty{min-height:16px}
+.habit-card{display:flex;align-items:center;gap:12px;padding:13px 2px;
+  border-bottom:1px solid rgba(255,250,244,.05);
+  animation:recIn .4s cubic-bezier(.16,1,.3,1)}
+.habit-circle{width:26px;height:26px;border-radius:50%;flex-shrink:0;
+  border:1.5px solid rgba(255,250,244,.15);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;color:rgba(255,250,244,.2);cursor:pointer;
+  transition:all .25s}
+.habit-circle.done{border-color:rgba(232,228,220,.55);color:rgba(245,242,236,.95);
+  background:rgba(232,228,220,.1)}
+.habit-circle:active{transform:scale(.88)}
+.habit-circle.small{width:22px;height:22px;font-size:11px}
+.habit-circles{display:flex;gap:5px;flex-shrink:0}
+.habit-info{flex:1;min-width:0}
+.habit-name{font-family:'Noto Serif SC',serif;font-weight:300;font-size:13px;
+  color:rgba(255,250,244,.88);letter-spacing:.05em;cursor:pointer}
+.habit-sub{font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:10px;color:rgba(255,250,244,.32);margin-top:2px;letter-spacing:.03em}
+.habit-streak{font-family:'EB Garamond',serif;font-size:12px;
+  color:rgba(255,250,244,.55);flex-shrink:0;letter-spacing:.02em;
+  display:flex;align-items:center;gap:3px}
+.habit-moon{font-size:11px}
+.habit-emoji{margin-right:7px;font-size:14px}
+.habit-mini{display:flex;gap:3px;margin-top:5px}
+.habit-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,250,244,.1)}
+.habit-dot.on{background:rgba(232,228,220,.55)}
+.habit-note{font-family:'Noto Serif SC',serif;font-weight:300;font-size:10px;
+  color:rgba(255,250,244,.4);margin-top:6px;line-height:1.6;letter-spacing:.02em;
+  padding-left:1px}
+/* Slot circles for multi-time habits */
+.habit-slot-circles{display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap;max-width:120px}
+.habit-slot-circle{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-width:30px;padding:4px 3px;border-radius:9px;cursor:pointer;
+  border:1px solid rgba(255,250,244,.1);transition:all .25s}
+.habit-slot-circle.done{border-color:rgba(232,228,220,.5);background:rgba(232,228,220,.12)}
+.habit-slot-circle:active{transform:scale(.92)}
+.habit-slot-lbl{font-family:'Noto Serif SC',serif;font-weight:300;font-size:8px;
+  color:rgba(255,250,244,.4);letter-spacing:.02em;line-height:1.2}
+.habit-slot-circle.done .habit-slot-lbl{color:rgba(232,228,220,.85)}
+.habit-slot-check{font-size:9px;color:rgba(245,242,236,.9);height:11px;line-height:11px}
+.habit-del{background:none;border:none;color:rgba(255,250,244,.15);
+  font-size:11px;cursor:pointer;flex-shrink:0;padding:4px;transition:color .2s}
+.habit-del:active{color:rgba(255,120,100,.6)}
+.habit-name-edit{background:rgba(255,250,244,.06);border:none;border-radius:6px;
+  color:rgba(255,250,244,.9);font-family:'Noto Serif SC',serif;font-weight:300;
+  font-size:13px;padding:3px 8px;outline:none;width:100%;letter-spacing:.05em}
+.habit-add-row{margin-top:20px;text-align:center}
+.habit-add-btn{background:transparent;border:1px solid rgba(255,250,244,.12);
+  border-radius:100px;color:rgba(255,250,244,.5);
+  font-family:'Noto Serif SC',serif;font-weight:300;
+  font-size:10px;letter-spacing:.3em;text-indent:.3em;padding:8px 22px;cursor:pointer;
+  transition:all .25s}
+.habit-add-btn:active{transform:scale(.96)}
+.habit-add-btn:hover{border-color:rgba(255,250,244,.25);color:rgba(255,250,244,.8)}
+
+/* Habit create modal — silk mist */
+.habit-create-bg{position:fixed;inset:0;z-index:300;
+  background:radial-gradient(ellipse at 50% 40%, rgba(196,176,148,.16), rgba(40,33,28,.5));
+  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  overflow-y:auto}
+.habit-create-box{width:100%;max-width:300px;text-align:center;
+  animation:popIn .3s cubic-bezier(.16,1,.3,1);position:relative;
+  padding:26px 22px 20px;
+  background:linear-gradient(165deg, rgba(70,60,50,.5), rgba(50,42,35,.42));
+  border:1px solid rgba(255,240,220,.14);
+  border-radius:22px;
+  box-shadow:0 20px 50px rgba(10,8,6,.3), inset 0 1px 0 rgba(255,240,220,.08);
+  margin:auto}
+.hc-title{font-family:'Noto Serif SC',serif;font-weight:200;font-size:11px;
+  letter-spacing:.4em;color:rgba(255,250,244,.55);margin-bottom:20px;text-indent:.4em}
+.hc-emoji-row{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-bottom:10px}
+.hc-emoji{font-size:20px;padding:5px;border-radius:9px;cursor:pointer;
+  border:1px solid transparent;transition:all .2s;line-height:1}
+.hc-emoji.sel{border-color:rgba(255,250,244,.3);background:rgba(255,250,244,.08)}
+.hc-emoji-custom{width:60%;margin:0 auto 22px;display:block;padding:5px 0;
+  background:transparent;border:none;border-bottom:1px solid rgba(255,250,244,.06);
+  color:rgba(255,250,244,.8);font-size:14px;text-align:center;outline:none}
+.hc-emoji-custom::placeholder{color:rgba(255,250,244,.2);font-size:11px;
+  font-family:'Cormorant Garamond',serif;font-style:italic}
+.hc-gradients{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px;margin-bottom:20px}
+.hc-grad{width:32px;height:32px;border-radius:50%;cursor:pointer;
+  border:2px solid transparent;transition:all .2s}
+.hc-grad.sel{border-color:rgba(255,250,244,.9);transform:scale(1.1)}
+.hc-grad:active{transform:scale(.92)}
+.hc-grad-custom{position:relative;display:flex;align-items:center;justify-content:center}
+.hc-grad-plus{color:rgba(255,255,255,.85);font-size:16px;font-weight:300;
+  text-shadow:0 1px 3px rgba(0,0,0,.3)}
+.hc-color-panel{margin:0 auto 18px;max-width:200px;
+  background:rgba(255,250,244,.05);border:1px solid rgba(255,250,244,.1);
+  border-radius:14px;padding:14px;animation:popIn .25s cubic-bezier(.16,1,.3,1)}
+.hc-cp-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px}
+.hc-cp-lbl{font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;color:rgba(255,250,244,.5)}
+.hc-cp-row input[type=color]{width:38px;height:38px;border:none;border-radius:10px;
+  background:none;cursor:pointer;padding:0}
+.hc-cp-row input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+.hc-cp-row input[type=color]::-webkit-color-swatch{border:1px solid rgba(255,250,244,.2);border-radius:10px}
+.hc-cp-preview{height:24px;border-radius:8px;margin-bottom:12px;border:1px solid rgba(255,250,244,.1)}
+.hc-cp-done{width:100%;padding:7px;background:transparent;border:1px solid rgba(255,250,244,.15);
+  border-radius:100px;color:rgba(255,250,244,.7);
+  font-family:'Noto Serif SC',serif;font-weight:300;font-size:10px;letter-spacing:.2em;cursor:pointer;transition:all .25s}
+.hc-cp-done:active{transform:scale(.96)}
+.hc-cp-done:hover{border-color:rgba(255,250,244,.3);color:rgba(255,250,244,.9)}
+.hc-slots{display:flex;flex-wrap:wrap;gap:5px;justify-content:center}
+.hc-slot{padding:5px 11px;border-radius:100px;border:1px solid rgba(255,250,244,.1);
+  background:transparent;color:rgba(255,250,244,.45);
+  font-family:'Noto Serif SC',serif;font-weight:300;font-size:10px;cursor:pointer;transition:all .25s}
+.hc-slot.sel{border-color:rgba(232,228,220,.5);color:rgba(245,242,236,.95);background:rgba(232,228,220,.1)}
+.hc-name-input{width:80%;padding:8px 0;background:transparent;border:none;
+  border-bottom:1px solid rgba(255,250,244,.12);color:rgba(255,250,244,.9);
+  font-family:'Noto Serif SC',serif;font-weight:300;font-size:13px;
+  text-align:center;outline:none;letter-spacing:.08em;margin-bottom:26px}
+.hc-name-input::placeholder{color:rgba(255,250,244,.2)}
+.hc-section-label{font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:11px;color:rgba(255,250,244,.35);margin-bottom:12px}
+.hc-freq-opts{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:18px}
+.hc-freq{padding:6px 14px;border-radius:100px;border:1px solid rgba(255,250,244,.1);
+  background:transparent;color:rgba(255,250,244,.4);
+  font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;letter-spacing:.1em;
+  cursor:pointer;transition:all .25s}
+.hc-freq.sel{border-color:rgba(255,250,244,.35);color:rgba(255,250,244,.9);background:rgba(255,250,244,.07)}
+.hc-detail{margin-bottom:20px;min-height:20px}
+.hc-sub-label{font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:10px;color:rgba(255,250,244,.3);margin-bottom:10px}
+.hc-times{display:flex;gap:6px;justify-content:center}
+.hc-time-btn{padding:5px 14px;border-radius:100px;border:1px solid rgba(255,250,244,.1);
+  background:transparent;color:rgba(255,250,244,.45);
+  font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;cursor:pointer;transition:all .25s}
+.hc-time-btn.sel{border-color:rgba(255,250,244,.35);color:rgba(255,250,244,.9);background:rgba(255,250,244,.07)}
+.hc-weekdays{display:flex;gap:5px;justify-content:center}
+.hc-wd{width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,250,244,.1);
+  background:transparent;color:rgba(255,250,244,.4);
+  font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;cursor:pointer;transition:all .25s}
+.hc-wd.sel{border-color:rgba(232,228,220,.5);color:rgba(245,242,236,.95);background:rgba(232,228,220,.1)}
+.hc-monthday-wrap{display:flex;align-items:center;justify-content:center;gap:8px}
+.hc-monthday{width:60px;padding:6px;background:rgba(255,250,244,.05);border:none;border-radius:8px;
+  color:rgba(255,250,244,.9);font-family:'EB Garamond',serif;font-size:16px;text-align:center;outline:none}
+.hc-monthday-suffix{font-family:'Noto Serif SC',serif;font-weight:300;font-size:12px;color:rgba(255,250,244,.5)}
+.hc-actions{margin-top:8px}
+.hc-save{padding:8px 28px;background:transparent;border:1px solid rgba(255,250,244,.15);
+  border-radius:100px;color:rgba(255,250,244,.6);
+  font-family:'Noto Serif SC',serif;font-weight:300;font-size:10px;
+  letter-spacing:.5em;text-indent:.5em;cursor:pointer;transition:all .25s}
+.hc-save:active{transform:scale(.96)}
+.hc-save:hover{border-color:rgba(255,250,244,.35);color:rgba(255,250,244,.9)}
+.hc-cancel{margin-top:14px;
+  background:transparent;border:none;color:rgba(255,250,244,.25);
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;cursor:pointer;letter-spacing:.08em}
+
+/* Habit detail page — gradient themed */
+.habit-detail-bg{position:fixed;inset:0;z-index:300;
+  background:radial-gradient(ellipse at 50% 40%, rgba(196,176,148,.16), rgba(40,33,28,.5));
+  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:40px 16px;overflow-y:auto}
+.habit-detail-box{width:100%;max-width:320px;position:relative;
+  animation:popIn .3s cubic-bezier(.16,1,.3,1);
+  border-radius:20px;overflow:hidden;
+  background:var(--hgrad);
+  border:1px solid rgba(255,250,244,.08);
+  margin-bottom:30px}
+.hd-hero{padding:32px 20px 24px;text-align:center;position:relative}
+.hd-close{position:absolute;top:14px;right:14px;width:28px;height:28px;border-radius:50%;
+  background:rgba(0,0,0,.18);border:none;color:rgba(255,255,255,.75);
+  font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.hd-emoji{font-size:40px;margin-bottom:10px;line-height:1;
+  filter:drop-shadow(0 2px 8px rgba(0,0,0,.2))}
+.hd-name{font-family:'Noto Serif SC',serif;font-weight:400;font-size:19px;
+  color:rgba(255,255,255,.98);letter-spacing:.1em;margin-bottom:6px;
+  text-shadow:0 1px 6px rgba(0,0,0,.25)}
+.hd-meta{font-family:'EB Garamond',serif;font-size:11px;
+  color:rgba(255,255,255,.82);letter-spacing:.04em;text-shadow:0 1px 4px rgba(0,0,0,.2)}
+.hd-body{padding:22px 20px 24px;
+  background:rgba(20,16,13,.55);
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.hd-cal{margin-bottom:22px}
+.hd-cal-nav{display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:14px}
+.hd-cal-nav button{background:transparent;border:none;color:rgba(255,255,255,.5);
+  font-size:18px;cursor:pointer;padding:4px 8px}
+.hd-cal-nav span{font-family:'EB Garamond',serif;font-size:13px;color:rgba(255,255,255,.85);letter-spacing:.05em}
+.hd-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.hd-cal-head{text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:9px;color:rgba(255,255,255,.35);padding-bottom:4px}
+.hd-cal-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  border-radius:7px;font-family:'EB Garamond',serif;font-size:11px;
+  color:rgba(255,255,255,.45);background:rgba(255,255,255,.05);cursor:pointer;transition:all .2s}
+.hd-cal-cell.empty{background:transparent;cursor:default}
+.hd-cal-cell.done{background:var(--hgrad);color:rgba(255,255,255,.98);
+  box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.hd-cal-cell.partial{background:rgba(255,255,255,.16)}
+.hd-cal-cell.today{box-shadow:0 0 0 1px rgba(255,255,255,.5)}
+.hd-cal-cell:active{transform:scale(.9)}
+.hd-note-section{margin-bottom:20px}
+.hd-note-input{width:100%;min-height:64px;padding:12px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;
+  color:rgba(255,255,255,.9);font-family:'Noto Serif SC',serif;font-weight:300;
+  font-size:12px;line-height:1.7;outline:none;resize:vertical;letter-spacing:.02em}
+.hd-note-input::placeholder{color:rgba(255,255,255,.3);font-style:italic;font-family:'Cormorant Garamond',serif}
+.hd-note-input:focus{border-color:rgba(255,255,255,.2)}
+.hd-note-display{font-family:'Noto Serif SC',serif;font-weight:300;font-size:12.5px;
+  line-height:1.85;color:rgba(255,255,255,.82);letter-spacing:.02em;
+  white-space:pre-wrap;cursor:text;padding:2px 2px}
+.hd-note-empty{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:12px;
+  color:rgba(255,255,255,.3);cursor:text;padding:2px 2px}
+.hd-note-saved{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;
+  color:rgba(232,228,220,.7);text-align:right;margin-top:5px;opacity:0;transition:opacity .3s}
+.hd-note-saved.show{opacity:1}
+/* Inline delete confirmation — translucent gradient tint */
+.hd-del-confirm{position:absolute;inset:0;z-index:10;
+  border-radius:20px;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  animation:popIn .25s cubic-bezier(.16,1,.3,1)}
+.hd-dc-tint{position:absolute;inset:0;opacity:.5}
+.hd-dc-content{position:relative;z-index:2;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:22px}
+.hd-dc-text{font-family:'Noto Serif SC',serif;font-weight:400;font-size:15px;
+  color:rgba(255,255,255,.98);text-align:center;line-height:1.7;letter-spacing:.06em;
+  text-shadow:0 1px 10px rgba(0,0,0,.4)}
+.hd-dc-text span{font-size:11px;color:rgba(255,255,255,.78);font-style:italic;
+  font-family:'Cormorant Garamond',serif;text-shadow:0 1px 6px rgba(0,0,0,.3)}
+.hd-dc-btns{display:flex;gap:14px}
+.hd-dc-cancel,.hd-dc-yes{padding:9px 26px;border-radius:100px;cursor:pointer;
+  font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;letter-spacing:.2em;
+  text-indent:.2em;transition:all .25s;backdrop-filter:blur(4px)}
+.hd-dc-cancel{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.95)}
+.hd-dc-yes{background:rgba(20,16,13,.2);border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.95)}
+.hd-dc-cancel:active,.hd-dc-yes:active{transform:scale(.95)}
+.hd-stats{display:flex;justify-content:space-around;margin-bottom:20px;
+  padding:16px 0;border-top:1px solid rgba(255,255,255,.1);border-bottom:1px solid rgba(255,255,255,.1)}
+.hd-stat{text-align:center}
+.hd-stat-num{font-family:'EB Garamond',serif;font-size:22px;color:rgba(255,255,255,.92);line-height:1}
+.hd-stat-lbl{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;
+  color:rgba(255,255,255,.4);margin-top:4px}
+.hd-del{display:block;margin:0 auto;background:transparent;border:none;
+  color:rgba(255,200,195,.5);font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:10px;cursor:pointer;letter-spacing:.05em}
+.hd-del:hover{color:rgba(255,200,195,.8)}
+
 .memo-priority-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
 .memo-pri{padding:5px 10px;border-radius:100px;font-size:9px;letter-spacing:.1em;
   border:1px solid rgba(255,255,255,.06);background:none;cursor:pointer;
@@ -994,7 +1269,44 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   flex-shrink:0;color:inherit;align-self:flex-start;margin-top:1px}
 .memo-del:hover,.memo-del:active{opacity:.8}
 
-/* ===== INSPIRATION (灵感) - 简化版 ===== */
+/* ===== SUB-TODOS (拆解/细目) ===== */
+.todo-item{flex-direction:column;align-items:stretch}
+.todo-main{display:flex;align-items:flex-start;width:100%}
+.todo-body{flex:1;min-width:0}
+.todo-actions{display:flex;align-items:center;gap:4px;flex-shrink:0;margin-left:8px}
+.todo-add-sub{width:20px;height:20px;border-radius:50%;border:none;background:none;
+  font-size:14px;font-weight:300;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  opacity:.25;transition:opacity .25s;color:inherit;font-family:'EB Garamond',serif}
+.todo-add-sub:active{opacity:.7}
+/* Progress bar */
+.todo-prog{display:flex;align-items:center;gap:9px;margin-top:9px}
+.todo-prog-track{flex:1;height:2px;background:rgba(255,255,255,.08);border-radius:2px;
+  overflow:hidden;max-width:130px}
+.todo-prog-fill{height:100%;background:rgba(232,228,220,.7);border-radius:2px;
+  transition:width .45s cubic-bezier(.16,1,.3,1)}
+.todo-prog-num{font-family:'EB Garamond',serif;font-size:10px;
+  color:rgba(255,250,244,.4);letter-spacing:.05em}
+/* Sub items */
+.todo-subs{margin-top:11px;margin-left:30px;display:flex;flex-direction:column;gap:8px}
+.todo-sub{display:flex;align-items:flex-start;gap:9px}
+.todo-sub.done{opacity:.42}
+.todo-sub-check{width:15px;height:15px;border-radius:50%;flex-shrink:0;margin-top:1px;
+  border:1px solid rgba(255,250,244,.22);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .25s}
+.todo-sub-check.checked{background:rgba(232,228,220,.78);border-color:transparent}
+.todo-sub-check.checked::after{content:'✓';font-size:8px;color:rgba(60,52,44,.9)}
+.todo-sub-text{flex:1;font-family:'Noto Serif SC',serif;font-weight:300;font-size:12px;
+  color:rgba(255,250,244,.62);letter-spacing:.02em;line-height:1.5;cursor:pointer;word-break:break-word}
+.todo-sub.done .todo-sub-text{text-decoration:line-through;text-decoration-color:rgba(255,250,244,.25)}
+.todo-sub-del{width:16px;height:16px;border:none;background:none;font-size:9px;cursor:pointer;
+  opacity:.25;color:inherit;flex-shrink:0;margin-top:2px;transition:opacity .2s}
+.todo-sub-del:active{opacity:.7}
+.todo-sub-add{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;
+  color:rgba(255,250,244,.28);cursor:pointer;padding:2px 0;letter-spacing:.05em;transition:color .2s}
+.todo-sub-add:active{color:rgba(255,250,244,.6)}
+.todo-sub-input{font-family:'Noto Serif SC',serif;font-weight:300;font-size:12px;
+  color:rgba(255,250,244,.85);background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:4px 8px;outline:none;width:100%}
 .insp-views{display:flex;gap:4px;margin-bottom:12px;padding:3px;
   background:rgba(255,255,255,.03);border-radius:100px;border:1px solid rgba(255,255,255,.05)}
 .insp-view{flex:1;padding:7px 0;border-radius:100px;border:none;background:none;
@@ -2260,20 +2572,23 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 
       <!-- ===== Shopping tab content ===== -->
       <div id="memoSecShopping" style="display:none">
+        <div class="cat-tabs" id="shopSubTabs">
+          <button class="cat-tab on" onclick="shopSetSub('shopping')">购物</button>
+          <button class="cat-tab" onclick="shopSetSub('ingredient')">食材</button>
+        </div>
         <div class="memo-input-row">
           <textarea class="memo-input" id="shopInp" placeholder="添加购物..." rows="1"></textarea>
-          <button class="memo-add-btn" onclick="shopAdd()">+</button>
+          <button class="memo-add-btn" id="shopAddBtn" onclick="shopSmartAdd()">+</button>
         </div>
         <div class="memo-list" id="shopList"></div>
       </div>
 
-      <!-- ===== Ingredient tab content ===== -->
-      <div id="memoSecIngredient" style="display:none">
-        <div class="memo-input-row">
-          <textarea class="memo-input" id="ingInp" placeholder="添加食材..." rows="1" oninput="ingDetectBulk()"></textarea>
-          <button class="memo-add-btn" id="ingAddBtn" onclick="ingSmartAdd()">+</button>
+      <!-- ===== Habit tab content ===== -->
+      <div id="memoSecHabit" style="display:none">
+        <div class="habit-list" id="habitList"></div>
+        <div class="habit-add-row">
+          <button class="habit-add-btn" onclick="openHabitCreate()">一 个 新 习 惯</button>
         </div>
-        <div class="memo-list" id="ingList"></div>
       </div>
     </div>
     
@@ -2292,8 +2607,8 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
       <div class="guan-card">
         <div class="guan-card-label" onclick="toggleSW()">此 刻 · 能 量</div>
         <div class="sw-row" id="swRow">
-          <div class="sw-btn" id="swSunBtn" onclick="event.stopPropagation();recordSW('wake')">☀️<span class="sw-time" id="swSunTime"></span></div>
           <div class="sw-btn" id="swMoonBtn" onclick="event.stopPropagation();recordSW('sleep')">🌙<span class="sw-time" id="swMoonTime"></span></div>
+          <div class="sw-btn" id="swSunBtn" onclick="event.stopPropagation();recordSW('wake')">☀️<span class="sw-time" id="swSunTime"></span></div>
         </div>
         <div class="gs1-wrap">
           <div class="gs1-emojis" id="gs1Emojis"></div>
@@ -2809,6 +3124,117 @@ function unlockAudio(){
 
 // Tomato pluck — real recording (uploaded mp3)
 const SNAP_AUDIO = new Audio('snap.mp3');
+
+// ===== Memo add/complete sounds — crystal synthesis =====
+// Reverb + voice helpers (from the sound-system design)
+let _fanVerbIn=null, _fanMaster=null, _fanReady=false;
+function _fanAudioGraph(){
+  if(_fanReady&&ac)return;
+  ea();
+  if(!ac)return;
+  _fanMaster=ac.createGain(); _fanMaster.gain.value=0.85;
+  _fanMaster.connect(ac.destination);
+  _fanVerbIn=ac.createGain();
+  // build impulse reverb
+  const seconds=2.0, decay=2.4, rate=ac.sampleRate, len=Math.floor(rate*seconds);
+  const imp=ac.createBuffer(2,len,rate);
+  for(let chn=0;chn<2;chn++){const d=imp.getChannelData(chn);
+    for(let i=0;i<len;i++){d[i]=(Math.random()*2-1)*Math.pow(1-i/len,decay);}}
+  const conv=ac.createConvolver(); conv.buffer=imp;
+  const wet=ac.createGain(); wet.gain.value=0.55;
+  _fanVerbIn.connect(conv); conv.connect(wet); wet.connect(_fanMaster);
+  _fanReady=true;
+}
+function _fanOut(node,wetAmt){
+  if(!_fanMaster)return;
+  node.connect(_fanMaster);
+  if(wetAmt&&_fanVerbIn){const w=ac.createGain(); w.gain.value=wetAmt; node.connect(w); w.connect(_fanVerbIn);}
+}
+function _fanBuzz(p){if(navigator.vibrate){try{navigator.vibrate(p);}catch(e){}}}
+function _fanNoise(dur){
+  const len=Math.floor(ac.sampleRate*dur);
+  const b=ac.createBuffer(1,len,ac.sampleRate);
+  const d=b.getChannelData(0);
+  for(let i=0;i<len;i++){d[i]=Math.random()*2-1;}
+  const s=ac.createBufferSource(); s.buffer=b; return s;
+}
+function _fanBell(freq,start,gain,wet,dec){
+  const t0=ac.currentTime+start;
+  [[1,1,dec],[2.0,0.4,dec*0.8],[3.01,0.18,dec*0.6],[5.43,0.07,dec*0.4]].forEach(function(r){
+    const o=ac.createOscillator(); o.type='sine'; o.frequency.value=freq*r[0];
+    const env=ac.createGain(); env.gain.setValueAtTime(0.0001,t0);
+    env.gain.linearRampToValueAtTime(gain*r[1],t0+0.006);
+    env.gain.exponentialRampToValueAtTime(0.0001,t0+r[2]);
+    o.connect(env); _fanOut(env,wet); o.start(t0); o.stop(t0+r[2]+0.1);
+  });
+}
+function _fanSoftBell(freq,start,gain,wet,dec,lpf,attack){
+  attack=attack||0.012;
+  const t0=ac.currentTime+start;
+  const lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=lpf||3000;
+  [[1,1,dec],[2.0,0.3,dec*0.8],[3.01,0.10,dec*0.5]].forEach(function(r){
+    const o=ac.createOscillator(); o.type='sine'; o.frequency.value=freq*r[0];
+    const env=ac.createGain(); env.gain.setValueAtTime(0.0001,t0);
+    env.gain.linearRampToValueAtTime(gain*r[1],t0+attack);
+    env.gain.exponentialRampToValueAtTime(0.0001,t0+r[2]);
+    o.connect(env); env.connect(lp); o.start(t0); o.stop(t0+r[2]+0.1);
+  });
+  _fanOut(lp,wet);
+}
+function _fanClink(base,start,gain,wet,dec){
+  const t0=ac.currentTime+start;
+  [[1,1,dec],[2.76,0.5,dec*0.7],[5.40,0.25,dec*0.4]].forEach(function(r){
+    const o=ac.createOscillator(); o.type='sine'; o.frequency.value=base*r[0];
+    const env=ac.createGain(); env.gain.setValueAtTime(0.0001,t0);
+    env.gain.linearRampToValueAtTime(gain*r[1],t0+0.003);
+    env.gain.exponentialRampToValueAtTime(0.0001,t0+r[2]);
+    o.connect(env); _fanOut(env,wet); o.start(t0); o.stop(t0+r[2]+0.05);
+  });
+}
+function _fanAirySwell(start,peak,dur,wet,center){
+  const t0=ac.currentTime+start;
+  const s=_fanNoise(dur+0.12);
+  const bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=center||4200; bp.Q.value=0.8;
+  const env=ac.createGain(); env.gain.setValueAtTime(0.0001,t0);
+  env.gain.linearRampToValueAtTime(peak,t0+dur*0.3);
+  env.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  s.connect(bp); bp.connect(env); _fanOut(env,wet); s.start(t0); s.stop(t0+dur+0.14);
+}
+
+// Habit: daily check = Pearl(珍珠铃); milestone streak = Gala(落定)
+function playHabitDaily(){
+  _fanAudioGraph(); if(!_fanReady)return;
+  _fanSoftBell(880,0,0.18,0.6,1.4,3200,0.018);
+  _fanBell(1760,0.05,0.03,0.6,0.8);
+  _fanBuzz(6);
+}
+function playHabitMilestone(){
+  _fanAudioGraph(); if(!_fanReady)return;
+  _fanClink(2400,0,0.10,0.4,0.16);
+  const arp=[783.99,987.77,1174.66,1567.98];
+  arp.forEach(function(f,i){_fanBell(f,0.06+i*0.10,0.13,0.7,i<3?0.5:1.6);});
+  _fanBell(3135.96,0.5,0.03,0.8,1.0);
+  _fanAirySwell(0.4,0.04,0.7,0.6,5000);
+  _fanBuzz([8,40,8,40,8,40,14]);
+}
+// Todo: add (lightest) and complete (rising satisfying)
+function playMemoAdd(){
+  _fanAudioGraph(); if(!_fanReady)return;
+  const t0=ac.currentTime;
+  const s=_fanNoise(0.01);
+  const bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=3000; bp.Q.value=1;
+  const e=ac.createGain(); e.gain.setValueAtTime(0.05,t0); e.gain.exponentialRampToValueAtTime(0.0001,t0+0.02);
+  s.connect(bp); bp.connect(e); _fanOut(e,0); s.start(t0); s.stop(t0+0.03);
+  _fanSoftBell(740,0,0.12,0.35,0.55,2600,0.026);
+  _fanBuzz(8);
+}
+function playMemoDone(){
+  _fanAudioGraph(); if(!_fanReady)return;
+  _fanBell(1046.50,0,0.15,0.5,0.5);
+  _fanBell(1567.98,0.085,0.14,0.55,0.8);
+  _fanBell(2093.00,0.13,0.035,0.6,0.5);
+  _fanBuzz([8,40,12]);
+}
 SNAP_AUDIO.preload = 'auto';
 function playTomatoPluck(){
   ea();
@@ -3332,10 +3758,17 @@ function toggleSW(){
 }
 
 function recordSW(type){
-  const tk=todayK();
+  // For sleep: if it's early morning (0-5am), attribute to previous day
+  let tk=todayK();
+  if(type==='sleep'){
+    const h=new Date().getHours();
+    if(h>=0&&h<5){
+      const y=new Date();y.setDate(y.getDate()-1);
+      tk=y.getFullYear()+'-'+pad(y.getMonth()+1)+'-'+pad(y.getDate());
+    }
+  }
   if(!sleepWake[tk])sleepWake[tk]={};
   if(sleepWake[tk][type]){
-    // Already recorded — tap again to clear
     delete sleepWake[tk][type];
   }else{
     sleepWake[tk][type]=Date.now();
@@ -3346,7 +3779,15 @@ function recordSW(type){
 
 function updSWDisplay(){
   const tk=todayK();
+  // Sleep may be attributed to yesterday if recorded early morning
+  let sleepTk=tk;
+  const h=new Date().getHours();
+  if(h>=0&&h<5){
+    const y=new Date();y.setDate(y.getDate()-1);
+    sleepTk=y.getFullYear()+'-'+pad(y.getMonth()+1)+'-'+pad(y.getDate());
+  }
   const data=sleepWake[tk]||{};
+  const sleepData=sleepWake[sleepTk]||{};
   const sunBtn=document.getElementById('swSunBtn');
   const moonBtn=document.getElementById('swMoonBtn');
   const sunTime=document.getElementById('swSunTime');
@@ -3359,8 +3800,9 @@ function updSWDisplay(){
     sunTime.textContent='';
     sunBtn.classList.remove('recorded');
   }
-  if(data.sleep){
-    const d=new Date(data.sleep);
+  const sleepVal=sleepData.sleep;
+  if(sleepVal){
+    const d=new Date(sleepVal);
     moonTime.textContent=pad(d.getHours())+':'+pad(d.getMinutes());
     moonBtn.classList.add('recorded');
   }else{
@@ -3896,15 +4338,26 @@ function openRecEditor(index){
       acts.parentNode.appendChild(del);
     }
   }else{
-    // Add mode — default to a 30-minute span ending now
+    // Add mode — default start = last record's end + 1 min, end = now
     recEditState={mode:'add',index:-1,tagId:null};
     title.textContent='补 记';
     const now=new Date();
-    const halfHrAgo=new Date(now.getTime()-30*60*1000);
+    let startTime;
+    // Find the latest end time among today's records
+    const todayRecsList=allDays[todayK()]||[];
+    if(todayRecsList.length){
+      const lastEnd=Math.max(...todayRecsList.map(r=>r.end||0));
+      if(lastEnd>0){
+        startTime=new Date(lastEnd+60*1000); // +1 minute
+        // If that's somehow after now, fall back to 30 min ago
+        if(startTime>=now)startTime=new Date(now.getTime()-30*60*1000);
+      }
+    }
+    if(!startTime)startTime=new Date(now.getTime()-30*60*1000);
     dateEl.value=fmtDate(now);
-    startEl.value=fmtTime(halfHrAgo);
+    startEl.value=fmtTime(startTime);
     endEl.value=fmtTime(now);
-    document.getElementById('recEditStartBtn').textContent=fmtTime(halfHrAgo);
+    document.getElementById('recEditStartBtn').textContent=fmtTime(startTime);
     document.getElementById('recEditEndBtn').textContent=fmtTime(now);
     updateDurationDisplay();
     // Remove any delete button from prev session
@@ -5789,8 +6242,19 @@ if(!Array.isArray(memos.shopping))memos.shopping=[];
 if(!Array.isArray(memos.ingredient))memos.ingredient=[];
 let inspirations=ld('inspirations',[]);
 let inspTags=ld('inspTags',['思','业','修']);
-let memoTabOrder=ld('memoTabOrder',['todo','shopping','ingredient','inspiration']);
+let memoTabOrder=ld('memoTabOrder',['todo','habit','shopping','inspiration']);
+// Migrate old saved orders: drop 'ingredient' tab, ensure 'habit' present
+if(memoTabOrder.includes('ingredient')){
+  memoTabOrder=memoTabOrder.filter(t=>t!=='ingredient');
+}
+if(!memoTabOrder.includes('habit')){
+  const ti=memoTabOrder.indexOf('todo');
+  if(ti>=0)memoTabOrder.splice(ti+1,0,'habit');
+  else memoTabOrder.unshift('habit');
+}
+sv('memoTabOrder',memoTabOrder);
 let memoCurrent=ld('memoCurrent','todo'); // remember last position
+if(memoCurrent==='ingredient')memoCurrent='shopping';
 let memoSelectedPri='normal';
 let inspView='far';
 let inspFilterTag=null;
@@ -5800,6 +6264,7 @@ let inspAddState='far';
 const TAB_LABELS={
   inspiration:'灵感',
   todo:'待办',
+  habit:'习惯',
   shopping:'购物',
   ingredient:'食材'
 };
@@ -5911,25 +6376,25 @@ function memoSwitch(type){
     t.classList.toggle('on',t.dataset.key===type);
   });
   // Show right section
-  ['Insp','Todo','Shopping','Ingredient'].forEach(k=>{
+  ['Insp','Todo','Shopping','Habit'].forEach(k=>{
     const sec=document.getElementById('memoSec'+k);
     if(sec)sec.style.display='none';
   });
   if(type==='inspiration')document.getElementById('memoSecInsp').style.display='block';
   if(type==='todo'){
     document.getElementById('memoSecTodo').style.display='block';
-    // Don't persist _history view across tab switches — reset to a real category
     if(todoCurrent==='_history')todoCurrent='normal';
     const inputRow=document.querySelector('#memoSecTodo .memo-input-row');
     if(inputRow)inputRow.style.display='';
     buildTodoCatTabs();
   }
   if(type==='shopping')document.getElementById('memoSecShopping').style.display='block';
-  if(type==='ingredient')document.getElementById('memoSecIngredient').style.display='block';
+  if(type==='habit')document.getElementById('memoSecHabit').style.display='block';
   // Render content
   if(type==='inspiration')renderInsp();
   else if(type==='todo')renderMemoList('todo');
-  else renderMemoList(type);
+  else if(type==='shopping')renderShopList();
+  else if(type==='habit')renderHabits();
   exitDragMode();
 }
 
@@ -6008,7 +6473,9 @@ function renderTodoHistory(){
     .sort((a,b)=>b.doneAt-a.doneAt);
   
   if(!completed.length){
-    html+='<div class="insp-empty">这 段 时 间 无 完 成</div>';
+    const emptyMap={today:'今 日 还 没 有 完 成',week:'本 周 还 没 有 完 成',
+      month:'本 月 还 没 有 完 成',year:'本 年 还 没 有 完 成',all:'还 没 有 完 成 的 待 办'};
+    html+=`<div class="insp-empty">${emptyMap[todoHistRange]||'还 没 有 完 成'}</div>`;
     el.innerHTML=html;setTimeout(()=>applyUITheme(),50);return;
   }
   
@@ -6264,7 +6731,9 @@ function todoDeleteCategory(catId){
 function todoAdd(){
   const inp=document.getElementById('todoInp');
   const text=inp.value.trim();if(!text)return;
-  memos.todo.unshift({id:'m'+Date.now(),text,done:false,createdAt:Date.now(),priority:todoCurrent});
+  const pri=(todoCurrent==='_history')?'normal':todoCurrent;
+  memos.todo.unshift({id:'m'+Date.now(),text,done:false,createdAt:Date.now(),priority:pri});
+  playMemoAdd();
   sv('memos',memos);
   inp.value='';
   renderMemoList('todo');
@@ -6275,6 +6744,7 @@ function shopAdd(){
   const inp=document.getElementById('shopInp');
   const text=inp.value.trim();if(!text)return;
   memos.shopping.unshift({id:'s'+Date.now(),text,done:false,createdAt:Date.now()});
+  playMemoAdd();
   sv('memos',memos);inp.value='';renderMemoList('shopping');
 }
 
@@ -6283,6 +6753,7 @@ function ingAdd(){
   const inp=document.getElementById('ingInp');
   const text=inp.value.trim();if(!text)return;
   memos.ingredient.unshift({id:'i'+Date.now(),text,done:false,createdAt:Date.now()});
+  playMemoAdd();
   sv('memos',memos);inp.value='';renderMemoList('ingredient');
   ingDetectBulk();
 }
@@ -6296,6 +6767,7 @@ function ingBulk(){
   parts.reverse().forEach((p,i)=>{
     memos.ingredient.unshift({id:'i'+(now+i),text:p,done:false,createdAt:now+i});
   });
+  playMemoAdd();
   sv('memos',memos);inp.value='';renderMemoList('ingredient');
   ingDetectBulk();
 }
@@ -6307,8 +6779,8 @@ function ingSmartAdd(){
   else ingAdd();
 }
 function ingDetectBulk(){
-  const inp=document.getElementById('ingInp');
-  const btn=document.getElementById('ingAddBtn');
+  const inp=document.getElementById('shopInp');
+  const btn=document.getElementById('shopAddBtn');
   if(!inp||!btn)return;
   if(/[,，;；、\n\r]/.test(inp.value)){
     btn.textContent='批量';
@@ -6323,13 +6795,67 @@ function ingDetectBulk(){
   }
 }
 
+// ----------- SHOPPING (with shopping/ingredient subtabs) -----------
+let shopSub=ld('shopSub','shopping'); // 'shopping' or 'ingredient'
+
+function shopSetSub(sub){
+  shopSub=sub;
+  sv('shopSub',sub);
+  document.querySelectorAll('#shopSubTabs .cat-tab').forEach((t,i)=>{
+    t.classList.toggle('on',(i===0&&sub==='shopping')||(i===1&&sub==='ingredient'));
+  });
+  const inp=document.getElementById('shopInp');
+  if(inp)inp.placeholder=sub==='shopping'?'添加购物...':'添加食材...';
+  renderShopList();
+}
+
+function shopSmartAdd(){
+  const inp=document.getElementById('shopInp');
+  const text=inp.value;
+  if(/[,，;；、\n\r]/.test(text)){
+    // bulk
+    const parts=text.split(/[,，;;；、\n\r]+/).map(s=>s.trim()).filter(s=>s.length>0);
+    if(!parts.length)return;
+    const now=Date.now();
+    parts.reverse().forEach((p,i)=>{
+      memos[shopSub].unshift({id:(shopSub==='shopping'?'s':'i')+(now+i),text:p,done:false,createdAt:now+i});
+    });
+  }else{
+    const t=text.trim();if(!t)return;
+    memos[shopSub].unshift({id:(shopSub==='shopping'?'s':'i')+Date.now(),text:t,done:false,createdAt:Date.now()});
+  }
+  playMemoAdd();
+  sv('memos',memos);inp.value='';
+  ingDetectBulk();
+  renderShopList();
+}
+
+function renderShopList(){
+  // Make sure subtab placeholder is right
+  const inp=document.getElementById('shopInp');
+  if(inp)inp.placeholder=shopSub==='shopping'?'添加购物...':'添加食材...';
+  renderMemoList(shopSub,'shopList');
+}
+
 // ----------- SHARED memo list (for todo/shop/ing) -----------
 function memoToggle(type,id){
   const item=memos[type].find(i=>i.id===id);
   if(!item)return;
   item.done=!item.done;
-  if(item.done)item.doneAt=Date.now();else delete item.doneAt;
+  if(item.done){item.doneAt=Date.now();playMemoDone();}else delete item.doneAt;
+  // If parent todo has subs, manually completing marks all subs done; un-completing clears them
+  if(type==='todo'&&item.subs&&item.subs.length){
+    item.subs.forEach(s=>{s.done=item.done;});
+  }
   sv('memos',memos);
+  const rerender=()=>{
+    if(type==='shopping'||type==='ingredient')renderShopList();
+    else renderMemoList(type);
+  };
+  // For todos with subs, re-render immediately so progress/subs update
+  if(type==='todo'&&item.subs&&item.subs.length){
+    rerender();return;
+  }
   // Visual feedback first
   const card=document.querySelector(`[data-mid="${id}"]`);
   if(card){
@@ -6341,14 +6867,16 @@ function memoToggle(type,id){
       card.classList.remove('done');
       if(check)check.classList.remove('checked');
     }
-    setTimeout(()=>renderMemoList(type),650);
+    setTimeout(rerender,650);
   }else{
-    renderMemoList(type);
+    rerender();
   }
 }
 function memoDel(type,id){
   memos[type]=memos[type].filter(i=>i.id!==id);
-  sv('memos',memos);renderMemoList(type);
+  sv('memos',memos);
+  if(type==='shopping'||type==='ingredient')renderShopList();
+  else renderMemoList(type);
 }
 function memoStartEdit(type,id){
   const item=memos[type].find(i=>i.id===id);
@@ -6366,7 +6894,8 @@ function memoStartEdit(type,id){
   const finish=()=>{
     const nv=ta.value.trim();
     if(nv&&nv!==cur){item.text=nv;sv('memos',memos);}
-    renderMemoList(type);
+    if(type==='shopping'||type==='ingredient')renderShopList();
+    else renderMemoList(type);
   };
   ta.addEventListener('blur',finish);
   ta.addEventListener('keydown',e=>{
@@ -6374,14 +6903,15 @@ function memoStartEdit(type,id){
     if(e.key==='Escape'){ta.value=cur;ta.blur();}
   });
 }
-function renderMemoList(type){
+function renderMemoList(type,forceElId){
   let list=memos[type]||[];
   // Filter by todoCurrent for todo
   if(type==='todo'){
     list=list.filter(i=>(i.priority||'normal')===todoCurrent);
   }
-  const elId={todo:'todoList',shopping:'shopList',ingredient:'ingList'}[type];
+  const elId=forceElId||{todo:'todoList',shopping:'shopList',ingredient:'shopList'}[type];
   const el=document.getElementById(elId);
+  if(!el)return;
   if(!list.length){
     el.innerHTML='<div class="insp-empty">尚 无 条 目</div>';
     setTimeout(()=>applyUITheme(),50);return;
@@ -6391,6 +6921,9 @@ function renderMemoList(type){
     return b.createdAt-a.createdAt;
   });
   el.innerHTML=sorted.map(item=>{
+    if(type==='todo'){
+      return renderTodoItem(item);
+    }
     return `<div class="memo-item${item.done?' done':''}" data-mid="${item.id}">
       <div class="memo-check${item.done?' checked':''}" onclick="memoToggle('${type}','${item.id}')"></div>
       <div class="memo-text" onclick="memoStartEdit('${type}','${item.id}')">${escapeHtml(item.text)}</div>
@@ -6398,6 +6931,860 @@ function renderMemoList(type){
     </div>`;
   }).join('');
   setTimeout(()=>applyUITheme(),50);
+}
+
+function renderTodoItem(item){
+  const subs=item.subs||[];
+  const hasSubs=subs.length>0;
+  const doneCount=subs.filter(s=>s.done).length;
+  const total=subs.length;
+  const pct=total>0?Math.round(doneCount/total*100):0;
+  // Auto-complete: if has subs and all done, item shows done
+  const itemDone=item.done;
+  
+  let progEl='';
+  if(hasSubs){
+    progEl=`<div class="todo-prog">
+      <div class="todo-prog-track"><div class="todo-prog-fill" style="width:${pct}%"></div></div>
+      <span class="todo-prog-num">${doneCount} / ${total}</span>
+    </div>`;
+  }
+  
+  let subsEl='';
+  if(hasSubs){
+    subsEl=`<div class="todo-subs">${subs.map(s=>
+      `<div class="todo-sub${s.done?' done':''}" data-sid="${s.id}">
+        <div class="todo-sub-check${s.done?' checked':''}" onclick="todoSubToggle('${item.id}','${s.id}')"></div>
+        <div class="todo-sub-text" onclick="todoSubEdit('${item.id}','${s.id}')">${escapeHtml(s.text)}</div>
+        <button class="todo-sub-del" onclick="todoSubDel('${item.id}','${s.id}')">✕</button>
+      </div>`
+    ).join('')}
+      <div class="todo-sub-add" onclick="todoSubAddStart('${item.id}')">+ 细目</div>
+    </div>`;
+  }
+  return `<div class="memo-item todo-item${itemDone?' done':''}" data-mid="${item.id}">
+    <div class="todo-main">
+      <div class="memo-check${itemDone?' checked':''}" onclick="memoToggle('todo','${item.id}')"></div>
+      <div class="todo-body">
+        <div class="memo-text" onclick="memoStartEdit('todo','${item.id}')">${escapeHtml(item.text)}</div>
+        ${progEl}
+      </div>
+      <div class="todo-actions">
+        ${!hasSubs?`<button class="todo-add-sub" onclick="todoSubAddStart('${item.id}')" title="拆解">+</button>`:''}
+        <button class="memo-del" onclick="memoDel('todo','${item.id}')">✕</button>
+      </div>
+    </div>
+    ${subsEl}
+  </div>`;
+}
+
+function todoSubAddStart(itemId){
+  const item=memos.todo.find(i=>i.id===itemId);
+  if(!item)return;
+  if(!item.subs)item.subs=[];
+  const card=document.querySelector(`[data-mid="${itemId}"]`);
+  if(!card)return;
+  
+  // Get or create the subs container
+  let subsContainer=card.querySelector('.todo-subs');
+  if(!subsContainer){
+    subsContainer=document.createElement('div');
+    subsContainer.className='todo-subs';
+    card.appendChild(subsContainer);
+    const addSubBtn=card.querySelector('.todo-add-sub');
+    if(addSubBtn)addSubBtn.style.display='none';
+  }
+  
+  // Remove the "+ 细目" button and any stray input while editing
+  const oldAddBtn=subsContainer.querySelector('.todo-sub-add');
+  if(oldAddBtn)oldAddBtn.remove();
+  const oldInput=subsContainer.querySelector('.todo-sub-input');
+  if(oldInput)oldInput.remove();
+  
+  const inp=document.createElement('input');
+  inp.className='todo-sub-input';
+  inp.placeholder='细目...';
+  subsContainer.appendChild(inp);
+  inp.focus();
+  
+  let committed=false;
+  const commit=(v)=>{
+    item.subs.push({id:'st'+Date.now()+'_'+Math.random().toString(36).slice(2,7),text:v,done:false});
+    if(item.done){item.done=false;delete item.doneAt;}
+    sv('memos',memos);
+    committed=true;
+  };
+  const finish=()=>{
+    const v=inp.value.trim();
+    if(v&&!committed)commit(v);
+    // Always re-render to a clean state: subs + "+ 细目" button, no lingering input.
+    renderMemoList('todo');
+  };
+  
+  inp.addEventListener('blur',finish);
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){
+      e.preventDefault();
+      inp.blur(); // triggers finish() once, which commits + re-renders cleanly
+    }
+    if(e.key==='Escape'){inp.value='';committed=true;renderMemoList('todo');}
+  });
+}
+
+function todoSubToggle(itemId,subId){
+  const item=memos.todo.find(i=>i.id===itemId);
+  if(!item||!item.subs)return;
+  const sub=item.subs.find(s=>s.id===subId);
+  if(!sub)return;
+  sub.done=!sub.done;
+  if(sub.done)playMemoDone();
+  // Auto-complete parent if all subs done
+  const allDone=item.subs.length>0&&item.subs.every(s=>s.done);
+  if(allDone&&!item.done){item.done=true;item.doneAt=Date.now();}
+  else if(!allDone&&item.done){item.done=false;delete item.doneAt;}
+  sv('memos',memos);
+  renderMemoList('todo');
+}
+
+function todoSubDel(itemId,subId){
+  const item=memos.todo.find(i=>i.id===itemId);
+  if(!item||!item.subs)return;
+  item.subs=item.subs.filter(s=>s.id!==subId);
+  // Re-check auto-complete
+  const allDone=item.subs.length>0&&item.subs.every(s=>s.done);
+  if(allDone&&!item.done){item.done=true;item.doneAt=Date.now();}
+  else if(!allDone&&item.done){item.done=false;delete item.doneAt;}
+  sv('memos',memos);
+  renderMemoList('todo');
+}
+
+function todoSubEdit(itemId,subId){
+  const item=memos.todo.find(i=>i.id===itemId);
+  if(!item||!item.subs)return;
+  const sub=item.subs.find(s=>s.id===subId);
+  if(!sub)return;
+  const el=document.querySelector(`[data-sid="${subId}"] .todo-sub-text`);
+  if(!el)return;
+  const cur=sub.text;
+  const inp=document.createElement('input');
+  inp.className='todo-sub-input';
+  inp.value=cur;
+  el.replaceWith(inp);
+  inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);
+  const finish=()=>{
+    const v=inp.value.trim();
+    if(v&&v!==cur){sub.text=v;sv('memos',memos);}
+    renderMemoList('todo');
+  };
+  inp.addEventListener('blur',finish);
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();inp.blur();}
+    if(e.key==='Escape'){inp.value=cur;inp.blur();}
+  });
+}
+
+// ================================================================
+// HABIT SYSTEM (习惯)
+// ================================================================
+let habits=ld('habits',[]);
+// habit: {id, name, freq:'daily'|'multi'|'weekly'|'monthly', times:2(for multi), 
+//   weekdays:[3,0](for weekly, 0=Sun), monthday:15(for monthly),
+//   log:{ '2026-06-14':1 or 2 (count done that day) }}
+
+const WEEKDAY_LABELS=['日','一','二','三','四','五','六'];
+const HABIT_SLOTS=['早','中','晚','午','起床后','空腹','早餐后','午餐后','晚餐后','睡前','运动前','运动后','睡醒','临睡前'];
+const HABIT_GRADIENTS_DEFAULT=[
+  ['#C8A88A','#9A7B5E'],
+  ['#D4A5A5','#A56B6B'],
+  ['#A5B8C9','#6B8299'],
+  ['#B5C9A5','#7A9960'],
+  ['#C9B8D4','#8E6BA5'],
+  ['#D4C5A5','#A5905E'],
+  ['#A5C9C5','#6B9995'],
+  ['#D4A5C0','#A56B8E'],
+  ['#C0A5D4','#7B5EA5'],
+  ['#F0C078','#D49030'],
+  ['#A5A5C9','#6B6B99'],
+  ['#B89A82','#8A6B52']
+];
+let HABIT_GRADIENTS=ld('habitGradients',HABIT_GRADIENTS_DEFAULT.slice());
+
+function renderHabits(){
+  const el=document.getElementById('habitList');
+  if(!el)return;
+  if(!habits.length){
+    el.innerHTML='<div class="insp-empty">还 没 有 习 惯<br><span style="font-size:9px;opacity:.6">新建一个想养成的习惯</span></div>';
+    setTimeout(()=>applyUITheme(),50);return;
+  }
+  const tk=todayK();
+  el.innerHTML=`<div class="habit-gallery">${habits.map(h=>renderHabitCard(h,tk)).join('')}</div>`;
+  setTimeout(()=>applyUITheme(),50);
+}
+
+function habitGrad(h){
+  if(h.grad)return h.grad;
+  if(h.customGrad)return h.customGrad;
+  return HABIT_GRADIENTS[h.gradient||0]||HABIT_GRADIENTS_DEFAULT[0];
+}
+
+function habitMoon(streak){
+  if(streak<=0)return '';
+  if(streak<=3)return '🌑';
+  if(streak<=7)return '🌒';
+  if(streak<=14)return '🌓';
+  if(streak<=27)return '🌔';
+  return '🌕';
+}
+
+function habitMini7(h){
+  // Last 7 days dots
+  const log=h.log||{};
+  const dots=[];
+  const today=new Date();
+  for(let i=6;i>=0;i--){
+    const d=new Date(today);d.setDate(d.getDate()-i);
+    const dk=dkFromDate(d);
+    let on=false;
+    if(h.freq==='multi')on=(log[dk]||0)>=(h.times||2);
+    else on=(log[dk]||0)>=1;
+    dots.push(`<span class="habit-dot${on?' on':''}"></span>`);
+  }
+  return `<div class="habit-mini">${dots.join('')}</div>`;
+}
+
+function renderHabitCard(h,tk){
+  const log=h.log||{};
+  const todayCount=log[tk]||0;
+  const streak=calcHabitStreak(h);
+  const grad=habitGrad(h);
+  const gradCss=`linear-gradient(160deg,${grad[0]},${grad[1]})`;
+  const moon=habitMoon(streak);
+  const moonLabel=streak>0?`<div class="gal-moon">${moon} ${streak}${h.freq==='weekly'?'周':''}</div>`:`<div class="gal-moon gal-moon-empty"></div>`;
+  
+  let checkEl='',slotEl='';
+  
+  if(h.freq==='multi'){
+    const slots=h.slots||(h.times===2?['早','晚']:Array.from({length:h.times||2},(_,i)=>(i+1)+''));
+    let circles='';
+    for(let i=0;i<slots.length;i++){
+      const done=todayCount>i;
+      circles+=`<div class="gal-slot${done?' done':''}" onclick="event.stopPropagation();habitTapMulti('${h.id}',${i})">
+        <span class="gal-slot-lbl">${slots[i]}</span>
+      </div>`;
+    }
+    slotEl=`<div class="gal-slots">${circles}</div>`;
+  }else{
+    let done=todayCount>=1;
+    checkEl=`<div class="gal-check${done?' done':''}" onclick="event.stopPropagation();habitTap('${h.id}')">${done?'✓':''}</div>`;
+  }
+  
+  // Sub label for weekly/monthly
+  let subLabel='';
+  if(h.freq==='weekly'){
+    const days=h.weekdays&&h.weekdays.length?h.weekdays.map(d=>'周'+WEEKDAY_LABELS[d]).join(' '):`每周${h.weeklyTarget||2}次`;
+    subLabel=`<div class="gal-sub">${days}</div>`;
+  }else if(h.freq==='monthly'){
+    subLabel=`<div class="gal-sub">每月${h.monthday||1}号</div>`;
+  }else if(h.freq==='daily'){
+    subLabel=`<div class="gal-sub">每天</div>`;
+  }
+  
+  return `<div class="gal-card" data-hid="${h.id}" style="background:${gradCss}" onclick="openHabitDetail('${h.id}')">
+    <div class="gal-top">
+      <span class="gal-emoji">${h.emoji||''}</span>
+      ${checkEl}
+    </div>
+    <div class="gal-name">${escapeHtml(h.name)}</div>
+    ${subLabel}
+    ${slotEl}
+    ${moonLabel}
+  </div>`;
+}
+
+function habitTap(id){
+  const h=habits.find(x=>x.id===id);if(!h)return;
+  const tk=todayK();
+  if(!h.log)h.log={};
+  if(h.log[tk]>=1){delete h.log[tk];}
+  else{
+    h.log[tk]=1;
+    // Milestone sound when this check reaches a streak milestone (28 = 养成/满月)
+    const streak=calcHabitStreak(h);
+    if(streak===28||(streak>28&&streak%28===0)){playHabitMilestone();}
+    else{playHabitDaily();}
+  }
+  sv('habits',habits);
+  renderHabits();
+}
+
+function habitTapMulti(id,idx){
+  const h=habits.find(x=>x.id===id);if(!h)return;
+  const tk=todayK();
+  if(!h.log)h.log={};
+  const cur=h.log[tk]||0;
+  // Tapping circle at idx: if already filled to >idx, reduce to idx; else fill to idx+1
+  if(cur>idx){h.log[tk]=idx;if(h.log[tk]===0)delete h.log[tk];}
+  else{
+    h.log[tk]=idx+1;
+    // If this fills all slots for the day, check for milestone
+    const slots=h.slots||(h.times===2?['早','晚']:Array.from({length:h.times||2},(_,i)=>i));
+    if(h.log[tk]>=slots.length){
+      const streak=calcHabitStreak(h);
+      if(streak===28||(streak>28&&streak%28===0)){playHabitMilestone();}
+      else{playHabitDaily();}
+    }else{
+      playHabitDaily();
+    }
+  }
+  sv('habits',habits);
+  renderHabits();
+}
+
+function calcHabitStreak(h){
+  const log=h.log||{};
+  if(h.freq==='weekly'){
+    // Count consecutive weeks meeting target
+    return calcWeeklyStreak(h);
+  }
+  // Daily/multi/monthly: count consecutive days with at least 1
+  let streak=0;
+  const d=new Date();
+  // For multi, "done" means reached full count
+  const isDone=(dk)=>{
+    const c=log[dk]||0;
+    if(h.freq==='multi')return c>=(h.times||2);
+    return c>=1;
+  };
+  // Start from today; if today not done, start from yesterday (don't break streak just because today isn't done yet)
+  let dk=dkFromDate(d);
+  if(!isDone(dk)){d.setDate(d.getDate()-1);dk=dkFromDate(d);}
+  while(isDone(dk)){
+    streak++;
+    d.setDate(d.getDate()-1);
+    dk=dkFromDate(d);
+  }
+  return streak;
+}
+
+function calcWeeklyStreak(h){
+  const log=h.log||{};
+  const target=h.weekdays?h.weekdays.length:(h.weeklyTarget||2);
+  let streak=0;
+  let weekStart=getWeekStart(new Date());
+  // Check current week first — if met, count; then go back
+  for(let i=0;i<260;i++){ // max 5 years
+    let count=0;
+    for(let day=0;day<7;day++){
+      const d=new Date(weekStart);d.setDate(d.getDate()+day);
+      if(log[dkFromDate(d)])count++;
+    }
+    if(count>=target){streak++;}
+    else if(i>0){break;} // current week incomplete is ok, but a past incomplete week breaks
+    weekStart.setDate(weekStart.getDate()-7);
+  }
+  return streak;
+}
+
+function calcWeekCount(h){
+  const log=h.log||{};
+  let count=0;
+  const weekStart=getWeekStart(new Date());
+  for(let day=0;day<7;day++){
+    const d=new Date(weekStart);d.setDate(d.getDate()+day);
+    if(log[dkFromDate(d)])count++;
+  }
+  return count;
+}
+
+function calcMonthDone(h){
+  const log=h.log||{};
+  const now=new Date();
+  for(const dk in log){
+    const d=new Date(dk+'T00:00:00');
+    if(d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth())return true;
+  }
+  return false;
+}
+
+function getWeekStart(date){
+  const d=new Date(date);
+  const day=d.getDay();
+  d.setDate(d.getDate()-day);
+  d.setHours(0,0,0,0);
+  return d;
+}
+function dkFromDate(d){
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+
+function habitDel(id){
+  const h=habits.find(x=>x.id===id);
+  if(!h)return;
+  if(!confirm('删除习惯「'+h.name+'」？'))return;
+  habits=habits.filter(x=>x.id!==id);
+  sv('habits',habits);
+  renderHabits();
+}
+
+function habitStartEdit(id){
+  const h=habits.find(x=>x.id===id);if(!h)return;
+  const el=document.querySelector(`[data-hid="${id}"] .habit-name`);
+  if(!el)return;
+  const cur=h.name;
+  const inp=document.createElement('input');
+  inp.className='habit-name-edit';
+  inp.value=cur;
+  el.replaceWith(inp);
+  inp.focus();inp.select();
+  const finish=()=>{
+    const nv=inp.value.trim();
+    if(nv&&nv!==cur){h.name=nv;sv('habits',habits);}
+    renderHabits();
+  };
+  inp.addEventListener('blur',finish);
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();inp.blur();}
+    if(e.key==='Escape'){inp.value=cur;inp.blur();}
+  });
+}
+
+// ----- Habit creation modal -----
+let habitDraft={emoji:'',freq:'daily',times:2,slots:[],weekdays:[],monthday:1,weeklyTarget:2,gradient:0};
+const HABIT_QUICK_EMOJI=['💊','💧','🏃','🧘','📖','🥗','🌙','☀️','💪','🧴','🦷','💉','🍵','✍️'];
+
+function openHabitCreate(){
+  habitDraft={emoji:'💊',freq:'daily',times:2,slots:['早','晚'],weekdays:[],monthday:1,weeklyTarget:2,gradient:0,customGrad:null};
+  let html=`<div class="habit-create-bg" id="habitCreateBg" onclick="if(event.target===this)closeHabitCreate()">
+    <div class="habit-create-box">
+      <div class="hc-title">一 个 新 习 惯</div>
+      
+      <div class="hc-emoji-row" id="hcEmojiRow"></div>
+      
+      <input class="hc-name-input" id="hcName" placeholder="习惯名字..." maxlength="12">
+      
+      <div class="hc-freq-opts">
+        <button class="hc-freq sel" data-f="daily" onclick="hcSetFreq('daily')">每天</button>
+        <button class="hc-freq" data-f="multi" onclick="hcSetFreq('multi')">每天多次</button>
+        <button class="hc-freq" data-f="weekly" onclick="hcSetFreq('weekly')">每周</button>
+        <button class="hc-freq" data-f="monthly" onclick="hcSetFreq('monthly')">每月</button>
+      </div>
+      <div class="hc-detail" id="hcDetail"></div>
+      
+      <div class="hc-gradients" id="hcGradients"></div>
+      
+      <div class="hc-actions">
+        <button class="hc-save" onclick="hcSave()">建 立</button>
+      </div>
+      <button class="hc-cancel" onclick="closeHabitCreate()">取消</button>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+  hcRenderEmoji();
+  hcRenderGradients();
+  hcRenderDetail();
+  setTimeout(()=>document.getElementById('hcName')?.focus(),100);
+}
+
+function hcRenderEmoji(){
+  const row=document.getElementById('hcEmojiRow');
+  if(!row)return;
+  row.innerHTML=HABIT_QUICK_EMOJI.map(e=>
+    `<span class="hc-emoji${habitDraft.emoji===e?' sel':''}" onclick="hcPickEmoji('${e}')">${e}</span>`
+  ).join('');
+}
+function hcPickEmoji(e){
+  habitDraft.emoji=e;
+  hcRenderEmoji();
+}
+
+function hcRenderGradients(){
+  const wrap=document.getElementById('hcGradients');
+  if(!wrap)return;
+  let html=HABIT_GRADIENTS.map((g,i)=>
+    `<div class="hc-grad${habitDraft.gradient===i?' sel':''}" data-gi="${i}"
+      style="background:linear-gradient(135deg,${g[0]},${g[1]})" 
+      onclick="hcPickGradient(${i})"></div>`
+  ).join('');
+  // Add custom (+) swatch
+  html+=`<div class="hc-grad hc-grad-custom" onclick="hcOpenCustomColor()" title="自定义"
+    style="background:conic-gradient(from 0deg,#d4a5a5,#c9b88a,#a5b8c9,#b5c9a5,#c9b8d4,#d4a5a5)">
+    <span class="hc-grad-plus">+</span>
+  </div>`;
+  wrap.innerHTML=html;
+  // Attach long-press delete to each preset swatch
+  wrap.querySelectorAll('.hc-grad[data-gi]').forEach(el=>{
+    let timer=null,longPressed=false;
+    const start=()=>{longPressed=false;timer=setTimeout(()=>{longPressed=true;hcDeleteGradient(parseInt(el.dataset.gi));if(navigator.vibrate)navigator.vibrate(30);},500);};
+    const cancel=()=>{if(timer)clearTimeout(timer);};
+    el.addEventListener('touchstart',start,{passive:true});
+    el.addEventListener('touchend',cancel);
+    el.addEventListener('touchmove',cancel,{passive:true});
+    el.addEventListener('mousedown',start);
+    el.addEventListener('mouseup',cancel);
+    el.addEventListener('mouseleave',cancel);
+    // Suppress click if long-pressed
+    el.addEventListener('click',(e)=>{if(longPressed){e.stopPropagation();longPressed=false;}},true);
+  });
+}
+function hcPickGradient(i){
+  habitDraft.gradient=i;
+  habitDraft.customGrad=null;
+  hcRenderGradients();
+}
+function hcDeleteGradient(i){
+  if(HABIT_GRADIENTS.length<=1)return; // keep at least one
+  HABIT_GRADIENTS.splice(i,1);
+  sv('habitGradients',HABIT_GRADIENTS);
+  // Adjust selected index
+  if(habitDraft.gradient>=HABIT_GRADIENTS.length)habitDraft.gradient=HABIT_GRADIENTS.length-1;
+  else if(habitDraft.gradient===i)habitDraft.gradient=0;
+  hcRenderGradients();
+}
+function hcOpenCustomColor(){
+  // Build a small inline color picker panel
+  let existing=document.getElementById('hcColorPanel');
+  if(existing){existing.remove();return;}
+  const cg=habitDraft.customGrad||['#C8A88A','#9A7B5E'];
+  const panel=document.createElement('div');
+  panel.id='hcColorPanel';
+  panel.className='hc-color-panel';
+  panel.innerHTML=`
+    <div class="hc-cp-row">
+      <span class="hc-cp-lbl">起</span>
+      <input type="color" id="hcColor1" value="${cg[0]}" oninput="hcUpdateCustom()">
+      <span class="hc-cp-lbl">止</span>
+      <input type="color" id="hcColor2" value="${cg[1]}" oninput="hcUpdateCustom()">
+    </div>
+    <div class="hc-cp-preview" id="hcCpPreview" style="background:linear-gradient(135deg,${cg[0]},${cg[1]})"></div>
+    <button class="hc-cp-done" onclick="hcConfirmCustom()">用这个</button>
+  `;
+  const wrap=document.getElementById('hcGradients');
+  wrap.parentNode.insertBefore(panel,wrap.nextSibling);
+}
+function hcUpdateCustom(){
+  const c1=document.getElementById('hcColor1').value;
+  const c2=document.getElementById('hcColor2').value;
+  const prev=document.getElementById('hcCpPreview');
+  if(prev)prev.style.background=`linear-gradient(135deg,${c1},${c2})`;
+}
+function hcConfirmCustom(){
+  const c1=document.getElementById('hcColor1').value;
+  const c2=document.getElementById('hcColor2').value;
+  // Add to palette and persist
+  HABIT_GRADIENTS.push([c1,c2]);
+  sv('habitGradients',HABIT_GRADIENTS);
+  habitDraft.gradient=HABIT_GRADIENTS.length-1;
+  habitDraft.customGrad=null;
+  const panel=document.getElementById('hcColorPanel');
+  if(panel)panel.remove();
+  hcRenderGradients();
+}
+
+function hcSetFreq(f){
+  habitDraft.freq=f;
+  document.querySelectorAll('.hc-freq').forEach(b=>b.classList.toggle('sel',b.dataset.f===f));
+  hcRenderDetail();
+}
+
+function hcRenderDetail(){
+  const el=document.getElementById('hcDetail');
+  if(!el)return;
+  if(habitDraft.freq==='multi'){
+    el.innerHTML=`<div class="hc-slots">
+        ${HABIT_SLOTS.map(s=>`<button class="hc-slot${habitDraft.slots.includes(s)?' sel':''}" onclick="hcToggleSlot('${s}')">${s}</button>`).join('')}
+      </div>`;
+  }else if(habitDraft.freq==='weekly'){
+    el.innerHTML=`<div class="hc-sub-label">选择星期几（可不选，只设次数）</div>
+      <div class="hc-weekdays">
+        ${WEEKDAY_LABELS.map((l,i)=>`<button class="hc-wd${habitDraft.weekdays.includes(i)?' sel':''}" onclick="hcToggleWeekday(${i})">${l}</button>`).join('')}
+      </div>
+      <div class="hc-sub-label" style="margin-top:12px">或每周几次</div>
+      <div class="hc-times">
+        ${[1,2,3,4,5].map(n=>`<button class="hc-time-btn${habitDraft.weeklyTarget===n&&!habitDraft.weekdays.length?' sel':''}" onclick="hcSetWeeklyTarget(${n})">${n}次</button>`).join('')}
+      </div>`;
+  }else if(habitDraft.freq==='monthly'){
+    el.innerHTML=`<div class="hc-sub-label">每月几号</div>
+      <div class="hc-monthday-wrap">
+        <input type="number" class="hc-monthday" id="hcMonthday" min="1" max="31" value="${habitDraft.monthday}" onchange="hcSetMonthday(this.value)">
+        <span class="hc-monthday-suffix">号</span>
+      </div>`;
+  }else{
+    el.innerHTML='';
+  }
+}
+
+function hcToggleSlot(s){
+  if(habitDraft.slots.includes(s))habitDraft.slots=habitDraft.slots.filter(x=>x!==s);
+  else habitDraft.slots.push(s);
+  hcRenderDetail();
+}
+function hcSetTimes(n){habitDraft.times=n;hcRenderDetail();}
+function hcSetWeeklyTarget(n){habitDraft.weeklyTarget=n;habitDraft.weekdays=[];hcRenderDetail();}
+function hcToggleWeekday(i){
+  if(habitDraft.weekdays.includes(i))habitDraft.weekdays=habitDraft.weekdays.filter(x=>x!==i);
+  else habitDraft.weekdays.push(i);
+  hcRenderDetail();
+}
+function hcSetMonthday(v){habitDraft.monthday=Math.max(1,Math.min(31,parseInt(v)||1));}
+
+function hcSave(){
+  const name=(document.getElementById('hcName').value||'').trim();
+  if(!name){document.getElementById('hcName').focus();return;}
+  const grad=HABIT_GRADIENTS[habitDraft.gradient]||HABIT_GRADIENTS[0];
+  const h={id:'h'+Date.now(),name,emoji:habitDraft.emoji||'',freq:habitDraft.freq,
+    grad:grad.slice(),log:{},createdAt:Date.now()};
+  if(habitDraft.freq==='multi'){
+    // Order slots by canonical order
+    const ordered=HABIT_SLOTS.filter(s=>habitDraft.slots.includes(s));
+    h.slots=ordered.length?ordered:['早','晚'];
+    h.times=h.slots.length;
+  }
+  if(habitDraft.freq==='weekly'){
+    if(habitDraft.weekdays.length){h.weekdays=habitDraft.weekdays.slice().sort();}
+    else{h.weeklyTarget=habitDraft.weeklyTarget;}
+  }
+  if(habitDraft.freq==='monthly')h.monthday=habitDraft.monthday;
+  habits.push(h);
+  sv('habits',habits);
+  closeHabitCreate();
+  renderHabits();
+}
+
+function closeHabitCreate(){
+  const bg=document.getElementById('habitCreateBg');
+  if(bg)bg.remove();
+}
+
+// ----- Habit detail page (month calendar + note + edit) -----
+let habitDetailId=null;
+let habitDetailMonth=null; // {y, m}
+
+function openHabitDetail(id){
+  const h=habits.find(x=>x.id===id);if(!h)return;
+  habitDetailId=id;
+  const now=new Date();
+  habitDetailMonth={y:now.getFullYear(),m:now.getMonth()};
+  renderHabitDetail();
+}
+
+function renderHabitDetail(){
+  const h=habits.find(x=>x.id===habitDetailId);if(!h)return;
+  const existing=document.getElementById('habitDetailBg');
+  if(existing)existing.remove();
+  
+  const streak=calcHabitStreak(h);
+  const moon=habitMoon(streak);
+  const freqText=habitFreqText(h);
+  const grad=habitGrad(h);
+  const gradCss=`linear-gradient(160deg,${grad[0]},${grad[1]})`;
+  
+  let html=`<div class="habit-detail-bg" id="habitDetailBg" onclick="if(event.target===this)closeHabitDetail()">
+    <div class="habit-detail-box" style="--hgrad:${gradCss};--hc1:${grad[0]};--hc2:${grad[1]}">
+      <div class="hd-hero">
+        <button class="hd-close" onclick="closeHabitDetail()">✕</button>
+        <div class="hd-emoji">${h.emoji||''}</div>
+        <div class="hd-name">${escapeHtml(h.name)}</div>
+        <div class="hd-meta">${freqText}${streak>0?` · ${moon} 连续 ${streak}${h.freq==='weekly'?'周':'天'}`:''}</div>
+      </div>
+      
+      <div class="hd-body">
+        ${renderHabitMonthCal(h)}
+        
+        <div class="hd-note-section" id="hdNoteSection">
+          ${h.note?`<div class="hd-note-display" onclick="hdNoteEdit()">${escapeHtml(h.note)}</div>`
+            :`<div class="hd-note-empty" onclick="hdNoteEdit()">写下心之所向</div>`}
+        </div>
+        
+        <div class="hd-stats">
+          <div class="hd-stat"><div class="hd-stat-num">${countTotalDone(h)}</div><div class="hd-stat-lbl">总打卡</div></div>
+          <div class="hd-stat"><div class="hd-stat-num">${countMonthDone(h)}</div><div class="hd-stat-lbl">本月</div></div>
+          <div class="hd-stat"><div class="hd-stat-num">${calcBestStreak(h)}</div><div class="hd-stat-lbl">最长连续</div></div>
+        </div>
+        
+        <button class="hd-del" onclick="habitDelFromDetail()">删 除 习 惯</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+
+function hdNoteEdit(){
+  const h=habits.find(x=>x.id===habitDetailId);if(!h)return;
+  const section=document.getElementById('hdNoteSection');
+  if(!section)return;
+  section.innerHTML=`<textarea class="hd-note-input" id="hdNoteInput" placeholder="写下心之所向">${h.note?escapeHtml(h.note):''}</textarea>`;
+  const inp=document.getElementById('hdNoteInput');
+  inp.focus();
+  inp.setSelectionRange(inp.value.length,inp.value.length);
+  hdNoteGrow(inp);
+  inp.addEventListener('input',()=>hdNoteGrow(inp));
+  const save=()=>{
+    const v=inp.value.trim();
+    h.note=v||undefined;
+    sv('habits',habits);
+    // Re-render section as display
+    section.innerHTML=v
+      ?`<div class="hd-note-display" onclick="hdNoteEdit()">${escapeHtml(v)}</div>`
+      :`<div class="hd-note-empty" onclick="hdNoteEdit()">写下心之所向</div>`;
+  };
+  inp.addEventListener('blur',save);
+}
+
+function hdNoteGrow(el){
+  el.style.height='auto';
+  el.style.height=Math.max(56,el.scrollHeight)+'px';
+}
+
+function renderHabitMonthCal(h){
+  const {y,m}=habitDetailMonth;
+  const log=h.log||{};
+  const monthName=(m+1)+'月';
+  const firstDay=new Date(y,m,1).getDay();
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const tk=todayK();
+  
+  let cells='';
+  // Weekday headers
+  WEEKDAY_LABELS.forEach(l=>{cells+=`<div class="hd-cal-head">${l}</div>`;});
+  // Empty cells before first day
+  for(let i=0;i<firstDay;i++)cells+=`<div class="hd-cal-cell empty"></div>`;
+  // Days
+  for(let d=1;d<=daysInMonth;d++){
+    const dk=y+'-'+pad(m+1)+'-'+pad(d);
+    const count=log[dk]||0;
+    let done=false;
+    if(h.freq==='multi')done=count>=(h.times||2);
+    else done=count>=1;
+    const partial=h.freq==='multi'&&count>0&&count<(h.times||2);
+    const isToday=dk===tk;
+    cells+=`<div class="hd-cal-cell${done?' done':''}${partial?' partial':''}${isToday?' today':''}" onclick="habitToggleDay('${h.id}','${dk}')">${d}</div>`;
+  }
+  
+  return `<div class="hd-cal">
+    <div class="hd-cal-nav">
+      <button onclick="habitCalPrev()">‹</button>
+      <span>${y}年${monthName}</span>
+      <button onclick="habitCalNext()">›</button>
+    </div>
+    <div class="hd-cal-grid">${cells}</div>
+  </div>`;
+}
+
+function habitToggleDay(id,dk){
+  const h=habits.find(x=>x.id===id);if(!h)return;
+  if(!h.log)h.log={};
+  if(h.freq==='multi'){
+    // cycle: 0 -> full -> 0
+    const full=h.times||2;
+    const cur=h.log[dk]||0;
+    if(cur>=full){delete h.log[dk];}
+    else{h.log[dk]=full;}
+  }else{
+    if(h.log[dk]>=1){delete h.log[dk];}
+    else{h.log[dk]=1;}
+  }
+  sv('habits',habits);
+  renderHabitDetail();
+}
+
+function habitCalPrev(){
+  habitDetailMonth.m--;
+  if(habitDetailMonth.m<0){habitDetailMonth.m=11;habitDetailMonth.y--;}
+  renderHabitDetail();
+}
+function habitCalNext(){
+  habitDetailMonth.m++;
+  if(habitDetailMonth.m>11){habitDetailMonth.m=0;habitDetailMonth.y++;}
+  renderHabitDetail();
+}
+
+function habitFreqText(h){
+  if(h.freq==='daily')return '每天';
+  if(h.freq==='multi')return `每天${h.times||2}次`;
+  if(h.freq==='weekly'){
+    if(h.weekdays&&h.weekdays.length)return h.weekdays.map(d=>'周'+WEEKDAY_LABELS[d]).join(' ');
+    return `每周${h.weeklyTarget||2}次`;
+  }
+  if(h.freq==='monthly')return `每月${h.monthday||1}号`;
+  return '';
+}
+
+function countTotalDone(h){
+  const log=h.log||{};
+  let n=0;
+  for(const dk in log){
+    if(h.freq==='multi'){if(log[dk]>=(h.times||2))n++;}
+    else if(log[dk]>=1)n++;
+  }
+  return n;
+}
+function countMonthDone(h){
+  const log=h.log||{};
+  const{y,m}=habitDetailMonth;
+  let n=0;
+  for(const dk in log){
+    const parts=dk.split('-');
+    if(parseInt(parts[0])===y&&parseInt(parts[1])===m+1){
+      if(h.freq==='multi'){if(log[dk]>=(h.times||2))n++;}
+      else if(log[dk]>=1)n++;
+    }
+  }
+  return n;
+}
+function calcBestStreak(h){
+  const log=h.log||{};
+  const isDone=(dk)=>{
+    if(h.freq==='multi')return (log[dk]||0)>=(h.times||2);
+    return (log[dk]||0)>=1;
+  };
+  const dates=Object.keys(log).filter(isDone).sort();
+  if(!dates.length)return 0;
+  let best=1,cur=1;
+  for(let i=1;i<dates.length;i++){
+    const prev=new Date(dates[i-1]+'T00:00:00');
+    const curD=new Date(dates[i]+'T00:00:00');
+    const diff=Math.round((curD-prev)/86400000);
+    if(diff===1){cur++;best=Math.max(best,cur);}
+    else cur=1;
+  }
+  return best;
+}
+
+function habitDelFromDetail(){
+  const h=habits.find(x=>x.id===habitDetailId);
+  if(!h)return;
+  const box=document.querySelector('.habit-detail-box');
+  if(!box)return;
+  let existing=document.getElementById('hdDelConfirm');
+  if(existing){existing.remove();return;}
+  const grad=habitGrad(h);
+  const gradCss=`linear-gradient(160deg,${grad[0]},${grad[1]})`;
+  const confirmEl=document.createElement('div');
+  confirmEl.id='hdDelConfirm';
+  confirmEl.className='hd-del-confirm';
+  confirmEl.innerHTML=`
+    <div class="hd-dc-tint" style="background:${gradCss}"></div>
+    <div class="hd-dc-content">
+      <div class="hd-dc-text">删除「${escapeHtml(h.name)}」？<br><span>所有打卡记录也会消失</span></div>
+      <div class="hd-dc-btns">
+        <button class="hd-dc-cancel" onclick="document.getElementById('hdDelConfirm').remove()">取消</button>
+        <button class="hd-dc-yes" onclick="habitConfirmDelete()">删除</button>
+      </div>
+    </div>`;
+  box.appendChild(confirmEl);
+}
+function habitConfirmDelete(){
+  habits=habits.filter(x=>x.id!==habitDetailId);
+  sv('habits',habits);
+  closeHabitDetail();
+  renderHabits();
+}
+
+function closeHabitDetail(){
+  const bg=document.getElementById('habitDetailBg');
+  if(bg)bg.remove();
+  habitDetailId=null;
+  renderHabits();
 }
 
 // ----------- INSPIRATION -----------
@@ -6523,6 +7910,7 @@ function inspAdd(){
     createdAt:Date.now()
   });
   sv('inspirations',inspirations);
+  playMemoAdd();
   // Reset
   inp.value='';
   inspAddTags=[];
@@ -6550,7 +7938,7 @@ function inspToggleDone(id){
   const item=inspirations.find(i=>i.id===id);
   if(!item)return;
   item.done=!item.done;
-  if(item.done)item.doneAt=Date.now(); else delete item.doneAt;
+  if(item.done){item.doneAt=Date.now();playMemoDone();} else delete item.doneAt;
   sv('inspirations',inspirations);
   // Visual feedback first — show check + strikethrough immediately
   const card=document.querySelector(`[data-iid="${id}"]`);
@@ -6659,19 +8047,26 @@ function renderInsp(){
 setTimeout(()=>{
   buildMemoTabs();
   // Bind Enter on todo/shop/ing inputs
-  ['todoInp','shopInp','ingInp'].forEach(id=>{
+  ['todoInp','shopInp'].forEach(id=>{
     const el=document.getElementById(id);
     if(el){
       el.addEventListener('keydown',e=>{
         if(e.key==='Enter'&&!e.shiftKey){
           e.preventDefault();
           if(id==='todoInp')todoAdd();
-          else if(id==='shopInp')shopAdd();
-          else if(id==='ingInp')ingSmartAdd();
+          else if(id==='shopInp')shopSmartAdd();
         }
       });
     }
   });
+  // Apply saved shopping subtab
+  if(typeof shopSetSub==='function'){
+    document.querySelectorAll('#shopSubTabs .cat-tab').forEach((t,i)=>{
+      t.classList.toggle('on',(i===0&&shopSub==='shopping')||(i===1&&shopSub==='ingredient'));
+    });
+    const si=document.getElementById('shopInp');
+    if(si)si.placeholder=shopSub==='shopping'?'添加购物...':'添加食材...';
+  }
 },200);
 
 // ================================================================
