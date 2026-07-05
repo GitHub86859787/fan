@@ -13,6 +13,7 @@
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;500&family=EB+Garamond:ital,wght@0,400;0,500;1,300;1,400&family=Cormorant:ital,wght@0,300;0,400;1,300;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@17.0.3/dist/twemoji.min.js" crossorigin="anonymous"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:#1E2820;height:100%;height:-webkit-fill-available;--app-height:100vh;--bg-extra:96px}
@@ -1074,13 +1075,15 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .hc-emoji.sel{border-color:rgba(255,250,244,.3);background:rgba(255,250,244,.08)}
 .hc-emoji-more{font-size:14px;color:rgba(255,250,244,.4);border:1px dashed rgba(255,250,244,.2)!important;
   display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;letter-spacing:0}
-.hc-emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin:6px auto 16px;
-  max-height:180px;overflow-y:auto;padding:10px;background:rgba(255,250,244,.04);
-  border:1px solid rgba(255,250,244,.08);border-radius:12px;animation:popIn .22s cubic-bezier(.16,1,.3,1)}
+.hc-emoji-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin:6px 0 16px;width:100%;
+  max-height:200px;overflow-y:auto;overflow-x:hidden;padding:12px;box-sizing:border-box;
+  background:rgba(255,250,244,.04);
+  border:1px solid rgba(255,250,244,.08);border-radius:14px;animation:popIn .22s cubic-bezier(.16,1,.3,1)}
 .hc-emoji-grid::-webkit-scrollbar{width:4px}
 .hc-emoji-grid::-webkit-scrollbar-thumb{background:rgba(255,250,244,.15);border-radius:2px}
-.hc-emoji-g{font-size:19px;padding:5px;border-radius:8px;cursor:pointer;text-align:center;
-  border:1px solid transparent;transition:all .15s;line-height:1}
+.hc-emoji-g{font-size:20px;padding:4px;border-radius:8px;cursor:pointer;text-align:center;
+  border:1px solid transparent;transition:all .15s;line-height:1;aspect-ratio:1;
+  display:flex;align-items:center;justify-content:center}
 .hc-emoji-g:active{transform:scale(.88)}
 .hc-emoji-g.sel{border-color:rgba(255,250,244,.35);background:rgba(255,250,244,.1)}
 .hc-emoji-custom{width:60%;margin:0 auto 22px;display:block;padding:5px 0;
@@ -1089,6 +1092,10 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .hc-emoji-custom::placeholder{color:rgba(255,250,244,.2);font-size:11px;
   font-family:'Cormorant Garamond',serif;font-style:italic}
 .hc-gradients{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px;margin-bottom:20px}
+.hc-adjust-btn{text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:10px;color:rgba(255,250,244,.4);cursor:pointer;margin:-10px 0 18px;letter-spacing:.05em;
+  transition:color .2s}
+.hc-adjust-btn:active{color:rgba(255,250,244,.7)}
 .hc-grad{width:32px;height:32px;border-radius:50%;cursor:pointer;
   border:2px solid transparent;transition:all .2s}
 .hc-grad.sel{border-color:rgba(255,250,244,.9);transform:scale(1.1)}
@@ -2362,6 +2369,13 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 #yangMenu .method-why{color:rgba(60,30,15,.6)}
 
 @media(min-width:500px){.app{border-left:1px solid rgba(255,255,255,.04);border-right:1px solid rgba(255,255,255,.04)}}
+
+/* ===== Twemoji — unified emoji style ===== */
+img.twemoji{width:1em;height:1em;display:inline-block;vertical-align:-0.12em;
+  margin:0 .03em;pointer-events:none;user-select:none;-webkit-user-drag:none;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.26)) saturate(.82) brightness(.98)}
+.gal-emoji img.twemoji,.hd-emoji img.twemoji{width:1em;height:1em;margin:0}
+.hd-emoji img.twemoji{filter:drop-shadow(0 3px 10px rgba(0,0,0,.3)) saturate(.85)}
 </style>
 </head>
 <body>
@@ -6485,6 +6499,18 @@ function escapeHtml(s){
     .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
 }
 
+// Convert system emoji in the DOM to unified Twemoji images. Safe no-op if lib not loaded (offline).
+function renderTwemoji(root){
+  root=root||document.body;
+  if(!window.twemoji||!root)return;
+  try{
+    twemoji.parse(root,{
+      folder:'svg',ext:'.svg',className:'twemoji',
+      attributes:()=>({draggable:'false',loading:'lazy',decoding:'async'})
+    });
+  }catch(e){}
+}
+
 // ----------- TODO -----------
 // Categories with id (stable) and label (editable). User can add/rename/delete/reorder.
 // Default categories: urgent, important, normal
@@ -7017,19 +7043,36 @@ function renderMemoList(type,forceElId){
 
 // ===== Copy to clipboard (with subs) =====
 function copyToClipboard(txt,okMsg){
-  const done=()=>toast(okMsg||'已复制');
-  if(navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(txt).then(done).catch(()=>{
-      _fallbackCopy(txt);done();
-    });
-  }else{_fallbackCopy(txt);done();}
+  // Note: navigator.clipboard.writeText often fails when called from a setTimeout
+  // (long-press timer) because iOS doesn't treat it as a user gesture.
+  // The textarea + execCommand method works more reliably in that context.
+  let ok=_fallbackCopy(txt);
+  if(!ok&&navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>toast(okMsg||'已复制')).catch(()=>{});
+    return;
+  }
+  toast(okMsg||'已复制');
 }
 function _fallbackCopy(txt){
   const ta=document.createElement('textarea');
-  ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
-  document.body.appendChild(ta);ta.select();
-  try{document.execCommand('copy');}catch(e){}
+  ta.value=txt;
+  ta.style.position='fixed';ta.style.top='0';ta.style.left='0';
+  ta.style.width='1px';ta.style.height='1px';ta.style.opacity='0';
+  ta.contentEditable='true';ta.readOnly=false;
+  document.body.appendChild(ta);
+  ta.focus();ta.select();
+  // iOS needs an explicit range
+  try{
+    const range=document.createRange();
+    range.selectNodeContents(ta);
+    const sel=window.getSelection();
+    sel.removeAllRanges();sel.addRange(range);
+    ta.setSelectionRange(0,txt.length);
+  }catch(e){}
+  let ok=false;
+  try{ok=document.execCommand('copy');}catch(e){ok=false;}
   ta.remove();
+  return ok;
 }
 function todoItemToText(item){
   let t=item.text||'';
@@ -7366,6 +7409,7 @@ function renderHabits(){
   }
   const tk=todayK();
   el.innerHTML=`<div class="habit-gallery">${habits.map(h=>renderHabitCard(h,tk)).join('')}</div>`;
+  renderTwemoji(el);
   setTimeout(()=>applyUITheme(),50);
 }
 
@@ -7667,6 +7711,7 @@ function hcRenderEmoji(){
   // "更多" button to expand the full curated grid
   html+=`<span class="hc-emoji hc-emoji-more" onclick="hcToggleMoreEmoji()" title="更多">···</span>`;
   row.innerHTML=html;
+  renderTwemoji(row);
 }
 function hcToggleMoreEmoji(){
   let grid=document.getElementById('hcEmojiGrid');
@@ -7682,6 +7727,7 @@ function hcToggleMoreEmoji(){
   ).join('');
   const row=document.getElementById('hcEmojiRow');
   row.parentNode.insertBefore(grid,row.nextSibling);
+  renderTwemoji(grid);
 }
 function hcPickEmojiFromGrid(e){
   habitDraft.emoji=e;
@@ -7703,11 +7749,21 @@ function hcRenderGradients(){
       onclick="hcPickGradient(${i})"></div>`
   ).join('');
   // Add custom (+) swatch
-  html+=`<div class="hc-grad hc-grad-custom" onclick="hcOpenCustomColor()" title="自定义"
+  html+=`<div class="hc-grad hc-grad-custom" onclick="hcOpenCustomColor(false)" title="自定义"
     style="background:conic-gradient(from 0deg,#d4a5a5,#c9b88a,#a5b8c9,#b5c9a5,#c9b8d4,#d4a5a5)">
     <span class="hc-grad-plus">+</span>
   </div>`;
   wrap.innerHTML=html;
+  // "调整明暗/透明" for the currently selected swatch
+  let adj=document.getElementById('hcAdjustBtn');
+  if(!adj){
+    adj=document.createElement('div');
+    adj.id='hcAdjustBtn';
+    adj.className='hc-adjust-btn';
+    adj.textContent='调整明暗 · 透明';
+    adj.onclick=()=>hcOpenCustomColor(true);
+    wrap.parentNode.insertBefore(adj,wrap.nextSibling);
+  }
   // Attach long-press delete to each preset swatch
   wrap.querySelectorAll('.hc-grad[data-gi]').forEach(el=>{
     let timer=null,longPressed=false;
@@ -7737,23 +7793,30 @@ function hcDeleteGradient(i){
   else if(habitDraft.gradient===i)habitDraft.gradient=0;
   hcRenderGradients();
 }
-function hcOpenCustomColor(){
+function hcOpenCustomColor(adjustMode){
   // Build a small inline color picker panel
   let existing=document.getElementById('hcColorPanel');
   if(existing){existing.remove();return;}
-  // Start from the currently-selected swatch's colors (so you can tweak it), fallback to default
+  // Start from the currently-selected swatch's colors
   const sel=HABIT_GRADIENTS[habitDraft.gradient];
-  const cg=habitDraft.customGrad||(sel?sel.slice():['#C8A88A','#9A7B5E']);
+  const cg=(sel?sel.slice():['#C8A88A','#9A7B5E']);
   const panel=document.createElement('div');
   panel.id='hcColorPanel';
   panel.className='hc-color-panel';
-  panel.innerHTML=`
+  panel.dataset.mode=adjustMode?'adjust':'new';
+  // In adjust mode: hide 起止, only sliders. In new mode: full 起止 + sliders.
+  const colorRow=adjustMode?'':`
     <div class="hc-cp-row">
       <span class="hc-cp-lbl">起</span>
       <input type="color" id="hcColor1" value="${cg[0]}" oninput="hcUpdateCustom()">
       <span class="hc-cp-lbl">止</span>
       <input type="color" id="hcColor2" value="${cg[1]}" oninput="hcUpdateCustom()">
-    </div>
+    </div>`;
+  // Hidden inputs holding the base colors when in adjust mode
+  const hiddenColors=adjustMode?`<input type="hidden" id="hcColor1" value="${cg[0]}"><input type="hidden" id="hcColor2" value="${cg[1]}">`:'';
+  panel.innerHTML=`
+    ${colorRow}
+    ${hiddenColors}
     <div class="hc-cp-slider-row">
       <span class="hc-cp-slbl">明暗</span>
       <input type="range" id="hcBright" min="-60" max="40" value="0" step="1" class="hc-cp-slider" oninput="hcUpdateCustom()">
@@ -7763,7 +7826,7 @@ function hcOpenCustomColor(){
       <input type="range" id="hcOpacity" min="30" max="100" value="100" step="1" class="hc-cp-slider" oninput="hcUpdateCustom()">
     </div>
     <div class="hc-cp-preview" id="hcCpPreview" style="background:linear-gradient(135deg,${cg[0]},${cg[1]})"></div>
-    <button class="hc-cp-done" onclick="hcConfirmCustom()">用这个</button>
+    <button class="hc-cp-done" onclick="hcConfirmCustom(${adjustMode?'true':'false'})">${adjustMode?'替换这个色':'用这个'}</button>
   `;
   const wrap=document.getElementById('hcGradients');
   wrap.parentNode.insertBefore(panel,wrap.nextSibling);
@@ -7794,12 +7857,19 @@ function hcUpdateCustom(){
   const prev=document.getElementById('hcCpPreview');
   if(prev)prev.style.background=`linear-gradient(135deg,${a},${b})`;
 }
-function hcConfirmCustom(){
+function hcConfirmCustom(adjustMode){
   const [a,b]=_customColors();
-  // Add to palette and persist
-  HABIT_GRADIENTS.push([a,b]);
+  if(adjustMode){
+    // Replace the currently-selected swatch in place
+    const gi=habitDraft.gradient;
+    if(gi>=0&&gi<HABIT_GRADIENTS.length){HABIT_GRADIENTS[gi]=[a,b];}
+    else{HABIT_GRADIENTS.push([a,b]);habitDraft.gradient=HABIT_GRADIENTS.length-1;}
+  }else{
+    // Add as a new swatch
+    HABIT_GRADIENTS.push([a,b]);
+    habitDraft.gradient=HABIT_GRADIENTS.length-1;
+  }
   sv('habitGradients',HABIT_GRADIENTS);
-  habitDraft.gradient=HABIT_GRADIENTS.length-1;
   habitDraft.customGrad=null;
   const panel=document.getElementById('hcColorPanel');
   if(panel)panel.remove();
@@ -8008,6 +8078,7 @@ function renderHabitDetail(){
     </div>
   </div>`;
   document.body.insertAdjacentHTML('beforeend',html);
+  renderTwemoji(document.getElementById('habitDetailBg'));
 }
 
 function habitTogglePause(id){
@@ -8853,6 +8924,8 @@ function init(){
   showTodaySchedule();
   document.getElementById('nT').classList.add('on');
   applyGradient();applyUITheme();
+  // Convert all emoji to unified Twemoji style once at startup
+  renderTwemoji(document.body);
   // Recover any timer/pomodoro that was running when app was last closed
   recoverTimer();
   recoverPomo();
