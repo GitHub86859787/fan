@@ -13,7 +13,6 @@
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;500&family=EB+Garamond:ital,wght@0,400;0,500;1,300;1,400&family=Cormorant:ital,wght@0,300;0,400;1,300;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@17.0.3/dist/twemoji.min.js" crossorigin="anonymous"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:#1E2820;height:100%;height:-webkit-fill-available;--app-height:100vh;--bg-extra:96px}
@@ -867,6 +866,10 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .th-add .th-text{color:rgba(255,250,244,.7)}
 .th-detail{font-family:'EB Garamond',serif;
   font-size:11px;color:rgba(255,250,244,.45);margin-top:3px;letter-spacing:.02em}
+.th-subs{margin-top:6px;padding-left:2px;display:flex;flex-direction:column;gap:3px}
+.th-sub{font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;
+  color:rgba(255,250,244,.5);letter-spacing:.02em}
+.th-sub.done{color:rgba(255,250,244,.35);text-decoration:line-through;text-decoration-color:rgba(255,250,244,.2)}
 /* Time range selector in history */
 .th-range{display:flex;gap:5px;justify-content:center;margin-bottom:14px}
 .th-range-btn{padding:5px 14px;border-radius:100px;border:none;background:transparent;
@@ -1071,7 +1074,8 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   letter-spacing:.4em;color:rgba(255,250,244,.55);margin-bottom:20px;text-indent:.4em}
 .hc-emoji-row{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-bottom:10px}
 .hc-emoji{font-size:20px;padding:5px;border-radius:9px;cursor:pointer;
-  border:1px solid transparent;transition:all .2s;line-height:1}
+  border:1px solid transparent;transition:all .2s;line-height:1;overflow:hidden;white-space:nowrap;
+  display:inline-flex;align-items:center;justify-content:center}
 .hc-emoji.sel{border-color:rgba(255,250,244,.3);background:rgba(255,250,244,.08)}
 .hc-emoji-more{font-size:14px;color:rgba(255,250,244,.4);border:1px dashed rgba(255,250,244,.2)!important;
   display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;letter-spacing:0}
@@ -1083,7 +1087,7 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .hc-emoji-grid::-webkit-scrollbar-thumb{background:rgba(255,250,244,.15);border-radius:2px}
 .hc-emoji-g{font-size:20px;padding:4px;border-radius:8px;cursor:pointer;text-align:center;
   border:1px solid transparent;transition:all .15s;line-height:1;aspect-ratio:1;
-  display:flex;align-items:center;justify-content:center}
+  display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap}
 .hc-emoji-g:active{transform:scale(.88)}
 .hc-emoji-g.sel{border-color:rgba(255,250,244,.35);background:rgba(255,250,244,.1)}
 .hc-emoji-custom{width:60%;margin:0 auto 22px;display:block;padding:5px 0;
@@ -1311,7 +1315,8 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .memo-del:hover,.memo-del:active{opacity:.8}
 
 /* ===== SUB-TODOS (拆解/细目) ===== */
-.todo-item{flex-direction:column;align-items:stretch}
+.todo-item{flex-direction:column;align-items:stretch;transition:background .15s}
+.todo-item-pressed{background:rgba(255,255,255,.05);border-radius:12px}
 .todo-main{display:flex;align-items:flex-start;width:100%}
 .todo-body{flex:1;min-width:0}
 .todo-actions{display:flex;align-items:center;gap:4px;flex-shrink:0;margin-left:8px}
@@ -2369,13 +2374,6 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 #yangMenu .method-why{color:rgba(60,30,15,.6)}
 
 @media(min-width:500px){.app{border-left:1px solid rgba(255,255,255,.04);border-right:1px solid rgba(255,255,255,.04)}}
-
-/* ===== Twemoji — unified emoji style ===== */
-img.twemoji{width:1em;height:1em;display:inline-block;vertical-align:-0.12em;
-  margin:0 .03em;pointer-events:none;user-select:none;-webkit-user-drag:none;
-  filter:drop-shadow(0 2px 6px rgba(0,0,0,.26)) saturate(.82) brightness(.98)}
-.gal-emoji img.twemoji,.hd-emoji img.twemoji{width:1em;height:1em;margin:0}
-.hd-emoji img.twemoji{filter:drop-shadow(0 3px 10px rgba(0,0,0,.3)) saturate(.85)}
 </style>
 </head>
 <body>
@@ -5034,9 +5032,16 @@ function exportAllJSON(rangeStart,rangeEnd){
         }
       }
       
+      // Include sub-items (细目) inline, e.g. "✅更新App (含: 修复bug, 加功能)"
+      let subsTag='';
+      if(t.subs&&t.subs.length){
+        const doneSubs=t.subs.filter(s=>s.done).map(s=>s.text);
+        if(doneSubs.length)subsTag=` [含: ${doneSubs.join('、')}]`;
+      }
+      
       timeline.push({
         ts:t.doneAt||t.createdAt,
-        text:`${pad(d.getHours())}:${pad(d.getMinutes())} ${icon}${t.text||t.content||''}${createdTag}`
+        text:`${pad(d.getHours())}:${pad(d.getMinutes())} ${icon}${t.text||t.content||''}${createdTag}${subsTag}`
       });
     });
     
@@ -6588,10 +6593,17 @@ function renderTodoHistory(){
   }
   
   completed.forEach(t=>{
+    const subsHtml=(t.subs&&t.subs.length)
+      ?`<div class="th-subs">${t.subs.map(s=>
+          `<div class="th-sub${s.done?' done':''}">${s.done?'✓':'○'} ${escapeHtml(s.text)}</div>`
+        ).join('')}</div>`
+      :'';
     html+=`<div class="th-item th-done">
       <span class="th-icon">✅</span>
       <div class="th-body"><span class="th-text">${escapeHtml(t.text)}</span>
-      <div class="th-detail">添加 ${fmt(t.createdAt)} → 完成 ${fmt(t.doneAt)}</div></div>
+      <div class="th-detail">添加 ${fmt(t.createdAt)} → 完成 ${fmt(t.doneAt)}</div>
+      ${subsHtml}
+      </div>
     </div>`;
   });
   
@@ -7043,15 +7055,18 @@ function renderMemoList(type,forceElId){
 
 // ===== Copy to clipboard (with subs) =====
 function copyToClipboard(txt,okMsg){
-  // Note: navigator.clipboard.writeText often fails when called from a setTimeout
-  // (long-press timer) because iOS doesn't treat it as a user gesture.
-  // The textarea + execCommand method works more reliably in that context.
-  let ok=_fallbackCopy(txt);
-  if(!ok&&navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(txt).then(()=>toast(okMsg||'已复制')).catch(()=>{});
-    return;
+  // Called from touchend now (a real user gesture), so both APIs should work reliably.
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>{
+      toast(okMsg||'已复制');
+    }).catch(()=>{
+      const ok=_fallbackCopy(txt);
+      toast(ok?(okMsg||'已复制'):'复制失败，请重试');
+    });
+  }else{
+    const ok=_fallbackCopy(txt);
+    toast(ok?(okMsg||'已复制'):'复制失败，请重试');
   }
-  toast(okMsg||'已复制');
 }
 function _fallbackCopy(txt){
   const ta=document.createElement('textarea');
@@ -7093,30 +7108,40 @@ function copyTodoItem(itemId){
 function attachTodoLongPress(){
   document.querySelectorAll('#memoSecTodo .todo-item[data-mid], #memoList .todo-item[data-mid]').forEach(card=>{
     if(card._lpBound)return; card._lpBound=true;
-    let timer=null,sx=0,sy=0;
+    let timer=null,sx=0,sy=0,fired=false;
     const start=(e)=>{
       // Don't trigger on interactive children (check, del, input, sub rows)
       if(e.target.closest('.memo-check,.todo-sub,.memo-del,.todo-sub-check,.todo-sub-del,.todo-add-sub,.todo-sub-add,.todo-sub-input,input,textarea'))return;
-      const t=e.touches?e.touches[0]:e; sx=t.clientX;sy=t.clientY;
+      const t=e.touches?e.touches[0]:e; sx=t.clientX;sy=t.clientY;fired=false;
       timer=setTimeout(()=>{
-        card._suppressUntil=Date.now()+800; // block clicks briefly after copy
-        copyTodoItem(card.dataset.mid);
+        fired=true;
+        if(navigator.vibrate)navigator.vibrate(20);
+        card.classList.add('todo-item-pressed');
         timer=null;
-      },550);
+      },500);
     };
     const move=(e)=>{
       if(!timer)return;
       const t=e.touches?e.touches[0]:e;
       if(Math.abs(t.clientX-sx)>10||Math.abs(t.clientY-sy)>10){clearTimeout(timer);timer=null;}
     };
-    const end=()=>{if(timer){clearTimeout(timer);timer=null;}};
+    const end=()=>{
+      if(timer){clearTimeout(timer);timer=null;}
+      card.classList.remove('todo-item-pressed');
+      if(fired){
+        // Perform the actual copy right at touch release — still within the user gesture window
+        card._suppressUntil=Date.now()+800;
+        copyTodoItem(card.dataset.mid);
+        fired=false;
+      }
+    };
     card.addEventListener('touchstart',start,{passive:true});
     card.addEventListener('touchmove',move,{passive:true});
     card.addEventListener('touchend',end);
     card.addEventListener('mousedown',start);
     card.addEventListener('mousemove',move);
     card.addEventListener('mouseup',end);
-    card.addEventListener('mouseleave',end);
+    card.addEventListener('mouseleave',()=>{if(timer){clearTimeout(timer);timer=null;}card.classList.remove('todo-item-pressed');});
     // Suppress any click within the suppression window (after a long-press copy)
     card.addEventListener('click',(e)=>{
       if(card._suppressUntil&&Date.now()<card._suppressUntil){
@@ -7652,15 +7677,15 @@ let habitDraft={emoji:'',freq:'daily',times:2,slots:[],weekdays:[],monthday:1,we
 const HABIT_QUICK_EMOJI=['💊','💧','🏃','🧘','📖','🥗','🌙','☀️','💪','🧴','🦷','💉','🍵','✍️'];
 const HABIT_MORE_EMOJI=[
   '💊','💧','🏃','🧘','📖','🥗','🌙','☀️','💪','🧴','🦷','💉','🍵','✍️',
-  '🏋️','🚴','🏊','🚶','🧗','⛹️','🤸','🧎','🛌','😴','🌅','🌇',
+  '🏋','🚴','🏊','🚶','🧗','🤸','🧎','🛌','😴','🌅','🌇',
   '🥛','☕','🧃','🍶','🍚','🥦','🥑','🍎','🍊','🍓','🫐','🥕','🍠','🌰',
-  '💆','💅','🧼','🪥','🛁','🚿','🧖','💄','👁️','🦶','🫀','🧠',
-  '📚','📝','✏️','🖊️','📓','📔','🎨','🎼','🎹','🎸','🎧','🎤',
-  '🧮','💻','⌨️','📱','🗂️','📊','💰','💵','🏦','📈',
-  '🌱','🌿','🍃','🌳','🌸','🌼','🌻','🪷','🕯️','🧵','🪡',
-  '🙏','🧘‍♀️','🧘‍♂️','☯️','🔮','📿','🛐','⛩️',
-  '🏠','🧹','🗑️','🪴','🐕','🐈','🐟','🌍',
-  '😊','😌','🥰','🤗','💖','❤️','✨','⭐','🌟','🔥','💫','🏆','🎯','✅'
+  '💆','💅','🧼','🪥','🛁','🚿','🧖','💄','🦶','🫀','🧠',
+  '📚','📝','✏','🖊','📓','📔','🎨','🎼','🎹','🎸','🎧','🎤',
+  '🧮','💻','⌨','📱','🗂','📊','💰','💵','🏦','📈',
+  '🌱','🌿','🍃','🌳','🌸','🌼','🌻','🪷','🕯','🧵','🪡',
+  '🙏','☯','🔮','📿','⛩',
+  '🏠','🧹','🗑','🪴','🐕','🐈','🐟','🌍',
+  '😊','😌','🥰','🤗','💖','❤','✨','⭐','🌟','🔥','💫','🏆','🎯','✅'
 ];
 
 function openHabitCreate(){
