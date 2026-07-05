@@ -869,7 +869,7 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .th-subs{margin-top:6px;padding-left:2px;display:flex;flex-direction:column;gap:3px}
 .th-sub{font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;
   color:rgba(255,250,244,.5);letter-spacing:.02em}
-.th-sub.done{color:rgba(255,250,244,.35);text-decoration:line-through;text-decoration-color:rgba(255,250,244,.2)}
+.th-sub.done{color:rgba(255,250,244,.5)}
 /* Time range selector in history */
 .th-range{display:flex;gap:5px;justify-content:center;margin-bottom:14px}
 .th-range-btn{padding:5px 14px;border-radius:100px;border:none;background:transparent;
@@ -3292,36 +3292,43 @@ function playHabitMilestone(){
   _fanAirySwell(0.4,0.04,0.7,0.6,5000);
   _fanBuzz([8,40,8,40,8,40,14]);
 }
-// Todo: add (lightest) and complete (rising satisfying)
+// Warm "small bowl" tone — same overtone character as the app's singing bowl (fundamental + ~2x + ~0.5x),
+// mellower and rounder than the bright crystal-bell stack, to match 梵's quiet/zen sound language.
+function _fanBowl(freq,start,gain,wet,dur,attack){
+  attack=attack||0.015;
+  const t0=ac.currentTime+start;
+  [[1,1,dur],[2.005,0.26,dur*0.7],[0.5,0.35,dur*1.15]].forEach(function(r){
+    const o=ac.createOscillator(); o.type='sine'; o.frequency.value=freq*r[0];
+    const env=ac.createGain(); env.gain.setValueAtTime(0.0001,t0);
+    env.gain.linearRampToValueAtTime(gain*r[1],t0+attack);
+    env.gain.exponentialRampToValueAtTime(0.0001,t0+r[2]);
+    o.connect(env); _fanOut(env,wet); o.start(t0); o.stop(t0+r[2]+0.1);
+  });
+}
+// 待办 · 添加 — 极轻的落笔感，像笔尖点在纸上，几不可闻
 function playMemoAdd(){
   _fanAudioGraph(); if(!_fanReady)return;
-  const t0=ac.currentTime;
-  const s=_fanNoise(0.01);
-  const bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=3000; bp.Q.value=1;
-  const e=ac.createGain(); e.gain.setValueAtTime(0.05,t0); e.gain.exponentialRampToValueAtTime(0.0001,t0+0.02);
-  s.connect(bp); bp.connect(e); _fanOut(e,0); s.start(t0); s.stop(t0+0.03);
-  _fanSoftBell(740,0,0.12,0.35,0.55,2600,0.026);
-  _fanBuzz(8);
-}
-function playMemoDone(){
-  _fanAudioGraph(); if(!_fanReady)return;
-  _fanBell(1046.50,0,0.15,0.5,0.5);
-  _fanBell(1567.98,0.085,0.14,0.55,0.8);
-  _fanBell(2093.00,0.13,0.035,0.6,0.5);
-  _fanBuzz([8,40,12]);
-}
-// Sub-todo (细目) complete — single softer higher tick, distinct from parent's rising two-note
-function playSubDone(){
-  _fanAudioGraph(); if(!_fanReady)return;
-  _fanSoftBell(1318.51,0,0.11,0.4,0.42,3600,0.010); // E6 single soft note
-  _fanBell(1975.53,0.04,0.03,0.5,0.4);              // faint sparkle
+  _fanBowl(880,0,0.075,0.3,0.28,0.01);
   _fanBuzz(6);
 }
-// Sub-todo add — the very lightest tick
+// 待办 · 完成 — 温润的钵音，一声落定，带一点点回甘般的泛音
+function playMemoDone(){
+  _fanAudioGraph(); if(!_fanReady)return;
+  _fanBowl(587.33,0,0.15,0.5,1.0,0.012);   // D5 — 主音，温和落定
+  _fanBowl(880,0.05,0.045,0.5,0.7,0.02);   // 五度泛音，随后轻轻浮起
+  _fanBuzz([7,35,10]);
+}
+// 细目 · 添加 — 比待办添加更轻一分，几乎只是个提示
 function playSubAdd(){
   _fanAudioGraph(); if(!_fanReady)return;
-  _fanSoftBell(988,0,0.08,0.28,0.4,2400,0.022); // B5 faint placement
+  _fanBowl(1046.50,0,0.05,0.25,0.22,0.008);
   _fanBuzz(5);
+}
+// 细目 · 完成 — 小一号的钵音，比待办完成更轻更短
+function playSubDone(){
+  _fanAudioGraph(); if(!_fanReady)return;
+  _fanBowl(783.99,0,0.09,0.4,0.5,0.012);
+  _fanBuzz(6);
 }
 SNAP_AUDIO.preload = 'auto';
 function playTomatoPluck(){
@@ -7674,7 +7681,8 @@ function habitStartEdit(id){
 
 // ----- Habit creation modal -----
 let habitDraft={emoji:'',freq:'daily',times:2,slots:[],weekdays:[],monthday:1,weeklyTarget:2,gradient:0};
-const HABIT_QUICK_EMOJI=['💊','💧','🏃','🧘','📖','🥗','🌙','☀️','💪','🧴','🦷','💉','🍵','✍️'];
+const HABIT_QUICK_EMOJI_DEFAULT=['💊','💧','🏃','🧘','📖','🥗','🌙','☀️','💪','🧴','🦷','💉','🍵','✍️'];
+let HABIT_QUICK_EMOJI=ld('habitQuickEmoji',HABIT_QUICK_EMOJI_DEFAULT.slice());
 const HABIT_MORE_EMOJI=[
   '💊','💧','🏃','🧘','📖','🥗','🌙','☀️','💪','🧴','🦷','💉','🍵','✍️',
   '🏋','🚴','🏊','🚶','🧗','🤸','🧎','🛌','😴','🌅','🌇',
@@ -7726,17 +7734,39 @@ function hcRenderEmoji(){
   if(!row)return;
   // If current emoji is a custom one (not in quick list), show it first as selected
   const inQuick=HABIT_QUICK_EMOJI.includes(habitDraft.emoji);
-  let html=HABIT_QUICK_EMOJI.map(e=>
-    `<span class="hc-emoji${habitDraft.emoji===e?' sel':''}" onclick="hcPickEmoji('${e}')">${e}</span>`
+  let html=HABIT_QUICK_EMOJI.map((e,i)=>
+    `<span class="hc-emoji${habitDraft.emoji===e?' sel':''}" data-qi="${i}" onclick="hcPickEmoji('${e}')">${e}</span>`
   ).join('');
-  // Show custom-picked emoji (from the more-grid) as an extra selected swatch
+  // Show custom-picked emoji (not yet in quick list) as an extra selected swatch
   if(!inQuick&&habitDraft.emoji){
     html=`<span class="hc-emoji sel" onclick="hcPickEmoji('${habitDraft.emoji}')">${habitDraft.emoji}</span>`+html;
   }
-  // "更多" button to expand the full curated grid
+  // "更多" button to expand the full curated grid (pick from here to add to quick list)
   html+=`<span class="hc-emoji hc-emoji-more" onclick="hcToggleMoreEmoji()" title="更多">···</span>`;
   row.innerHTML=html;
-  renderTwemoji(row);
+  // Long-press a quick emoji to remove it from the quick list
+  row.querySelectorAll('.hc-emoji[data-qi]').forEach(el=>{
+    let timer=null,longPressed=false;
+    const start=()=>{longPressed=false;timer=setTimeout(()=>{
+      longPressed=true;
+      if(navigator.vibrate)navigator.vibrate(30);
+      hcDeleteQuickEmoji(parseInt(el.dataset.qi));
+    },500);};
+    const cancel=()=>{if(timer)clearTimeout(timer);};
+    el.addEventListener('touchstart',start,{passive:true});
+    el.addEventListener('touchend',cancel);
+    el.addEventListener('touchmove',cancel,{passive:true});
+    el.addEventListener('mousedown',start);
+    el.addEventListener('mouseup',cancel);
+    el.addEventListener('mouseleave',cancel);
+    el.addEventListener('click',(e)=>{if(longPressed){e.stopPropagation();longPressed=false;}},true);
+  });
+}
+function hcDeleteQuickEmoji(i){
+  if(HABIT_QUICK_EMOJI.length<=1)return; // keep at least one
+  HABIT_QUICK_EMOJI.splice(i,1);
+  sv('habitQuickEmoji',HABIT_QUICK_EMOJI);
+  hcRenderEmoji();
 }
 function hcToggleMoreEmoji(){
   let grid=document.getElementById('hcEmojiGrid');
@@ -7748,14 +7778,18 @@ function hcToggleMoreEmoji(){
   const seen=new Set();
   const list=HABIT_MORE_EMOJI.filter(e=>{if(seen.has(e))return false;seen.add(e);return true;});
   grid.innerHTML=list.map(e=>
-    `<span class="hc-emoji-g${habitDraft.emoji===e?' sel':''}" onclick="hcPickEmojiFromGrid('${e}')">${e}</span>`
+    `<span class="hc-emoji-g${HABIT_QUICK_EMOJI.includes(e)?' sel':''}" onclick="hcPickEmojiFromGrid('${e}')">${e}</span>`
   ).join('');
   const row=document.getElementById('hcEmojiRow');
   row.parentNode.insertBefore(grid,row.nextSibling);
-  renderTwemoji(grid);
 }
 function hcPickEmojiFromGrid(e){
   habitDraft.emoji=e;
+  // Add to the quick list too, so it's available next time (persisted)
+  if(!HABIT_QUICK_EMOJI.includes(e)){
+    HABIT_QUICK_EMOJI.push(e);
+    sv('habitQuickEmoji',HABIT_QUICK_EMOJI);
+  }
   const grid=document.getElementById('hcEmojiGrid');
   if(grid)grid.remove();
   hcRenderEmoji();
@@ -7774,21 +7808,11 @@ function hcRenderGradients(){
       onclick="hcPickGradient(${i})"></div>`
   ).join('');
   // Add custom (+) swatch
-  html+=`<div class="hc-grad hc-grad-custom" onclick="hcOpenCustomColor(false)" title="自定义"
+  html+=`<div class="hc-grad hc-grad-custom" onclick="hcOpenCustomColor()" title="自定义"
     style="background:conic-gradient(from 0deg,#d4a5a5,#c9b88a,#a5b8c9,#b5c9a5,#c9b8d4,#d4a5a5)">
     <span class="hc-grad-plus">+</span>
   </div>`;
   wrap.innerHTML=html;
-  // "调整明暗/透明" for the currently selected swatch
-  let adj=document.getElementById('hcAdjustBtn');
-  if(!adj){
-    adj=document.createElement('div');
-    adj.id='hcAdjustBtn';
-    adj.className='hc-adjust-btn';
-    adj.textContent='调整明暗 · 透明';
-    adj.onclick=()=>hcOpenCustomColor(true);
-    wrap.parentNode.insertBefore(adj,wrap.nextSibling);
-  }
   // Attach long-press delete to each preset swatch
   wrap.querySelectorAll('.hc-grad[data-gi]').forEach(el=>{
     let timer=null,longPressed=false;
@@ -7818,30 +7842,21 @@ function hcDeleteGradient(i){
   else if(habitDraft.gradient===i)habitDraft.gradient=0;
   hcRenderGradients();
 }
-function hcOpenCustomColor(adjustMode){
-  // Build a small inline color picker panel
+function hcOpenCustomColor(){
+  // Build a small inline color picker panel — always for creating a NEW color
   let existing=document.getElementById('hcColorPanel');
   if(existing){existing.remove();return;}
-  // Start from the currently-selected swatch's colors
-  const sel=HABIT_GRADIENTS[habitDraft.gradient];
-  const cg=(sel?sel.slice():['#C8A88A','#9A7B5E']);
+  const cg=['#C8A88A','#9A7B5E'];
   const panel=document.createElement('div');
   panel.id='hcColorPanel';
   panel.className='hc-color-panel';
-  panel.dataset.mode=adjustMode?'adjust':'new';
-  // In adjust mode: hide 起止, only sliders. In new mode: full 起止 + sliders.
-  const colorRow=adjustMode?'':`
+  panel.innerHTML=`
     <div class="hc-cp-row">
       <span class="hc-cp-lbl">起</span>
       <input type="color" id="hcColor1" value="${cg[0]}" oninput="hcUpdateCustom()">
       <span class="hc-cp-lbl">止</span>
       <input type="color" id="hcColor2" value="${cg[1]}" oninput="hcUpdateCustom()">
-    </div>`;
-  // Hidden inputs holding the base colors when in adjust mode
-  const hiddenColors=adjustMode?`<input type="hidden" id="hcColor1" value="${cg[0]}"><input type="hidden" id="hcColor2" value="${cg[1]}">`:'';
-  panel.innerHTML=`
-    ${colorRow}
-    ${hiddenColors}
+    </div>
     <div class="hc-cp-slider-row">
       <span class="hc-cp-slbl">明暗</span>
       <input type="range" id="hcBright" min="-60" max="40" value="0" step="1" class="hc-cp-slider" oninput="hcUpdateCustom()">
@@ -7851,7 +7866,7 @@ function hcOpenCustomColor(adjustMode){
       <input type="range" id="hcOpacity" min="30" max="100" value="100" step="1" class="hc-cp-slider" oninput="hcUpdateCustom()">
     </div>
     <div class="hc-cp-preview" id="hcCpPreview" style="background:linear-gradient(135deg,${cg[0]},${cg[1]})"></div>
-    <button class="hc-cp-done" onclick="hcConfirmCustom(${adjustMode?'true':'false'})">${adjustMode?'替换这个色':'用这个'}</button>
+    <button class="hc-cp-done" onclick="hcConfirmCustom()">用这个</button>
   `;
   const wrap=document.getElementById('hcGradients');
   wrap.parentNode.insertBefore(panel,wrap.nextSibling);
@@ -7882,18 +7897,10 @@ function hcUpdateCustom(){
   const prev=document.getElementById('hcCpPreview');
   if(prev)prev.style.background=`linear-gradient(135deg,${a},${b})`;
 }
-function hcConfirmCustom(adjustMode){
+function hcConfirmCustom(){
   const [a,b]=_customColors();
-  if(adjustMode){
-    // Replace the currently-selected swatch in place
-    const gi=habitDraft.gradient;
-    if(gi>=0&&gi<HABIT_GRADIENTS.length){HABIT_GRADIENTS[gi]=[a,b];}
-    else{HABIT_GRADIENTS.push([a,b]);habitDraft.gradient=HABIT_GRADIENTS.length-1;}
-  }else{
-    // Add as a new swatch
-    HABIT_GRADIENTS.push([a,b]);
-    habitDraft.gradient=HABIT_GRADIENTS.length-1;
-  }
+  HABIT_GRADIENTS.push([a,b]);
+  habitDraft.gradient=HABIT_GRADIENTS.length-1;
   sv('habitGradients',HABIT_GRADIENTS);
   habitDraft.customGrad=null;
   const panel=document.getElementById('hcColorPanel');
