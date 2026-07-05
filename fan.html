@@ -7236,21 +7236,19 @@ function _clipDiagFallback(){
 }
 
 function copyToClipboard(txt,okMsg){
-  // Try the synchronous execCommand method first — it doesn't depend on Promise-based
-  // permission checks that can be finicky when triggered from a long-press timer.
-  const ok=_fallbackCopy(txt);
-  if(ok){
-    toast(okMsg||'已复制');
-    return;
-  }
+  // Prioritize navigator.clipboard.writeText — confirmed reliable in this environment
+  // when triggered from a click event. execCommand can report "success" without
+  // actually reaching the system pasteboard in PWA standalone mode, so it's now the fallback.
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(txt).then(()=>{
       toast(okMsg||'已复制');
     }).catch(()=>{
-      toast('复制失败，请重试');
+      const ok=_fallbackCopy(txt);
+      toast(ok?(okMsg||'已复制'):'复制失败，请重试');
     });
   }else{
-    toast('复制失败，请重试');
+    const ok=_fallbackCopy(txt);
+    toast(ok?(okMsg||'已复制'):'复制失败，请重试');
   }
 }
 function _fallbackCopy(txt){
