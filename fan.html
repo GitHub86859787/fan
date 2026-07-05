@@ -1394,6 +1394,11 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   color:rgba(255,250,244,.85);font-family:'Noto Serif SC',serif;font-weight:300;
   font-size:12px;cursor:pointer}
 .clip-diag-btn:active{background:rgba(255,250,244,.12)}
+.clip-diag-touch-area{display:block;width:100%;padding:14px;margin-bottom:8px;border-radius:10px;
+  background:rgba(232,228,220,.08);border:1px dashed rgba(232,228,220,.3);
+  color:rgba(255,250,244,.7);font-family:'Noto Serif SC',serif;font-weight:300;
+  font-size:12px;text-align:center;user-select:none;-webkit-user-select:none}
+.clip-diag-touch-area:active{background:rgba(232,228,220,.15)}
 .clip-diag-close{display:block;width:100%;padding:8px;margin-top:6px;background:none;
   border:none;color:rgba(255,250,244,.4);font-family:'Cormorant Garamond',serif;
   font-style:italic;font-size:11px;cursor:pointer}
@@ -7096,9 +7101,40 @@ function runClipboardDiagnostic(){
     <button class="clip-diag-btn" onclick="clipDiagTest(1)">1. 检测环境</button>
     <button class="clip-diag-btn" onclick="clipDiagTest(2)">2. 直接点击复制</button>
     <button class="clip-diag-btn" onclick="clipDiagTest(3)">3. 延迟0.5秒复制（模拟长按）</button>
+    <div class="clip-diag-touch-area" id="clipDiagTouchArea">4. 真长按这里测试（和app一样）</div>
     <button class="clip-diag-close" onclick="document.getElementById('clipDiagBg').remove()">关闭</button>
   </div>`;
   document.body.appendChild(bg);
+  attachClipDiagTouch();
+}
+function attachClipDiagTouch(){
+  const area=document.getElementById('clipDiagTouchArea');
+  if(!area)return;
+  let timer=null;
+  const start=()=>{
+    clipDiagClear();
+    clipDiagLog('检测到触摸，0.5秒后触发（和app的touchstart+timer完全一样）...');
+    timer=setTimeout(()=>{
+      timer=null;
+      clipDiagLog('计时器触发，尝试复制...');
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText('touchstart测试789').then(()=>{
+          clipDiagLog('✅ 成功！touchstart+timer 方式可以复制','ok');
+        }).catch(err=>{
+          clipDiagLog('❌ clipboard.writeText 失败: '+err.message,'fail');
+          _clipDiagFallback();
+        });
+      }else{
+        _clipDiagFallback();
+      }
+    },500);
+  };
+  const cancel=()=>{if(timer){clearTimeout(timer);timer=null;}};
+  area.addEventListener('touchstart',start,{passive:true});
+  area.addEventListener('touchend',cancel);
+  area.addEventListener('touchmove',cancel,{passive:true});
+  area.addEventListener('mousedown',start);
+  area.addEventListener('mouseup',cancel);
 }
 function clipDiagLog(msg,cls){
   const log=document.getElementById('clipDiagLog');
