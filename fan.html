@@ -1376,6 +1376,27 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   z-index:9999;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;
   box-shadow:0 8px 30px rgba(0,0,0,.3)}
 .fan-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* Clipboard diagnostic tool */
+.clip-diag-bg{position:fixed;inset:0;z-index:9998;background:rgba(15,12,10,.9);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  display:flex;align-items:center;justify-content:center;padding:20px}
+.clip-diag-box{width:100%;max-width:320px;background:rgba(35,30,25,.6);
+  border:1px solid rgba(255,250,244,.1);border-radius:18px;padding:20px}
+.clip-diag-title{font-family:'Noto Serif SC',serif;font-weight:300;font-size:14px;
+  color:rgba(255,250,244,.85);text-align:center;margin-bottom:14px;letter-spacing:.1em}
+.clip-diag-log{background:rgba(0,0,0,.3);border-radius:10px;padding:12px;margin-bottom:14px;
+  font-family:monospace;font-size:11px;color:rgba(255,250,244,.6);min-height:100px;
+  max-height:220px;overflow-y:auto;line-height:1.6;word-break:break-all}
+.clip-diag-ok{color:rgba(160,220,150,.9)}
+.clip-diag-fail{color:rgba(240,140,140,.9)}
+.clip-diag-btn{display:block;width:100%;padding:10px;margin-bottom:8px;border-radius:10px;
+  background:rgba(255,250,244,.06);border:1px solid rgba(255,250,244,.1);
+  color:rgba(255,250,244,.85);font-family:'Noto Serif SC',serif;font-weight:300;
+  font-size:12px;cursor:pointer}
+.clip-diag-btn:active{background:rgba(255,250,244,.12)}
+.clip-diag-close{display:block;width:100%;padding:8px;margin-top:6px;background:none;
+  border:none;color:rgba(255,250,244,.4);font-family:'Cormorant Garamond',serif;
+  font-style:italic;font-size:11px;cursor:pointer}
 .insp-views{display:flex;gap:4px;margin-bottom:12px;padding:3px;
   background:rgba(255,255,255,.03);border-radius:100px;border:1px solid rgba(255,255,255,.05)}
 .insp-view{flex:1;padding:7px 0;border-radius:100px;border:none;background:none;
@@ -2530,6 +2551,9 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
         <button class="export-btn" onclick="exportFullBackup()">完整备份</button>
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
         <button class="export-btn" onclick="document.getElementById('importFile').click()">导入备份</button>
+      </div>
+      <div class="export-row" style="margin-top:8px">
+        <button class="export-btn" onclick="runClipboardDiagnostic()">剪贴板诊断</button>
       </div>
     </div>
 
@@ -7059,6 +7083,87 @@ function renderMemoList(type,forceElId){
 }
 
 // ===== Copy to clipboard (with subs) =====
+// ===== Clipboard diagnostic — shows results directly on screen (no console needed) =====
+function runClipboardDiagnostic(){
+  const existing=document.getElementById('clipDiagBg');
+  if(existing)existing.remove();
+  const bg=document.createElement('div');
+  bg.id='clipDiagBg';
+  bg.className='clip-diag-bg';
+  bg.innerHTML=`<div class="clip-diag-box">
+    <div class="clip-diag-title">剪贴板诊断</div>
+    <div class="clip-diag-log" id="clipDiagLog">点击下面的按钮开始测试...</div>
+    <button class="clip-diag-btn" onclick="clipDiagTest(1)">1. 检测环境</button>
+    <button class="clip-diag-btn" onclick="clipDiagTest(2)">2. 直接点击复制</button>
+    <button class="clip-diag-btn" onclick="clipDiagTest(3)">3. 延迟0.5秒复制（模拟长按）</button>
+    <button class="clip-diag-close" onclick="document.getElementById('clipDiagBg').remove()">关闭</button>
+  </div>`;
+  document.body.appendChild(bg);
+}
+function clipDiagLog(msg,cls){
+  const log=document.getElementById('clipDiagLog');
+  if(!log)return;
+  const line=document.createElement('div');
+  if(cls)line.className='clip-diag-'+cls;
+  line.textContent=msg;
+  log.appendChild(line);
+}
+function clipDiagClear(){
+  const log=document.getElementById('clipDiagLog');
+  if(log)log.innerHTML='';
+}
+function clipDiagTest(n){
+  clipDiagClear();
+  if(n===1){
+    clipDiagLog('UA: '+navigator.userAgent);
+    clipDiagLog('');
+    clipDiagLog('clipboard存在: '+(!!navigator.clipboard), navigator.clipboard?'ok':'fail');
+    clipDiagLog('writeText存在: '+(!!(navigator.clipboard&&navigator.clipboard.writeText)), (navigator.clipboard&&navigator.clipboard.writeText)?'ok':'fail');
+    clipDiagLog('execCommand存在: '+(typeof document.execCommand==='function'));
+    clipDiagLog('是否https: '+(location.protocol==='https:'), location.protocol==='https:'?'ok':'fail');
+    clipDiagLog('是否在iframe里: '+(window.self!==window.top));
+    clipDiagLog('是否独立PWA模式: '+(window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches));
+    if(navigator.permissions&&navigator.permissions.query){
+      navigator.permissions.query({name:'clipboard-write'}).then(p=>{
+        clipDiagLog('clipboard-write权限: '+p.state);
+      }).catch(e=>{clipDiagLog('权限查询报错: '+e.message);});
+    }else{
+      clipDiagLog('不支持权限查询');
+    }
+  }else if(n===2){
+    clipDiagLog('尝试直接点击复制...');
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText('测试文字123').then(()=>{
+        clipDiagLog('✅ clipboard.writeText 成功！','ok');
+      }).catch(err=>{
+        clipDiagLog('❌ clipboard.writeText 失败: '+err.message,'fail');
+        _clipDiagFallback();
+      });
+    }else{
+      clipDiagLog('clipboard API不可用，尝试备用方法');
+      _clipDiagFallback();
+    }
+  }else if(n===3){
+    clipDiagLog('0.5秒后尝试复制（模拟长按）...');
+    setTimeout(()=>{
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText('延迟测试456').then(()=>{
+          clipDiagLog('✅ 延迟后 clipboard.writeText 成功！','ok');
+        }).catch(err=>{
+          clipDiagLog('❌ 延迟后 clipboard.writeText 失败: '+err.message,'fail');
+          _clipDiagFallback();
+        });
+      }else{
+        _clipDiagFallback();
+      }
+    },500);
+  }
+}
+function _clipDiagFallback(){
+  const ok=_fallbackCopy('测试文字123');
+  clipDiagLog(ok?'✅ execCommand备用方法成功！':'❌ execCommand备用方法也失败', ok?'ok':'fail');
+}
+
 function copyToClipboard(txt,okMsg){
   // Try the synchronous execCommand method first — it doesn't depend on Promise-based
   // permission checks that can be finicky when triggered from a long-press timer.
