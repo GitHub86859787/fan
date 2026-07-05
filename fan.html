@@ -8908,5 +8908,34 @@ function init(){
 }
 init();
 </script>
+<script>
+// ===== PWA auto-update (network-first Service Worker) =====
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').then(reg=>{
+      // Check for updates every time the app opens
+      reg.update();
+      // When a new SW is found and installed, activate it and reload
+      reg.addEventListener('updatefound',()=>{
+        const nw=reg.installing;
+        if(!nw)return;
+        nw.addEventListener('statechange',()=>{
+          if(nw.state==='installed'&&navigator.serviceWorker.controller){
+            // New version ready — activate immediately
+            nw.postMessage({type:'SKIP_WAITING'});
+          }
+        });
+      });
+    }).catch(()=>{});
+    // Reload once when the new SW takes control (gets the fresh page)
+    let refreshing=false;
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(refreshing)return;
+      refreshing=true;
+      location.reload();
+    });
+  });
+}
+</script>
 </body>
 </html>
