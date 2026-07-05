@@ -1072,10 +1072,17 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .hc-emoji{font-size:20px;padding:5px;border-radius:9px;cursor:pointer;
   border:1px solid transparent;transition:all .2s;line-height:1}
 .hc-emoji.sel{border-color:rgba(255,250,244,.3);background:rgba(255,250,244,.08)}
-.hc-emoji-more{font-size:16px;color:rgba(255,250,244,.4);border:1px dashed rgba(255,250,244,.2)!important;
-  display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px}
-.hc-emoji-hidden-input{position:fixed;bottom:0;left:50%;width:1px;height:1px;
-  opacity:0;pointer-events:none;border:none;background:none}
+.hc-emoji-more{font-size:14px;color:rgba(255,250,244,.4);border:1px dashed rgba(255,250,244,.2)!important;
+  display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;letter-spacing:0}
+.hc-emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin:6px auto 16px;
+  max-height:180px;overflow-y:auto;padding:10px;background:rgba(255,250,244,.04);
+  border:1px solid rgba(255,250,244,.08);border-radius:12px;animation:popIn .22s cubic-bezier(.16,1,.3,1)}
+.hc-emoji-grid::-webkit-scrollbar{width:4px}
+.hc-emoji-grid::-webkit-scrollbar-thumb{background:rgba(255,250,244,.15);border-radius:2px}
+.hc-emoji-g{font-size:19px;padding:5px;border-radius:8px;cursor:pointer;text-align:center;
+  border:1px solid transparent;transition:all .15s;line-height:1}
+.hc-emoji-g:active{transform:scale(.88)}
+.hc-emoji-g.sel{border-color:rgba(255,250,244,.35);background:rgba(255,250,244,.1)}
 .hc-emoji-custom{width:60%;margin:0 auto 22px;display:block;padding:5px 0;
   background:transparent;border:none;border-bottom:1px solid rgba(255,250,244,.06);
   color:rgba(255,250,244,.8);font-size:14px;text-align:center;outline:none}
@@ -7039,52 +7046,19 @@ function copyTodoItem(itemId){
   copyToClipboard(txt,hasSubs?`已复制（含 ${item.subs.length} 条细目）`:'已复制');
   if(navigator.vibrate)navigator.vibrate(20);
 }
-// Move a todo to another category (priority)
-function todoOpenMove(itemId,btn){
-  const existing=document.getElementById('todoMovePop');
-  if(existing){existing.remove();return;}
-  const item=memos.todo.find(i=>i.id===itemId);
-  if(!item)return;
-  const cur=item.priority||'normal';
-  const pop=document.createElement('div');
-  pop.id='todoMovePop';
-  pop.className='todo-move-pop';
-  pop.innerHTML=todoCats.map(c=>
-    `<button class="${c.id===cur?'cur':''}" onclick="todoMoveTo('${itemId}','${c.id}')">${c.label}</button>`
-  ).join('');
-  document.body.appendChild(pop);
-  // Position near the button
-  const r=btn.getBoundingClientRect();
-  pop.style.top=(r.bottom+6)+'px';
-  pop.style.left=Math.max(10,Math.min(window.innerWidth-pop.offsetWidth-10,r.right-pop.offsetWidth))+'px';
-  // Close on outside tap
-  setTimeout(()=>{
-    const close=(e)=>{if(!pop.contains(e.target)){pop.remove();document.removeEventListener('click',close);}};
-    document.addEventListener('click',close);
-  },50);
-}
-function todoMoveTo(itemId,catId){
-  const item=memos.todo.find(i=>i.id===itemId);
-  if(!item)return;
-  item.priority=catId;
-  sv('memos',memos);
-  const pop=document.getElementById('todoMovePop');if(pop)pop.remove();
-  renderMemoList('todo');
-  const cat=todoCats.find(c=>c.id===catId);
-  toast('已移到「'+(cat?cat.label:catId)+'」');
-}
 // Attach long-press to each todo item for copy
 function attachTodoLongPress(){
   document.querySelectorAll('#memoSecTodo .todo-item[data-mid], #memoList .todo-item[data-mid]').forEach(card=>{
     if(card._lpBound)return; card._lpBound=true;
-    let timer=null,longPressed=false,sx=0,sy=0;
+    let timer=null,sx=0,sy=0;
     const start=(e)=>{
       // Don't trigger on interactive children (check, del, input, sub rows)
-      if(e.target.closest('.memo-check,.todo-sub-check,.memo-del,.todo-sub-del,.todo-add-sub,.todo-sub-add,.todo-sub-input,input,textarea'))return;
-      const t=e.touches?e.touches[0]:e; sx=t.clientX;sy=t.clientY;longPressed=false;
+      if(e.target.closest('.memo-check,.todo-sub,.memo-del,.todo-sub-check,.todo-sub-del,.todo-add-sub,.todo-sub-add,.todo-sub-input,input,textarea'))return;
+      const t=e.touches?e.touches[0]:e; sx=t.clientX;sy=t.clientY;
       timer=setTimeout(()=>{
-        longPressed=true;
+        card._suppressUntil=Date.now()+800; // block clicks briefly after copy
         copyTodoItem(card.dataset.mid);
+        timer=null;
       },550);
     };
     const move=(e)=>{
@@ -7100,61 +7074,67 @@ function attachTodoLongPress(){
     card.addEventListener('mousemove',move);
     card.addEventListener('mouseup',end);
     card.addEventListener('mouseleave',end);
-    // Suppress click after long-press
-    card.addEventListener('click',(e)=>{if(longPressed){e.stopPropagation();e.preventDefault();longPressed=false;}},true);
+    // Suppress any click within the suppression window (after a long-press copy)
+    card.addEventListener('click',(e)=>{
+      if(card._suppressUntil&&Date.now()<card._suppressUntil){
+        e.stopPropagation();e.preventDefault();
+      }
+    },true);
   });
   attachSubDrag();
 }
 
-// Drag-reorder for sub-todos via the ⋮⋮ handle
+// Drag-reorder for sub-todos: long-press a sub row to pick it up, then drag
 function attachSubDrag(){
-  document.querySelectorAll('.todo-sub-drag').forEach(handle=>{
-    if(handle._dragBound)return; handle._dragBound=true;
-    const sub=handle.closest('.todo-sub');
-    const container=handle.closest('.todo-subs');
-    if(!sub||!container)return;
-    let dragging=false,startY=0,placeholder=null,others=[],parentId=container.dataset.parent;
-    const onStart=(e)=>{
-      e.preventDefault();e.stopPropagation();
-      const t=e.touches?e.touches[0]:e;
-      startY=t.clientY;dragging=true;
+  document.querySelectorAll('.todo-sub').forEach(sub=>{
+    if(sub._dragBound)return; sub._dragBound=true;
+    const container=sub.closest('.todo-subs');
+    if(!container)return;
+    const parentId=container.dataset.parent;
+    let holdTimer=null,dragging=false,startY=0,curY=0,offsetY=0;
+    
+    const beginDrag=()=>{
+      dragging=true;
       sub.classList.add('sub-dragging');
-      if(navigator.vibrate)navigator.vibrate(15);
-      document.addEventListener('touchmove',onMove,{passive:false});
-      document.addEventListener('touchend',onEnd);
-      document.addEventListener('mousemove',onMove);
-      document.addEventListener('mouseup',onEnd);
+      if(navigator.vibrate)navigator.vibrate(20);
+      // Lock heights so layout doesn't jump
+      sub.style.zIndex='10';
     };
     const onMove=(e)=>{
-      if(!dragging)return;
+      if(!dragging){
+        // If finger moved before long-press fired, cancel the hold (it's a scroll)
+        const t=e.touches?e.touches[0]:e;
+        if(holdTimer&&Math.abs(t.clientY-startY)>8){clearTimeout(holdTimer);holdTimer=null;}
+        return;
+      }
       e.preventDefault();
       const t=e.touches?e.touches[0]:e;
-      const y=t.clientY;
-      sub.style.transform=`translateY(${y-startY}px)`;
-      sub.style.zIndex='5';
-      // Find sibling to swap with
+      curY=t.clientY;
+      sub.style.transform=`translateY(${curY-startY}px)`;
+      // Determine which sibling we're hovering over
       const siblings=[...container.querySelectorAll('.todo-sub:not(.sub-dragging)')];
-      const subRect=sub.getBoundingClientRect();
-      const subMid=subRect.top+subRect.height/2;
+      const dragMid=curY;
       for(const sib of siblings){
         const r=sib.getBoundingClientRect();
-        if(subMid>r.top&&subMid<r.bottom){
-          const after=subMid>r.top+r.height/2;
-          if(after)sib.after(sub);else sib.before(sub);
-          sub.style.transform=`translateY(0)`;startY=t.clientY;
+        if(dragMid>r.top&&dragMid<r.bottom){
+          const before=dragMid<r.top+r.height/2;
+          if(before){container.insertBefore(sub,sib);}
+          else{container.insertBefore(sub,sib.nextSibling);}
+          // Reset baseline so the dragged element follows the finger from new position
+          startY=curY;
+          sub.style.transform='translateY(0)';
           break;
         }
       }
     };
-    const onEnd=()=>{
-      if(!dragging)return;
+    const endDrag=()=>{
+      if(holdTimer){clearTimeout(holdTimer);holdTimer=null;}
+      if(!dragging){cleanup();return;}
       dragging=false;
+      sub._justDragged=true;
+      setTimeout(()=>{sub._justDragged=false;},300);
       sub.classList.remove('sub-dragging');
       sub.style.transform='';sub.style.zIndex='';
-      document.removeEventListener('touchmove',onMove);
-      document.removeEventListener('touchend',onEnd);
-      document.removeEventListener('mousemove',onMove);
-      document.removeEventListener('mouseup',onEnd);
       // Persist new order
       const item=memos.todo.find(i=>i.id===parentId);
       if(item&&item.subs){
@@ -7162,9 +7142,32 @@ function attachSubDrag(){
         item.subs.sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id));
         sv('memos',memos);
       }
+      cleanup();
     };
-    handle.addEventListener('touchstart',onStart,{passive:false});
-    handle.addEventListener('mousedown',onStart);
+    const cleanup=()=>{
+      document.removeEventListener('touchmove',onMove,{passive:false});
+      document.removeEventListener('touchend',endDrag);
+      document.removeEventListener('mousemove',onMove);
+      document.removeEventListener('mouseup',endDrag);
+    };
+    const onStart=(e)=>{
+      // Ignore if starting on interactive children (check, del, text-edit)
+      if(e.target.closest('.todo-sub-check,.todo-sub-del,.todo-sub-input'))return;
+      const t=e.touches?e.touches[0]:e;
+      startY=t.clientY;curY=startY;
+      document.addEventListener('touchmove',onMove,{passive:false});
+      document.addEventListener('touchend',endDrag);
+      document.addEventListener('mousemove',onMove);
+      document.addEventListener('mouseup',endDrag);
+      // Long-press to begin drag
+      holdTimer=setTimeout(beginDrag,320);
+    };
+    sub.addEventListener('touchstart',onStart,{passive:true});
+    sub.addEventListener('mousedown',onStart);
+    // Suppress the text-edit click if we just dragged
+    sub.querySelector('.todo-sub-text')?.addEventListener('click',(e)=>{
+      if(sub._justDragged){e.stopPropagation();e.preventDefault();sub._justDragged=false;}
+    },true);
   });
 }
 // Simple toast
@@ -7200,7 +7203,6 @@ function renderTodoItem(item){
       `<div class="todo-sub${s.done?' done':''}" data-sid="${s.id}">
         <div class="todo-sub-check${s.done?' checked':''}" onclick="todoSubToggle('${item.id}','${s.id}')"></div>
         <div class="todo-sub-text" onclick="todoSubEdit('${item.id}','${s.id}')">${escapeHtml(s.text)}</div>
-        <button class="todo-sub-drag" title="拖动排序">⋮⋮</button>
         <button class="todo-sub-del" onclick="todoSubDel('${item.id}','${s.id}')">✕</button>
       </div>`
     ).join('')}
@@ -7216,7 +7218,6 @@ function renderTodoItem(item){
       </div>
       <div class="todo-actions">
         ${!hasSubs?`<button class="todo-add-sub" onclick="todoSubAddStart('${item.id}')" title="拆解">+</button>`:''}
-        <button class="todo-move" onclick="event.stopPropagation();todoOpenMove('${item.id}',this)" title="移动">⇄</button>
         <button class="memo-del" onclick="memoDel('todo','${item.id}')">✕</button>
       </div>
     </div>
@@ -7605,6 +7606,18 @@ function habitStartEdit(id){
 // ----- Habit creation modal -----
 let habitDraft={emoji:'',freq:'daily',times:2,slots:[],weekdays:[],monthday:1,weeklyTarget:2,gradient:0};
 const HABIT_QUICK_EMOJI=['💊','💧','🏃','🧘','📖','🥗','🌙','☀️','💪','🧴','🦷','💉','🍵','✍️'];
+const HABIT_MORE_EMOJI=[
+  '💊','💧','🏃','🧘','📖','🥗','🌙','☀️','💪','🧴','🦷','💉','🍵','✍️',
+  '🏋️','🚴','🏊','🚶','🧗','⛹️','🤸','🧎','🛌','😴','🌅','🌇',
+  '🥛','☕','🧃','🍶','🍚','🥦','🥑','🍎','🍊','🍓','🫐','🥕','🍠','🌰',
+  '💆','💅','🧼','🪥','🛁','🚿','🧖','💄','👁️','🦶','🫀','🧠',
+  '📚','📝','✏️','🖊️','📓','📔','🎨','🎼','🎹','🎸','🎧','🎤',
+  '🧮','💻','⌨️','📱','🗂️','📊','💰','💵','🏦','📈',
+  '🌱','🌿','🍃','🌳','🌸','🌼','🌻','🪷','🕯️','🧵','🪡',
+  '🙏','🧘‍♀️','🧘‍♂️','☯️','🔮','📿','🛐','⛩️',
+  '🏠','🧹','🗑️','🪴','🐕','🐈','🐟','🌍',
+  '😊','😌','🥰','🤗','💖','❤️','✨','⭐','🌟','🔥','💫','🏆','🎯','✅'
+];
 
 function openHabitCreate(){
   habitDraft={emoji:'💊',freq:'daily',times:2,slots:['早','晚'],weekdays:[],monthday:1,weeklyTarget:2,gradient:0,customGrad:null};
@@ -7647,36 +7660,34 @@ function hcRenderEmoji(){
   let html=HABIT_QUICK_EMOJI.map(e=>
     `<span class="hc-emoji${habitDraft.emoji===e?' sel':''}" onclick="hcPickEmoji('${e}')">${e}</span>`
   ).join('');
-  // Show custom-picked emoji as an extra selected swatch
+  // Show custom-picked emoji (from the more-grid) as an extra selected swatch
   if(!inQuick&&habitDraft.emoji){
     html=`<span class="hc-emoji sel" onclick="hcPickEmoji('${habitDraft.emoji}')">${habitDraft.emoji}</span>`+html;
   }
-  // "+" button to open system emoji keyboard
-  html+=`<span class="hc-emoji hc-emoji-more" onclick="hcOpenEmojiKeyboard()" title="更多">＋</span>`;
+  // "更多" button to expand the full curated grid
+  html+=`<span class="hc-emoji hc-emoji-more" onclick="hcToggleMoreEmoji()" title="更多">···</span>`;
   row.innerHTML=html;
 }
-function hcOpenEmojiKeyboard(){
-  let inp=document.getElementById('hcEmojiInput');
-  if(!inp){
-    inp=document.createElement('input');
-    inp.id='hcEmojiInput';
-    inp.type='text';
-    inp.className='hc-emoji-hidden-input';
-    inp.setAttribute('inputmode','text');
-    inp.autocomplete='off';
-    document.body.appendChild(inp);
-    inp.addEventListener('input',()=>{
-      const v=inp.value.trim();
-      if(v){
-        // Take the last character(s) — an emoji may be multi-codepoint
-        const chars=Array.from(v);
-        habitDraft.emoji=chars[chars.length-1];
-        inp.value='';
-        hcRenderEmoji();
-      }
-    });
-  }
-  inp.focus();
+function hcToggleMoreEmoji(){
+  let grid=document.getElementById('hcEmojiGrid');
+  if(grid){grid.remove();return;}
+  grid=document.createElement('div');
+  grid.id='hcEmojiGrid';
+  grid.className='hc-emoji-grid';
+  // Dedupe while preserving order
+  const seen=new Set();
+  const list=HABIT_MORE_EMOJI.filter(e=>{if(seen.has(e))return false;seen.add(e);return true;});
+  grid.innerHTML=list.map(e=>
+    `<span class="hc-emoji-g${habitDraft.emoji===e?' sel':''}" onclick="hcPickEmojiFromGrid('${e}')">${e}</span>`
+  ).join('');
+  const row=document.getElementById('hcEmojiRow');
+  row.parentNode.insertBefore(grid,row.nextSibling);
+}
+function hcPickEmojiFromGrid(e){
+  habitDraft.emoji=e;
+  const grid=document.getElementById('hcEmojiGrid');
+  if(grid)grid.remove();
+  hcRenderEmoji();
 }
 function hcPickEmoji(e){
   habitDraft.emoji=e;
@@ -7730,7 +7741,9 @@ function hcOpenCustomColor(){
   // Build a small inline color picker panel
   let existing=document.getElementById('hcColorPanel');
   if(existing){existing.remove();return;}
-  const cg=habitDraft.customGrad||['#C8A88A','#9A7B5E'];
+  // Start from the currently-selected swatch's colors (so you can tweak it), fallback to default
+  const sel=HABIT_GRADIENTS[habitDraft.gradient];
+  const cg=habitDraft.customGrad||(sel?sel.slice():['#C8A88A','#9A7B5E']);
   const panel=document.createElement('div');
   panel.id='hcColorPanel';
   panel.className='hc-color-panel';
