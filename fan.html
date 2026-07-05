@@ -1077,19 +1077,11 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   border:1px solid transparent;transition:all .2s;line-height:1;overflow:hidden;white-space:nowrap;
   display:inline-flex;align-items:center;justify-content:center}
 .hc-emoji.sel{border-color:rgba(255,250,244,.3);background:rgba(255,250,244,.08)}
-.hc-emoji-more{font-size:14px;color:rgba(255,250,244,.4);border:1px dashed rgba(255,250,244,.2)!important;
-  display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;letter-spacing:0}
-.hc-emoji-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin:6px 0 16px;width:100%;
-  max-height:200px;overflow-y:auto;overflow-x:hidden;padding:12px;box-sizing:border-box;
-  background:rgba(255,250,244,.04);
-  border:1px solid rgba(255,250,244,.08);border-radius:14px;animation:popIn .22s cubic-bezier(.16,1,.3,1)}
-.hc-emoji-grid::-webkit-scrollbar{width:4px}
-.hc-emoji-grid::-webkit-scrollbar-thumb{background:rgba(255,250,244,.15);border-radius:2px}
-.hc-emoji-g{font-size:20px;padding:4px;border-radius:8px;cursor:pointer;text-align:center;
-  border:1px solid transparent;transition:all .15s;line-height:1;aspect-ratio:1;
-  display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap}
-.hc-emoji-g:active{transform:scale(.88)}
-.hc-emoji-g.sel{border-color:rgba(255,250,244,.35);background:rgba(255,250,244,.1)}
+.hc-emoji-more{font-size:16px;font-weight:300;color:rgba(255,250,244,.45);
+  border:1px dashed rgba(255,250,244,.22)!important;
+  display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px}
+.hc-emoji-kb-input{position:fixed;bottom:0;left:50%;width:1px;height:1px;
+  opacity:0;border:none;background:none;padding:0;pointer-events:none;font-size:16px}
 .hc-emoji-custom{width:60%;margin:0 auto 22px;display:block;padding:5px 0;
   background:transparent;border:none;border-bottom:1px solid rgba(255,250,244,.06);
   color:rgba(255,250,244,.8);font-size:14px;text-align:center;outline:none}
@@ -7078,22 +7070,18 @@ function copyToClipboard(txt,okMsg){
 function _fallbackCopy(txt){
   const ta=document.createElement('textarea');
   ta.value=txt;
-  ta.style.position='fixed';ta.style.top='0';ta.style.left='0';
-  ta.style.width='1px';ta.style.height='1px';ta.style.opacity='0';
-  ta.contentEditable='true';ta.readOnly=false;
+  ta.setAttribute('readonly','');
+  ta.style.position='fixed';
+  ta.style.top='-9999px';
+  ta.style.left='-9999px';
+  ta.style.fontSize='16px'; // avoid iOS auto-zoom on focus
   document.body.appendChild(ta);
-  ta.focus();ta.select();
-  // iOS needs an explicit range
-  try{
-    const range=document.createRange();
-    range.selectNodeContents(ta);
-    const sel=window.getSelection();
-    sel.removeAllRanges();sel.addRange(range);
-    ta.setSelectionRange(0,txt.length);
-  }catch(e){}
+  ta.focus({preventScroll:true});
+  ta.select();
+  ta.setSelectionRange(0,txt.length); // needed on some mobile browsers
   let ok=false;
   try{ok=document.execCommand('copy');}catch(e){ok=false;}
-  ta.remove();
+  document.body.removeChild(ta);
   return ok;
 }
 function todoItemToText(item){
@@ -7741,8 +7729,8 @@ function hcRenderEmoji(){
   if(!inQuick&&habitDraft.emoji){
     html=`<span class="hc-emoji sel" onclick="hcPickEmoji('${habitDraft.emoji}')">${habitDraft.emoji}</span>`+html;
   }
-  // "更多" button to expand the full curated grid (pick from here to add to quick list)
-  html+=`<span class="hc-emoji hc-emoji-more" onclick="hcToggleMoreEmoji()" title="更多">···</span>`;
+  // "+" opens the system emoji keyboard
+  html+=`<span class="hc-emoji hc-emoji-more" onclick="hcOpenEmojiKeyboard()" title="更多">+</span>`;
   row.innerHTML=html;
   // Long-press a quick emoji to remove it from the quick list
   row.querySelectorAll('.hc-emoji[data-qi]').forEach(el=>{
@@ -7768,31 +7756,36 @@ function hcDeleteQuickEmoji(i){
   sv('habitQuickEmoji',HABIT_QUICK_EMOJI);
   hcRenderEmoji();
 }
-function hcToggleMoreEmoji(){
-  let grid=document.getElementById('hcEmojiGrid');
-  if(grid){grid.remove();return;}
-  grid=document.createElement('div');
-  grid.id='hcEmojiGrid';
-  grid.className='hc-emoji-grid';
-  // Dedupe while preserving order
-  const seen=new Set();
-  const list=HABIT_MORE_EMOJI.filter(e=>{if(seen.has(e))return false;seen.add(e);return true;});
-  grid.innerHTML=list.map(e=>
-    `<span class="hc-emoji-g${HABIT_QUICK_EMOJI.includes(e)?' sel':''}" onclick="hcPickEmojiFromGrid('${e}')">${e}</span>`
-  ).join('');
-  const row=document.getElementById('hcEmojiRow');
-  row.parentNode.insertBefore(grid,row.nextSibling);
-}
-function hcPickEmojiFromGrid(e){
-  habitDraft.emoji=e;
-  // Add to the quick list too, so it's available next time (persisted)
-  if(!HABIT_QUICK_EMOJI.includes(e)){
-    HABIT_QUICK_EMOJI.push(e);
-    sv('habitQuickEmoji',HABIT_QUICK_EMOJI);
+// Open the phone's native emoji keyboard via a barely-there input (no visible textbox chrome)
+function hcOpenEmojiKeyboard(){
+  toast('从键盘选一个 emoji');
+  let inp=document.getElementById('hcEmojiKbInput');
+  if(!inp){
+    inp=document.createElement('input');
+    inp.id='hcEmojiKbInput';
+    inp.type='text';
+    inp.className='hc-emoji-kb-input';
+    inp.autocomplete='off';
+    inp.autocapitalize='off';
+    inp.setAttribute('inputmode','text');
+    document.body.appendChild(inp);
+    inp.addEventListener('input',()=>{
+      const v=inp.value.trim();
+      if(v){
+        const chars=Array.from(v);
+        const picked=chars[chars.length-1];
+        habitDraft.emoji=picked;
+        if(!HABIT_QUICK_EMOJI.includes(picked)){
+          HABIT_QUICK_EMOJI.push(picked);
+          sv('habitQuickEmoji',HABIT_QUICK_EMOJI);
+        }
+        inp.value='';
+        inp.blur();
+        hcRenderEmoji();
+      }
+    });
   }
-  const grid=document.getElementById('hcEmojiGrid');
-  if(grid)grid.remove();
-  hcRenderEmoji();
+  inp.focus();
 }
 function hcPickEmoji(e){
   habitDraft.emoji=e;
