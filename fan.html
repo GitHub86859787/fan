@@ -1309,6 +1309,12 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 /* ===== SUB-TODOS (拆解/细目) ===== */
 .todo-item{flex-direction:column;align-items:stretch;transition:background .15s}
 .todo-item-pressed{background:rgba(255,255,255,.05);border-radius:12px}
+.todo-copy-confirm{position:fixed;z-index:500;padding:9px 22px;border-radius:100px;
+  background:rgba(232,228,220,.95);color:rgba(40,34,28,.9);border:none;
+  font-family:'Noto Serif SC',serif;font-weight:400;font-size:13px;letter-spacing:.15em;
+  text-indent:.15em;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.35);
+  animation:popIn .2s cubic-bezier(.16,1,.3,1)}
+.todo-copy-confirm:active{transform:scale(.94)}
 .todo-main{display:flex;align-items:flex-start;width:100%}
 .todo-body{flex:1;min-width:0}
 .todo-actions{display:flex;align-items:center;gap:4px;flex-shrink:0;margin-left:8px}
@@ -7054,31 +7060,52 @@ function renderMemoList(type,forceElId){
 
 // ===== Copy to clipboard (with subs) =====
 function copyToClipboard(txt,okMsg){
-  // Called from touchend now (a real user gesture), so both APIs should work reliably.
+  // Try the synchronous execCommand method first — it doesn't depend on Promise-based
+  // permission checks that can be finicky when triggered from a long-press timer.
+  const ok=_fallbackCopy(txt);
+  if(ok){
+    toast(okMsg||'已复制');
+    return;
+  }
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(txt).then(()=>{
       toast(okMsg||'已复制');
     }).catch(()=>{
-      const ok=_fallbackCopy(txt);
-      toast(ok?(okMsg||'已复制'):'复制失败，请重试');
+      toast('复制失败，请重试');
     });
   }else{
-    const ok=_fallbackCopy(txt);
-    toast(ok?(okMsg||'已复制'):'复制失败，请重试');
+    toast('复制失败，请重试');
   }
 }
 function _fallbackCopy(txt){
   const ta=document.createElement('textarea');
   ta.value=txt;
-  ta.setAttribute('readonly','');
+  // iOS Safari's execCommand('copy') is unreliable when the element is positioned
+  // off-screen (e.g. top:-9999px) — it needs to be within the visible viewport,
+  // just made invisible via transparent styling instead.
   ta.style.position='fixed';
-  ta.style.top='-9999px';
-  ta.style.left='-9999px';
-  ta.style.fontSize='16px'; // avoid iOS auto-zoom on focus
+  ta.style.top='0';
+  ta.style.left='0';
+  ta.style.width='2em';
+  ta.style.height='2em';
+  ta.style.padding='0';
+  ta.style.border='none';
+  ta.style.outline='none';
+  ta.style.boxShadow='none';
+  ta.style.background='transparent';
+  ta.style.fontSize='16px'; // avoid iOS auto-zoom
   document.body.appendChild(ta);
-  ta.focus({preventScroll:true});
+  ta.focus();
   ta.select();
-  ta.setSelectionRange(0,txt.length); // needed on some mobile browsers
+  ta.setSelectionRange(0,txt.length);
+  // iOS specifically also needs the Selection/Range API alongside the textarea's own selection
+  try{
+    const range=document.createRange();
+    range.selectNodeContents(ta);
+    const sel=window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }catch(e){}
   let ok=false;
   try{ok=document.execCommand('copy');}catch(e){ok=false;}
   document.body.removeChild(ta);
@@ -7103,16 +7130,18 @@ function copyTodoItem(itemId){
 function attachTodoLongPress(){
   document.querySelectorAll('#memoSecTodo .todo-item[data-mid], #memoList .todo-item[data-mid]').forEach(card=>{
     if(card._lpBound)return; card._lpBound=true;
-    let timer=null,sx=0,sy=0,fired=false;
+    let timer=null,sx=0,sy=0;
     const start=(e)=>{
       // Don't trigger on interactive children (check, del, input, sub rows)
       if(e.target.closest('.memo-check,.todo-sub,.memo-del,.todo-sub-check,.todo-sub-del,.todo-add-sub,.todo-sub-add,.todo-sub-input,input,textarea'))return;
-      const t=e.touches?e.touches[0]:e; sx=t.clientX;sy=t.clientY;fired=false;
+      const t=e.touches?e.touches[0]:e; sx=t.clientX;sy=t.clientY;
       timer=setTimeout(()=>{
-        fired=true;
+        timer=null;
         if(navigator.vibrate)navigator.vibrate(20);
         card.classList.add('todo-item-pressed');
-        timer=null;
+        card._suppressUntil=Date.now()+800;
+        copyTodoItem(card.dataset.mid);
+        setTimeout(()=>card.classList.remove('todo-item-pressed'),200);
       },500);
     };
     const move=(e)=>{
@@ -7120,24 +7149,15 @@ function attachTodoLongPress(){
       const t=e.touches?e.touches[0]:e;
       if(Math.abs(t.clientX-sx)>10||Math.abs(t.clientY-sy)>10){clearTimeout(timer);timer=null;}
     };
-    const end=()=>{
-      if(timer){clearTimeout(timer);timer=null;}
-      card.classList.remove('todo-item-pressed');
-      if(fired){
-        // Perform the actual copy right at touch release — still within the user gesture window
-        card._suppressUntil=Date.now()+800;
-        copyTodoItem(card.dataset.mid);
-        fired=false;
-      }
-    };
+    const end=()=>{if(timer){clearTimeout(timer);timer=null;}};
     card.addEventListener('touchstart',start,{passive:true});
     card.addEventListener('touchmove',move,{passive:true});
     card.addEventListener('touchend',end);
     card.addEventListener('mousedown',start);
     card.addEventListener('mousemove',move);
     card.addEventListener('mouseup',end);
-    card.addEventListener('mouseleave',()=>{if(timer){clearTimeout(timer);timer=null;}card.classList.remove('todo-item-pressed');});
-    // Suppress any click within the suppression window (after a long-press copy)
+    card.addEventListener('mouseleave',()=>{if(timer){clearTimeout(timer);timer=null;}});
+    // Suppress the click that follows a long-press copy (prevents accidentally entering edit mode)
     card.addEventListener('click',(e)=>{
       if(card._suppressUntil&&Date.now()<card._suppressUntil){
         e.stopPropagation();e.preventDefault();
