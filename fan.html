@@ -7102,10 +7102,45 @@ function runClipboardDiagnostic(){
     <button class="clip-diag-btn" onclick="clipDiagTest(2)">2. 直接点击复制</button>
     <button class="clip-diag-btn" onclick="clipDiagTest(3)">3. 延迟0.5秒复制（模拟长按）</button>
     <div class="clip-diag-touch-area" id="clipDiagTouchArea">4. 真长按这里测试（和app一样）</div>
+    <div class="clip-diag-touch-area" id="clipDiagTouchArea2">5. 长按这里，松手时才复制（新方案）</div>
     <button class="clip-diag-close" onclick="document.getElementById('clipDiagBg').remove()">关闭</button>
   </div>`;
   document.body.appendChild(bg);
   attachClipDiagTouch();
+  attachClipDiagTouch2();
+}
+function attachClipDiagTouch2(){
+  const area=document.getElementById('clipDiagTouchArea2');
+  if(!area)return;
+  let timer=null,pending=false;
+  const start=()=>{
+    clipDiagClear();
+    clipDiagLog('按住不放...0.5秒后会标记（但不会立刻复制）');
+    timer=setTimeout(()=>{
+      timer=null;pending=true;
+      clipDiagLog('已标记，请松手（松手触发的click才会真正复制）');
+    },500);
+  };
+  const cancelTimer=()=>{if(timer){clearTimeout(timer);timer=null;}};
+  area.addEventListener('touchstart',start,{passive:true});
+  area.addEventListener('touchmove',cancelTimer,{passive:true});
+  area.addEventListener('mousedown',start);
+  area.addEventListener('click',(e)=>{
+    if(pending){
+      pending=false;
+      clipDiagLog('click事件触发，尝试复制...');
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText('click方案测试999').then(()=>{
+          clipDiagLog('✅ 成功！长按+click 方案可行','ok');
+        }).catch(err=>{
+          clipDiagLog('❌ 失败: '+err.message,'fail');
+          _clipDiagFallback();
+        });
+      }else{
+        _clipDiagFallback();
+      }
+    }
+  });
 }
 function attachClipDiagTouch(){
   const area=document.getElementById('clipDiagTouchArea');
@@ -7271,18 +7306,19 @@ function copyTodoItem(itemId){
 function attachTodoLongPress(){
   document.querySelectorAll('#memoSecTodo .todo-item[data-mid], #memoList .todo-item[data-mid]').forEach(card=>{
     if(card._lpBound)return; card._lpBound=true;
-    let timer=null,sx=0,sy=0;
+    let timer=null,sx=0,sy=0,pendingCopy=false;
     const start=(e)=>{
       // Don't trigger on interactive children (check, del, input, sub rows)
       if(e.target.closest('.memo-check,.todo-sub,.memo-del,.todo-sub-check,.todo-sub-del,.todo-add-sub,.todo-sub-add,.todo-sub-input,input,textarea'))return;
       const t=e.touches?e.touches[0]:e; sx=t.clientX;sy=t.clientY;
       timer=setTimeout(()=>{
+        // Only mark + give feedback here — DO NOT touch the clipboard from a touch-originated
+        // timer. iOS treats touch-based async calls as no longer "user-authorized", even
+        // moments later. The actual copy must happen inside the 'click' event below.
         timer=null;
+        pendingCopy=true;
         if(navigator.vibrate)navigator.vibrate(20);
         card.classList.add('todo-item-pressed');
-        card._suppressUntil=Date.now()+800;
-        copyTodoItem(card.dataset.mid);
-        setTimeout(()=>card.classList.remove('todo-item-pressed'),200);
       },500);
     };
     const move=(e)=>{
@@ -7290,18 +7326,24 @@ function attachTodoLongPress(){
       const t=e.touches?e.touches[0]:e;
       if(Math.abs(t.clientX-sx)>10||Math.abs(t.clientY-sy)>10){clearTimeout(timer);timer=null;}
     };
-    const end=()=>{if(timer){clearTimeout(timer);timer=null;}};
+    const end=()=>{
+      if(timer){clearTimeout(timer);timer=null;}
+      card.classList.remove('todo-item-pressed');
+    };
     card.addEventListener('touchstart',start,{passive:true});
     card.addEventListener('touchmove',move,{passive:true});
     card.addEventListener('touchend',end);
     card.addEventListener('mousedown',start);
     card.addEventListener('mousemove',move);
     card.addEventListener('mouseup',end);
-    card.addEventListener('mouseleave',()=>{if(timer){clearTimeout(timer);timer=null;}});
-    // Suppress the click that follows a long-press copy (prevents accidentally entering edit mode)
+    card.addEventListener('mouseleave',()=>{if(timer){clearTimeout(timer);timer=null;}card.classList.remove('todo-item-pressed');});
+    // The click that follows touch release is where the actual copy happens — this is the
+    // one event type iOS reliably grants clipboard-write permission for.
     card.addEventListener('click',(e)=>{
-      if(card._suppressUntil&&Date.now()<card._suppressUntil){
+      if(pendingCopy){
         e.stopPropagation();e.preventDefault();
+        pendingCopy=false;
+        copyTodoItem(card.dataset.mid);
       }
     },true);
   });
