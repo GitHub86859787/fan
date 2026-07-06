@@ -6,6 +6,37 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1E2820">
+<script>
+(function(){
+  // 视口高度预锁：先用上次稳定的高度渲染，避免首帧高度不对导致底部露一条/慢慢下沉
+  var KEY_PREFIX='fan.viewport.v1.';
+  function isStandalone(){
+    return !!(
+      window.navigator.standalone ||
+      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+      (window.matchMedia && window.matchMedia('(display-mode: fullscreen)').matches)
+    );
+  }
+  function profile(){
+    var sw=Math.round((window.screen&&window.screen.width)||0);
+    var sh=Math.round((window.screen&&window.screen.height)||0);
+    var min=Math.min(sw,sh), max=Math.max(sw,sh);
+    var dpr=Math.round((window.devicePixelRatio||1)*100);
+    return min+'x'+max+'@'+dpr+(isStandalone()?'.app':'.web');
+  }
+  window.__FanViewportProfile=profile;
+  window.__FanViewportKey=KEY_PREFIX+profile();
+  try{
+    var raw=localStorage.getItem(window.__FanViewportKey);
+    var saved=raw?JSON.parse(raw):null;
+    if(saved&&saved.h&&saved.h>500){
+      document.documentElement.style.setProperty('--app-height',Math.ceil(saved.h)+'px');
+      document.documentElement.classList.add('vh-memory');
+      window.__FanInitialVH=Math.ceil(saved.h);
+    }
+  }catch(e){}
+})();
+</script>
 <title>梵</title>
 <!-- App icons (I1 经典版) -->
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -15,9 +46,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;500&family=EB+Garamond:ital,wght@0,400;0,500;1,300;1,400&family=Cormorant:ital,wght@0,300;0,400;1,300;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{background:#1E2820;height:100%;height:-webkit-fill-available;--app-height:100vh;--bg-extra:96px}
+html{background:#1E2820;height:100%;height:-webkit-fill-available;overflow:hidden;overscroll-behavior:none;--app-height:100dvh;--bg-extra:112px}
 html,body{width:100%;touch-action:pan-y}
-body{min-height:100vh;min-height:-webkit-fill-available;min-height:calc(var(--app-height) + 1px);height:auto;font-family:'EB Garamond','Noto Serif SC',serif;-webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;background:#1E2820;position:relative;overscroll-behavior:none}
+body{height:var(--app-height);min-height:100vh;min-height:-webkit-fill-available;min-height:var(--app-height);font-family:'EB Garamond','Noto Serif SC',serif;-webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;background:#1E2820;position:relative;overflow:hidden;overscroll-behavior:none}
 input,textarea,[contenteditable="true"]{-webkit-touch-callout:default!important;-webkit-user-select:text!important;user-select:text!important}
 .boot-screen{position:fixed;inset:0;z-index:99999;background:#1E2820;
   display:flex;align-items:center;justify-content:center;
@@ -31,7 +62,7 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 
 /* ============ GRADIENT BG ============ */
 .gradient-bg{position:fixed;top:0;left:0;right:0;bottom:auto;
-  width:100%;height:calc(var(--app-height) + var(--bg-extra));min-height:calc(100vh + var(--bg-extra));
+  width:100%;height:calc(var(--app-height) + var(--bg-extra));min-height:calc(var(--app-height) + var(--bg-extra));
   z-index:0;overflow:hidden;transition:background 3s ease;transform:translateZ(0);-webkit-transform:translateZ(0)}
 .layer{position:absolute;border-radius:50%;filter:blur(120px);transition:background 3s ease}
 .layer.l0{animation:f0 14s ease-in-out infinite alternate}
@@ -54,7 +85,7 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 
 
 /* ============ APP SHELL ============ */
-.app{position:relative;z-index:5;min-height:100vh;min-height:var(--app-height);display:flex;flex-direction:column;max-width:440px;margin:0 auto}
+.app{position:relative;z-index:5;height:var(--app-height);min-height:var(--app-height);max-height:var(--app-height);overflow:hidden;transition:none!important;display:flex;flex-direction:column;max-width:440px;margin:0 auto}
 
 /* Header */
 .hdr{padding:calc(env(safe-area-inset-top,0px) + 24px) 24px 12px;text-align:center;flex-shrink:0;
@@ -3309,63 +3340,83 @@ function _fanEnsureRunning(cb){
   }
 }
 
-// Habit: daily check = Pearl(珍珠铃); milestone streak = Gala(落定)
+// ===== Wood-knock synthesis (木) — replaces the metallic bell/bowl overtone stack =====
+// A short filtered-noise "click" (the knock texture) + a fast-decaying low-passed body tone.
+// No bright harmonic stacking (2x/3x/5x ratios), so it reads as wood, not metal/bell.
+function _fanWoodKnock(freq,start,gain,wet,dur,noiseAmt){
+  const t0=ac.currentTime+start;
+  noiseAmt=noiseAmt==null?0.5:noiseAmt;
+  // The knock transient — a very short burst of filtered noise
+  if(noiseAmt>0){
+    const s=_fanNoise(0.025);
+    const bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=freq*2.6; bp.Q.value=1.1;
+    const e=ac.createGain(); e.gain.setValueAtTime(0.0001,t0);
+    e.gain.linearRampToValueAtTime(gain*noiseAmt,t0+0.002);
+    e.gain.exponentialRampToValueAtTime(0.0001,t0+0.022);
+    s.connect(bp); bp.connect(e); _fanOut(e,wet*0.25); s.start(t0); s.stop(t0+0.03);
+  }
+  // The body — a single low tone, fast decay, heavily low-passed (dull thud, not a ring)
+  const o=ac.createOscillator(); o.type='triangle'; o.frequency.value=freq;
+  const lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=freq*2.1;
+  const env=ac.createGain(); env.gain.setValueAtTime(0.0001,t0);
+  env.gain.linearRampToValueAtTime(gain,t0+0.005);
+  env.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  o.connect(env); env.connect(lp); _fanOut(lp,wet);
+  o.start(t0); o.stop(t0+dur+0.06);
+}
+// A soft crackle-swell (火/fire texture) — used sparingly for the milestone moment
+function _fanCrackle(start,peak,dur,wet){
+  const t0=ac.currentTime+start;
+  const s=_fanNoise(dur+0.1);
+  const bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=2600; bp.Q.value=0.6;
+  const env=ac.createGain(); env.gain.setValueAtTime(0.0001,t0);
+  env.gain.linearRampToValueAtTime(peak,t0+dur*0.25);
+  env.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  s.connect(bp); bp.connect(env); _fanOut(env,wet); s.start(t0); s.stop(t0+dur+0.12);
+}
+
+// Habit: daily check — a single warm wood knock
 function playHabitDaily(){
   _fanEnsureRunning(()=>{
-    _fanSoftBell(880,0,0.18,0.6,1.4,3200,0.018);
-    _fanBell(1760,0.05,0.03,0.6,0.8);
+    _fanWoodKnock(360,0,0.16,0.22,0.16,0.55);
     _fanBuzz(6);
   });
 }
+// Habit: 28-day milestone — a short rising run of wood knocks + a touch of warm crackle
 function playHabitMilestone(){
   _fanEnsureRunning(()=>{
-    _fanClink(2400,0,0.10,0.4,0.16);
-    const arp=[783.99,987.77,1174.66,1567.98];
-    arp.forEach(function(f,i){_fanBell(f,0.06+i*0.10,0.13,0.7,i<3?0.5:1.6);});
-    _fanBell(3135.96,0.5,0.03,0.8,1.0);
-    _fanAirySwell(0.4,0.04,0.7,0.6,5000);
+    const notes=[220,262,294,330];
+    notes.forEach(function(f,i){_fanWoodKnock(f,i*0.09,0.15,0.3,i<3?0.16:0.32,0.5);});
+    _fanCrackle(0.3,0.05,0.5,0.35);
     _fanBuzz([8,40,8,40,8,40,14]);
   });
 }
-// Warm "small bowl" tone — same overtone character as the app's singing bowl (fundamental + ~2x + ~0.5x),
-// mellower and rounder than the bright crystal-bell stack, to match 梵's quiet/zen sound language.
-function _fanBowl(freq,start,gain,wet,dur,attack){
-  attack=attack||0.015;
-  const t0=ac.currentTime+start;
-  [[1,1,dur],[2.005,0.26,dur*0.7],[0.5,0.35,dur*1.15]].forEach(function(r){
-    const o=ac.createOscillator(); o.type='sine'; o.frequency.value=freq*r[0];
-    const env=ac.createGain(); env.gain.setValueAtTime(0.0001,t0);
-    env.gain.linearRampToValueAtTime(gain*r[1],t0+attack);
-    env.gain.exponentialRampToValueAtTime(0.0001,t0+r[2]);
-    o.connect(env); _fanOut(env,wet); o.start(t0); o.stop(t0+r[2]+0.1);
-  });
-}
-// 待办 · 添加 — 极轻的落笔感，像笔尖点在纸上，几不可闻
+// 待办 · 添加 — 极轻的一记木声，像笔尖点在木桌上
 function playMemoAdd(){
   _fanEnsureRunning(()=>{
-    _fanBowl(880,0,0.075,0.3,0.28,0.01);
+    _fanWoodKnock(560,0,0.10,0.18,0.09,0.6);
     _fanBuzz(6);
   });
 }
-// 待办 · 完成 — 温润的钵音，一声落定，带一点点回甘般的泛音
+// 待办 · 完成 — 温厚的双响木声，一声落定
 function playMemoDone(){
   _fanEnsureRunning(()=>{
-    _fanBowl(587.33,0,0.15,0.5,1.0,0.012);   // D5 — 主音，温和落定
-    _fanBowl(880,0.05,0.045,0.5,0.7,0.02);   // 五度泛音，随后轻轻浮起
+    _fanWoodKnock(300,0,0.17,0.28,0.24,0.5);
+    _fanWoodKnock(240,0.1,0.10,0.3,0.28,0.4);
     _fanBuzz([7,35,10]);
   });
 }
-// 细目 · 添加 — 比待办添加更轻一分，几乎只是个提示
+// 细目 · 添加 — 比待办添加更轻更短
 function playSubAdd(){
   _fanEnsureRunning(()=>{
-    _fanBowl(1046.50,0,0.05,0.25,0.22,0.008);
+    _fanWoodKnock(700,0,0.07,0.15,0.06,0.6);
     _fanBuzz(5);
   });
 }
-// 细目 · 完成 — 小一号的钵音，比待办完成更轻更短
+// 细目 · 完成 — 小一号的木声，比待办完成更轻更短
 function playSubDone(){
   _fanEnsureRunning(()=>{
-    _fanBowl(783.99,0,0.09,0.4,0.5,0.012);
+    _fanWoodKnock(440,0,0.11,0.22,0.14,0.55);
     _fanBuzz(6);
   });
 }
@@ -9028,60 +9079,68 @@ function init(){
       if(pmState==='work'||pmState==='rest')tickPomo();
     }
   });
-  // iOS Safari/PWA viewport healer
-  // Keeps the background taller than the real screen and recalculates after keyboard open/close,
-  // so the bottom gap is fixed automatically without needing a manual swipe.
-  const isTextInput=el=>el&&(
-    el.tagName==='INPUT'||el.tagName==='TEXTAREA'||el.isContentEditable
-  );
-  let lastFullHeight=Math.max(window.innerHeight||0, window.visualViewport?window.visualViewport.height:0, 0);
-  function setAppHeight(force=false){
-    const vv=window.visualViewport;
-    const vvH=vv?vv.height:0;
-    const winH=window.innerHeight||0;
-    const active=isTextInput(document.activeElement);
-    const candidate=Math.max(winH,vvH,lastFullHeight);
-    // While the keyboard is up, do not shrink the app/background height.
-    if(force || !active){
-      lastFullHeight=Math.max(lastFullHeight,candidate);
-      document.documentElement.style.setProperty('--app-height', Math.ceil(lastFullHeight)+'px');
+  // 视口高度校准 — 只做瞬间修正，绝不用 scrollTo 缓慢下沉；只允许变高，不轻易变矮
+  (function(){
+    const root=document.documentElement;
+    const profileFn=window.__FanViewportProfile||(()=>'default');
+    const key=window.__FanViewportKey||('fan.viewport.v1.'+profileFn());
+    let lastFullHeight=window.__FanInitialVH||0;
+    let saveTimer=null;
+
+    function isPortraitNow(){
+      const sw=(window.screen&&window.screen.width)||0;
+      const sh=(window.screen&&window.screen.height)||0;
+      const iw=window.innerWidth||0, ih=window.innerHeight||0;
+      return ih>=iw || Math.max(sw,sh)>=Math.min(sw,sh);
     }
-  }
-  function nudgeViewport(){
-    setAppHeight(true);
-    requestAnimationFrame(()=>{
-      window.scrollTo(0,1);
-      requestAnimationFrame(()=>window.scrollTo(0,0));
-    });
-  }
-  setAppHeight(true);
-  window.addEventListener('load',()=>{
-    setAppHeight(true);
-    setTimeout(nudgeViewport,60);
-    setTimeout(nudgeViewport,350);
-  });
-  window.addEventListener('pageshow',()=>{
-    setAppHeight(true);
-    setTimeout(nudgeViewport,80);
-  });
-  window.addEventListener('orientationchange',()=>{
-    lastFullHeight=0;
-    setTimeout(()=>setAppHeight(true),250);
-    setTimeout(nudgeViewport,600);
-  });
-  document.addEventListener('focusin',()=>setAppHeight(false));
-  document.addEventListener('focusout',()=>{
-    setTimeout(nudgeViewport,80);
-    setTimeout(nudgeViewport,260);
-    setTimeout(nudgeViewport,520);
-  });
-  if(window.visualViewport){
-    window.visualViewport.addEventListener('resize',()=>{
-      setAppHeight(false);
-      if(!isTextInput(document.activeElement)) setTimeout(nudgeViewport,120);
-    });
-    window.visualViewport.addEventListener('scroll',()=>setAppHeight(false));
-  }
+    function currentHeight(){
+      const vv=window.visualViewport;
+      const vvH=vv?vv.height:0;
+      const winH=window.innerHeight||0;
+      let screenH=0;
+      if(window.screen&&isPortraitNow()){
+        screenH=Math.max(window.screen.height||0,window.screen.width||0);
+      }
+      let h=Math.max(vvH||0,winH||0,screenH||0,lastFullHeight||0);
+      if(!h||h<500)h=screenH||winH||vvH||lastFullHeight||0;
+      return Math.ceil(h||0)+2; // +2px guards against sub-pixel rounding leaving a bottom sliver
+    }
+    function persist(h){
+      clearTimeout(saveTimer);
+      saveTimer=setTimeout(()=>{
+        try{localStorage.setItem(key,JSON.stringify({h,t:Date.now(),p:profileFn()}));}catch(e){}
+      },120);
+    }
+    function applyHeight(force){
+      const h=currentHeight();
+      if(!h)return;
+      // Only allow growing; never silently shrink (this alone prevents keyboard-open
+      // from permanently shrinking the background — no special-casing needed).
+      if(lastFullHeight&&h<=lastFullHeight+2)return;
+      if(!force&&lastFullHeight&&h<lastFullHeight-24)return;
+      lastFullHeight=Math.max(lastFullHeight||0,h);
+      root.style.setProperty('--app-height',Math.ceil(lastFullHeight)+'px');
+      root.classList.add('vh-locked');
+      persist(lastFullHeight);
+    }
+    function settle(){
+      applyHeight(true);
+      requestAnimationFrame(()=>applyHeight(true));
+      setTimeout(()=>applyHeight(true),80);
+      setTimeout(()=>applyHeight(true),260);
+      setTimeout(()=>applyHeight(true),700);
+    }
+
+    settle();
+    window.addEventListener('load',settle,{passive:true});
+    window.addEventListener('pageshow',settle,{passive:true});
+    window.addEventListener('resize',()=>applyHeight(false),{passive:true});
+    window.addEventListener('orientationchange',()=>setTimeout(settle,220),{passive:true});
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)settle();},{passive:true});
+    if(window.visualViewport){
+      window.visualViewport.addEventListener('resize',()=>applyHeight(false),{passive:true});
+    }
+  })();
   mainLoop();
   // Fade out the boot screen now that the app is ready
   requestAnimationFrame(()=>{
