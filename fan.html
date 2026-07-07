@@ -470,6 +470,7 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .add-modal{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.5);backdrop-filter:blur(15px);
   display:none;justify-content:center;align-items:center;padding:24px;opacity:0;transition:opacity .3s ease}
 .add-modal.show{display:flex;opacity:1}
+.add-modal.kb-transition,.add-modal.kb-transition .add-box{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 .add-box{width:100%;max-width:320px;padding:28px 24px;border-radius:22px;
   background:rgba(20,20,22,.92);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(40px)}
 .add-box h3{font-family:'Noto Serif SC',serif;font-weight:200;font-size:16px;text-align:center;
@@ -717,6 +718,9 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .export-btn{flex:1;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.08);
   background:rgba(255,255,255,.04);font-family:'EB Garamond',serif;font-size:10px;
   letter-spacing:.1em;cursor:pointer;transition:all .3s,color 2s}
+.backup-status{margin-top:8px;text-align:center;font-family:'Cormorant Garamond',serif;
+  font-style:italic;font-size:11px;color:rgba(255,255,255,.35);letter-spacing:.03em}
+.backup-status.warn{color:rgba(230,170,140,.75)}
 
 /* Calendar event marks */
 .cal-d.has-mk::after{display:none}
@@ -1127,10 +1131,6 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .hc-emoji-custom::placeholder{color:rgba(255,250,244,.2);font-size:11px;
   font-family:'Cormorant Garamond',serif;font-style:italic}
 .hc-gradients{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px;margin-bottom:20px}
-.hc-adjust-btn{text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;
-  font-size:10px;color:rgba(255,250,244,.4);cursor:pointer;margin:-10px 0 18px;letter-spacing:.05em;
-  transition:color .2s}
-.hc-adjust-btn:active{color:rgba(255,250,244,.7)}
 .hc-grad{width:32px;height:32px;border-radius:50%;cursor:pointer;
   border:2px solid transparent;transition:all .2s}
 .hc-grad.sel{border-color:rgba(255,250,244,.9);transform:scale(1.1)}
@@ -1361,18 +1361,6 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   font-size:14px;font-weight:300;cursor:pointer;display:flex;align-items:center;justify-content:center;
   opacity:.25;transition:opacity .25s;color:inherit;font-family:'EB Garamond',serif}
 .todo-add-sub:active{opacity:.7}
-.todo-move{width:20px;height:20px;border:none;background:none;font-size:12px;cursor:pointer;
-  opacity:.22;transition:opacity .2s;color:inherit}
-.todo-move:active{opacity:.7}
-.todo-move-pop{position:fixed;z-index:400;display:flex;flex-direction:column;
-  background:rgba(28,24,20,.97);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  border:1px solid rgba(255,240,220,.12);border-radius:12px;padding:5px;
-  box-shadow:0 10px 30px rgba(0,0,0,.4);animation:popIn .2s cubic-bezier(.16,1,.3,1);min-width:80px}
-.todo-move-pop button{padding:9px 16px;border:none;background:none;color:rgba(255,250,244,.75);
-  font-family:'Noto Serif SC',serif;font-weight:300;font-size:12px;letter-spacing:.08em;
-  cursor:pointer;border-radius:8px;text-align:center;transition:background .2s}
-.todo-move-pop button:hover{background:rgba(255,255,255,.06)}
-.todo-move-pop button.cur{color:rgba(232,228,220,.95);background:rgba(232,228,220,.08)}
 /* Progress bar */
 .todo-prog{display:flex;align-items:center;gap:9px;margin-top:9px}
 .todo-prog-track{flex:1;height:2px;background:rgba(255,255,255,.08);border-radius:2px;
@@ -1396,10 +1384,6 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .todo-sub-del{width:16px;height:16px;border:none;background:none;font-size:9px;cursor:pointer;
   opacity:.25;color:inherit;flex-shrink:0;margin-top:2px;transition:opacity .2s}
 .todo-sub-del:active{opacity:.7}
-.todo-sub-drag{border:none;background:none;font-size:10px;cursor:grab;
-  opacity:.2;color:inherit;flex-shrink:0;margin-top:1px;letter-spacing:-2px;
-  transition:opacity .2s;touch-action:none;padding:0 3px}
-.todo-sub-drag:active{opacity:.6;cursor:grabbing}
 .todo-sub.sub-dragging{opacity:.9;background:rgba(255,255,255,.06);border-radius:8px;
   box-shadow:0 4px 14px rgba(0,0,0,.25);position:relative}
 .todo-sub-add{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;
@@ -1415,6 +1399,11 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   z-index:9999;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;
   box-shadow:0 8px 30px rgba(0,0,0,.3)}
 .fan-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.fan-toast.undo{pointer-events:auto;display:flex;align-items:center;gap:12px;white-space:nowrap}
+.fan-toast.undo button{border:none;background:rgba(255,250,244,.14);color:rgba(255,250,244,.95);
+  font-family:'Noto Serif SC',serif;font-weight:400;font-size:11px;letter-spacing:.1em;
+  padding:5px 14px;border-radius:100px;cursor:pointer;flex-shrink:0}
+.fan-toast.undo button:active{background:rgba(255,250,244,.24)}
 .insp-views{display:flex;gap:4px;margin-bottom:12px;padding:3px;
   background:rgba(255,255,255,.03);border-radius:100px;border:1px solid rgba(255,255,255,.05)}
 .insp-view{flex:1;padding:7px 0;border-radius:100px;border:none;background:none;
@@ -2575,6 +2564,11 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
         <button class="export-btn" onclick="document.getElementById('importFile').click()">导入备份</button>
       </div>
+      <div class="export-row" style="margin-top:8px">
+        <button class="export-btn" onclick="makeAutoBackupNow()">保存快照</button>
+        <button class="export-btn" onclick="restoreLatestBackup()">恢复快照</button>
+      </div>
+      <div class="backup-status" id="backupStatus"></div>
     </div>
 
     <!-- ============ 添加/编辑 日程事件 — fullscreen ============ -->
@@ -3085,7 +3079,24 @@ const POSITIONS=[
 
 let currentMode='time'; // 'time' or 'tomato'
 
+// Layer position/size/opacity never change at runtime — set them once instead of
+// rewriting on every tick (they used to be rewritten 5x/sec, forever, for nothing).
+let _gradientLayersInited=false;
+function _initGradientLayerPositions(){
+  if(_gradientLayersInited)return;
+  for(let j=0;j<6;j++){
+    const el=document.getElementById('L'+j);
+    if(!el)continue;
+    const p=POSITIONS[j];
+    el.style.width=p.w+'%';el.style.height=p.h+'%';
+    el.style.left=p.left+'%';el.style.top=p.top+'%';
+    el.style.opacity=p.opacity;
+  }
+  _gradientLayersInited=true;
+}
+let _lastGradientBg=null;
 function applyGradient(){
+  _initGradientLayerPositions();
   let colors,bg;
   if(currentMode==='tomato'){
     const h=hourFloat();
@@ -3096,6 +3107,10 @@ function applyGradient(){
     colors=cs.colors;
     bg=cs.bg;
   }
+  // Skip all DOM writes if nothing actually changed since last call (the common case
+  // when running every second but colors only shift gradually across the day).
+  if(bg===_lastGradientBg)return;
+  _lastGradientBg=bg;
   document.getElementById('gradientBg').style.background=bg;
   // Sync html background so iOS PWA safe-area regions blend in
   document.documentElement.style.background=bg;
@@ -3105,10 +3120,7 @@ function applyGradient(){
   if(tc)tc.setAttribute('content',bg);
   for(let j=0;j<6;j++){
     const el=document.getElementById('L'+j);
-    const p=POSITIONS[j];
-    el.style.width=p.w+'%';el.style.height=p.h+'%';
-    el.style.left=p.left+'%';el.style.top=p.top+'%';
-    el.style.background=colors[j];el.style.opacity=p.opacity;
+    if(el)el.style.background=colors[j];
   }
 }
 
@@ -3133,6 +3145,7 @@ function applyUITheme(){
     const d=new Date();
     timeStr=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
   }
+  _lastThemeTextCol=textCol;_lastThemeTlCol=tlCol;
   
   // Expose theme color as CSS variable for cross-component use
   document.documentElement.style.setProperty('--theme-text',textCol);
@@ -3196,13 +3209,40 @@ function applyUITheme(){
 // MAIN LOOP
 // ================================================================
 let lastApply=0;
+let _lastThemeTextCol=null,_lastThemeTlCol=null;
+// Lightweight color computation (no DOM writes) — used by mainLoop to decide
+// whether the expensive full applyUITheme() re-scan is actually necessary.
+function _themeColorsNow(){
+  if(currentMode==='tomato'){
+    const h=hourFloat();
+    const isDark=(h>=22||h<7);
+    return [isDark?'#F0DDD0':'#3A1410',isDark?'#C8A090':'#7C2820'];
+  }
+  const cs=getCurrentColorSet(hourFloat());
+  return [cs.text,cs.textLight];
+}
 function mainLoop(){
   applyGradient();
   const now=Date.now();
-  if(now-lastApply>2000){lastApply=now;applyUITheme();}
-  // Tick timer if running
-  if(tState==='running'||tState==='paused'){updTimerDisplay();}
-  setTimeout(mainLoop,200); // 5fps for non-canvas updates
+  if(now-lastApply>2000){
+    lastApply=now;
+    const [tc,tl]=_themeColorsNow();
+    if(tc!==_lastThemeTextCol||tl!==_lastThemeTlCol){
+      // Colors actually changed (day/night period shift) — do the full re-theme.
+      applyUITheme();
+    }else{
+      // Colors unchanged: just keep the clock text fresh, skip the expensive
+      // full-page color re-scan (this is the common case, running most of the time).
+      const d=new Date();
+      const timeStr=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+      const hpTime=document.getElementById('hpTime');
+      if(hpTime)hpTime.textContent=timeStr;
+    }
+  }
+  // Note: the running timer's own display already ticks via its dedicated
+  // setInterval(updTimerDisplay,1000) started alongside the timer — no need
+  // to also drive it here every loop tick.
+  setTimeout(mainLoop,1000); // was 200ms; gradient blending is CSS-driven (3s transition), so 1/sec is plenty
   // Note: gradient itself uses CSS animations, so it's smooth without JS frames
 }
 
@@ -3236,8 +3276,9 @@ function unlockAudio(){
   // cost in the sound system) so the first actual habit/todo sound doesn't have to pay for it.
   if(ac&&ac.state==='running'){_fanAudioGraph();}
   else if(ac){ac.resume().then(()=>_fanAudioGraph()).catch(()=>{});}
-  // Also pre-load mp3 audio
-  try{SNAP_AUDIO.load();LAND_AUDIO.load();}catch(e){}
+  // Pre-load mp3 audio now (deferred from page-load to first-touch, so they
+  // don't compete with initial page render for network bandwidth)
+  try{SNAP_AUDIO.load();LAND_AUDIO.load();REST_IN_AUDIO.load();REST_OUT_AUDIO.load();}catch(e){}
 }
 ['touchstart','click','keydown'].forEach(ev=>{
   document.addEventListener(ev,unlockAudio,{once:false,passive:true});
@@ -3278,48 +3319,6 @@ function _fanNoise(dur){
   const d=b.getChannelData(0);
   for(let i=0;i<len;i++){d[i]=Math.random()*2-1;}
   const s=ac.createBufferSource(); s.buffer=b; return s;
-}
-function _fanBell(freq,start,gain,wet,dec){
-  const t0=ac.currentTime+start;
-  [[1,1,dec],[2.0,0.4,dec*0.8],[3.01,0.18,dec*0.6],[5.43,0.07,dec*0.4]].forEach(function(r){
-    const o=ac.createOscillator(); o.type='sine'; o.frequency.value=freq*r[0];
-    const env=ac.createGain(); env.gain.setValueAtTime(0.0001,t0);
-    env.gain.linearRampToValueAtTime(gain*r[1],t0+0.006);
-    env.gain.exponentialRampToValueAtTime(0.0001,t0+r[2]);
-    o.connect(env); _fanOut(env,wet); o.start(t0); o.stop(t0+r[2]+0.1);
-  });
-}
-function _fanSoftBell(freq,start,gain,wet,dec,lpf,attack){
-  attack=attack||0.012;
-  const t0=ac.currentTime+start;
-  const lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=lpf||3000;
-  [[1,1,dec],[2.0,0.3,dec*0.8],[3.01,0.10,dec*0.5]].forEach(function(r){
-    const o=ac.createOscillator(); o.type='sine'; o.frequency.value=freq*r[0];
-    const env=ac.createGain(); env.gain.setValueAtTime(0.0001,t0);
-    env.gain.linearRampToValueAtTime(gain*r[1],t0+attack);
-    env.gain.exponentialRampToValueAtTime(0.0001,t0+r[2]);
-    o.connect(env); env.connect(lp); o.start(t0); o.stop(t0+r[2]+0.1);
-  });
-  _fanOut(lp,wet);
-}
-function _fanClink(base,start,gain,wet,dec){
-  const t0=ac.currentTime+start;
-  [[1,1,dec],[2.76,0.5,dec*0.7],[5.40,0.25,dec*0.4]].forEach(function(r){
-    const o=ac.createOscillator(); o.type='sine'; o.frequency.value=base*r[0];
-    const env=ac.createGain(); env.gain.setValueAtTime(0.0001,t0);
-    env.gain.linearRampToValueAtTime(gain*r[1],t0+0.003);
-    env.gain.exponentialRampToValueAtTime(0.0001,t0+r[2]);
-    o.connect(env); _fanOut(env,wet); o.start(t0); o.stop(t0+r[2]+0.05);
-  });
-}
-function _fanAirySwell(start,peak,dur,wet,center){
-  const t0=ac.currentTime+start;
-  const s=_fanNoise(dur+0.12);
-  const bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=center||4200; bp.Q.value=0.8;
-  const env=ac.createGain(); env.gain.setValueAtTime(0.0001,t0);
-  env.gain.linearRampToValueAtTime(peak,t0+dur*0.3);
-  env.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
-  s.connect(bp); bp.connect(env); _fanOut(env,wet); s.start(t0); s.stop(t0+dur+0.14);
 }
 
 // Ensures the AudioContext is actually 'running' (not just resume()-requested) before
@@ -3420,7 +3419,7 @@ function playSubDone(){
     _fanBuzz(6);
   });
 }
-SNAP_AUDIO.preload = 'auto';
+SNAP_AUDIO.preload = 'none';
 function playTomatoPluck(){
   ea();
   try{
@@ -3433,7 +3432,7 @@ function playTomatoPluck(){
 
 // Tomato landing — real recording (uploaded mp3)
 const LAND_AUDIO = new Audio('land.mp3');
-LAND_AUDIO.preload = 'auto';
+LAND_AUDIO.preload = 'none';
 function playTomatoLand(){
   ea();
   try{
@@ -3446,7 +3445,7 @@ function playTomatoLand(){
 
 // Rest begin — 呼~ exhale
 const REST_IN_AUDIO = new Audio('rest_in.mp3');
-REST_IN_AUDIO.preload = 'auto';
+REST_IN_AUDIO.preload = 'none';
 function playRestIn(){
   ea();
   try{
@@ -3459,7 +3458,7 @@ function playRestIn(){
 
 // Rest end — wooden fish alert
 const REST_OUT_AUDIO = new Audio('rest_out.mp3');
-REST_OUT_AUDIO.preload = 'auto';
+REST_OUT_AUDIO.preload = 'none';
 function playRestOut(){
   ea();
   try{
@@ -3501,10 +3500,24 @@ function timerEndBowl(){
 // ================================================================
 // DATA STORE
 // ================================================================
-function ld(k,f){try{const d=localStorage.getItem('fan_'+k);return d?JSON.parse(d):f}catch{return f}}
+window.__fanLoadErrors=window.__fanLoadErrors||[];
+// Keys that are transient runtime state, not "real" data — skip them in backups/error-tracking
+const FAN_BACKUP_SKIP_KEYS=new Set(['timerActive','pomoActive','todaySchedShown','exportHistory','autoBackups','autoBackupMeta']);
+
+function ld(k,f){
+  try{
+    const d=localStorage.getItem('fan_'+k);
+    return d?JSON.parse(d):f;
+  }catch(err){
+    console.warn('Fan: data read failed for',k,err);
+    window.__fanLoadErrors.push({key:k,message:err&&err.message?err.message:String(err),ts:Date.now()});
+    return f;
+  }
+}
 function sv(k,v){
   try{
     localStorage.setItem('fan_'+k,JSON.stringify(v));
+    if(!FAN_BACKUP_SKIP_KEYS.has(k))fanScheduleAutoBackup('change');
     return true;
   }catch(err){
     console.error('Storage failed for key',k,err);
@@ -3520,6 +3533,130 @@ function sv(k,v){
     }
     return false;
   }
+}
+
+// ================================================================
+// 本地快照 — 自动备份 + 手动保存/恢复
+// ================================================================
+// 设计原则：不是"固定保留 N 份"，而是给快照总大小设一个上限（约 1.5MB）。
+// 这样无论你的数据以后涨到多大，快照本身占的空间都有一个明确的天花板，
+// 不会因为数据变多而悄悄把本来就紧张的 localStorage 挤爆。
+const FAN_BACKUP_KEY='autoBackups';
+const FAN_BACKUP_META_KEY='autoBackupMeta';
+const FAN_BACKUP_SIZE_BUDGET=1.5*1024*1024; // 快照总大小上限，约 1.5MB
+const FAN_BACKUP_MIN_KEEP=2; // 无论如何至少留 2 份，即使数据很大也不清空保护
+const FAN_BACKUP_DAILY_MS=24*60*60*1000;
+const FAN_BACKUP_CHANGE_MS=2*60*60*1000; // 日常变动触发的快照，最多每 2 小时写一次
+
+function fanCollectBackupData(){
+  const data={};
+  for(let i=0;i<localStorage.length;i++){
+    const key=localStorage.key(i);
+    if(!key||!key.startsWith('fan_'))continue;
+    const shortKey=key.slice(4);
+    if(FAN_BACKUP_SKIP_KEYS.has(shortKey))continue;
+    data[key]=localStorage.getItem(key);
+  }
+  return data;
+}
+function fanReadBackups(){
+  try{
+    const raw=localStorage.getItem('fan_'+FAN_BACKUP_KEY);
+    const arr=raw?JSON.parse(raw):[];
+    return Array.isArray(arr)?arr:[];
+  }catch(e){return [];}
+}
+// Trim from the oldest end until the serialized array fits the size budget,
+// but never below FAN_BACKUP_MIN_KEEP (favor keeping at least a couple of
+// recent snapshots even if the live data itself has grown large).
+function fanTrimToBudget(arr){
+  let list=arr.slice();
+  while(list.length>FAN_BACKUP_MIN_KEEP&&JSON.stringify(list).length>FAN_BACKUP_SIZE_BUDGET){
+    list.pop(); // oldest is last (we unshift new ones to the front)
+  }
+  return list;
+}
+function fanWriteBackups(arr){
+  const trimmed=fanTrimToBudget(arr);
+  localStorage.setItem('fan_'+FAN_BACKUP_KEY,JSON.stringify(trimmed));
+  localStorage.setItem('fan_'+FAN_BACKUP_META_KEY,JSON.stringify({
+    last:trimmed[0]?trimmed[0].timestamp:null,count:trimmed.length
+  }));
+  renderBackupStatus();
+}
+function fanCreateAutoBackup(reason,force){
+  try{
+    const backups=fanReadBackups();
+    const now=Date.now();
+    const lastTs=backups[0]&&backups[0].timestamp?backups[0].timestamp:0;
+    const interval=reason==='change'?FAN_BACKUP_CHANGE_MS:FAN_BACKUP_DAILY_MS;
+    if(!force&&lastTs&&now-lastTs<interval)return false;
+    const data=fanCollectBackupData();
+    const keys=Object.keys(data);
+    if(!keys.length)return false;
+    const snap={reason:reason||'auto',timestamp:now,day:todayK(),keyCount:keys.length,data};
+    const next=[snap,...backups];
+    fanWriteBackups(next);
+    return true;
+  }catch(err){
+    console.warn('Auto backup failed:',err);
+    return false;
+  }
+}
+let _fanBackupTimer=null;
+function fanScheduleAutoBackup(reason){
+  clearTimeout(_fanBackupTimer);
+  _fanBackupTimer=setTimeout(()=>fanCreateAutoBackup(reason||'change',false),1800);
+}
+function makeAutoBackupNow(){
+  if(fanCreateAutoBackup('manual',true))toast('已保存本地快照');
+  else toast('暂无可备份的数据');
+}
+function restoreLatestBackup(){
+  const backups=fanReadBackups();
+  const snap=backups[0];
+  if(!snap||!snap.data){alert('还没有可恢复的本地快照。');return;}
+  const d=new Date(snap.timestamp);
+  const timeStr=d.toLocaleDateString()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  if(!confirm(`将恢复最近本地快照：${timeStr}\n当前数据会先自动保存一份应急快照，然后被替换。确定继续？`))return;
+  fanCreateAutoBackup('before-restore',true);
+  // Wipe current fan_ data keys (except the backup store itself), then restore from snapshot
+  const keepBackups=localStorage.getItem('fan_'+FAN_BACKUP_KEY);
+  const keepMeta=localStorage.getItem('fan_'+FAN_BACKUP_META_KEY);
+  const existing=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k&&k.startsWith('fan_')&&k!=='fan_'+FAN_BACKUP_KEY&&k!=='fan_'+FAN_BACKUP_META_KEY)existing.push(k);
+  }
+  existing.forEach(k=>localStorage.removeItem(k));
+  Object.keys(snap.data).forEach(k=>localStorage.setItem(k,snap.data[k]));
+  if(keepBackups)localStorage.setItem('fan_'+FAN_BACKUP_KEY,keepBackups);
+  if(keepMeta)localStorage.setItem('fan_'+FAN_BACKUP_META_KEY,keepMeta);
+  alert('已恢复快照，页面将刷新。');
+  location.reload();
+}
+function renderBackupStatus(){
+  const el=document.getElementById('backupStatus');
+  if(!el)return;
+  const backups=fanReadBackups();
+  if(!backups.length){
+    el.textContent='尚无本地快照 · 建议先点"保存快照"';
+    el.classList.add('warn');
+    return;
+  }
+  const d=new Date(backups[0].timestamp);
+  const timeStr=d.toLocaleDateString()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  el.textContent=`最近快照 ${timeStr} · 共 ${backups.length} 份`;
+  el.classList.remove('warn');
+}
+function fanNoticeLoadErrors(){
+  if(!window.__fanLoadErrors||!window.__fanLoadErrors.length)return;
+  const n=window.__fanLoadErrors.length;
+  setTimeout(()=>{
+    toast(`有 ${n} 项数据读取异常，已用安全默认值打开`);
+    const el=document.getElementById('backupStatus');
+    if(el){el.textContent='检测到数据读取异常 · 可尝试恢复最近快照';el.classList.add('warn');}
+  },900);
 }
 
 const COLORS=[
@@ -4265,15 +4402,36 @@ function renderTags(){
   mg.onclick=()=>{editing=!editing;renderTags()};row.appendChild(mg);
   setTimeout(()=>applyUITheme(),50);
 }
-function delTag(id){if(tags.length<=1)return;tags=tags.filter(t=>t.id!==id);sv('tags',tags);
-  if(selTagId===id){selTagId=null;document.getElementById('startBtn').disabled=true;}renderTags()}
+function delTag(id){
+  if(tags.length<=1)return;
+  const idx=tags.findIndex(t=>t.id===id);
+  if(idx<0)return;
+  const deleted=JSON.parse(JSON.stringify(tags[idx]));
+  tags=tags.filter(t=>t.id!==id);
+  sv('tags',tags);
+  if(selTagId===id){selTagId=null;document.getElementById('startBtn').disabled=true;}
+  renderTags();
+  toastUndo('已删除标签',()=>{
+    if(!tags.some(t=>t.id===deleted.id))tags.splice(Math.min(idx,tags.length),0,deleted);
+    sv('tags',tags);renderTags();toast('已恢复');
+  });
+}
 
 let selColor=COLORS[0];
 function openAdd(){
   document.getElementById('addMod').classList.add('show');
   document.getElementById('addInp').value='';
   selColor=COLORS[Math.floor(Math.random()*COLORS.length)];
-  renderColorGrid();setTimeout(()=>document.getElementById('addInp').focus(),150);
+  renderColorGrid();
+  setTimeout(()=>{
+    const inp=document.getElementById('addInp');
+    const mod=document.getElementById('addMod');
+    // Drop the heavy backdrop-filter blur for the moment the keyboard is animating up —
+    // stacking two blurred layers while iOS animates the keyboard is what causes the jank.
+    mod.classList.add('kb-transition');
+    inp.focus({preventScroll:true});
+    setTimeout(()=>mod.classList.remove('kb-transition'),380);
+  },150);
 }
 function closeAdd(){document.getElementById('addMod').classList.remove('show')}
 function renderColorGrid(){
@@ -4429,15 +4587,24 @@ function delRec(i){
   const rec=todayRecs[i];
   if(!rec){return;}
   const recDk=dkOf(rec.start);
+  let bucketIdx=-1;
   if(allDays[recDk]){
-    const idx=allDays[recDk].findIndex(r=>r.start===rec.start&&r.end===rec.end&&r.tagId===rec.tagId);
-    if(idx>=0)allDays[recDk].splice(idx,1);
+    bucketIdx=allDays[recDk].findIndex(r=>r.start===rec.start&&r.end===rec.end&&r.tagId===rec.tagId);
+    if(bucketIdx>=0)allDays[recDk].splice(bucketIdx,1);
   }
   // Refresh todayRecs from current day
   todayRecs=allDays[todayK()]||[];
   if(!allDays[todayK()])allDays[todayK()]=todayRecs;
   sv('days',allDays);
   renderRecs();
+  const deleted=JSON.parse(JSON.stringify(rec));
+  toastUndo('已删除记录',()=>{
+    if(!allDays[recDk])allDays[recDk]=[];
+    const already=allDays[recDk].some(r=>r.start===deleted.start&&r.end===deleted.end&&r.tagId===deleted.tagId);
+    if(!already)allDays[recDk].splice(Math.min(bucketIdx,allDays[recDk].length),0,deleted);
+    todayRecs=allDays[todayK()]||[];
+    sv('days',allDays);renderRecs();toast('已恢复');
+  });
 }
 function saveRecs(){
   // Ensure today's bucket reflects current todayRecs
@@ -4717,10 +4884,6 @@ function confirmWheel(){
   updateDurationDisplay();
   closeWheel();
 }
-
-// Stub kept for backwards compat
-function setWheelDate(){}
-function updateWheelDateButtons(){}
 
 function buildWheelList(listId,total,selected){
   const list=document.getElementById(listId);
@@ -5578,16 +5741,21 @@ function importData(event){
           alert('备份文件似乎不包含数据。请确认是从「完整备份」导出的文件。');
           return;
         }
-        if(!confirm(`将导入 ${keys.length} 项数据。\n当前的数据将被完全替换。\n确定继续？`))return;
-        // First, clear ALL existing fan_* keys to avoid stale data
+        if(!confirm(`将导入 ${keys.length} 项数据。\n当前数据会先自动保存一份应急快照，然后被替换。\n确定继续？`))return;
+        // Safety net: snapshot the current state before wiping anything, in case the
+        // wrong file gets imported by accident.
+        fanCreateAutoBackup('before-import',true);
+        // Clear existing fan_* keys (but keep the backup store itself intact!)
         const existingKeys=[];
         for(let i=0;i<localStorage.length;i++){
           const k=localStorage.key(i);
-          if(k&&k.startsWith('fan_'))existingKeys.push(k);
+          if(k&&k.startsWith('fan_')&&k!=='fan_'+FAN_BACKUP_KEY&&k!=='fan_'+FAN_BACKUP_META_KEY)existingKeys.push(k);
         }
         existingKeys.forEach(k=>localStorage.removeItem(k));
-        // Then write the backup data
-        keys.forEach(k=>localStorage.setItem(k,obj.data[k]));
+        // Then write the backup data (skip backup-store keys if the imported file happens to include them)
+        keys.forEach(k=>{
+          if(k!=='fan_'+FAN_BACKUP_KEY&&k!=='fan_'+FAN_BACKUP_META_KEY)localStorage.setItem(k,obj.data[k]);
+        });
         alert('导入成功！页面将刷新。');
         location.reload();
       }else{
@@ -6317,9 +6485,16 @@ function markSave(dk){
 }
 
 function deleteMarkById(id){
+  const idx=calMarks.findIndex(m=>m.id===id);
+  if(idx<0)return;
+  const deleted=JSON.parse(JSON.stringify(calMarks[idx]));
   calMarks=calMarks.filter(m=>m.id!==id);
   sv('calMarks',calMarks);
   renderCal();
+  toastUndo('已删除印记',()=>{
+    if(!calMarks.some(m=>m.id===deleted.id))calMarks.splice(Math.min(idx,calMarks.length),0,deleted);
+    sv('calMarks',calMarks);renderCal();toast('已恢复');
+  });
 }
 
 // Get history for an emoji type (e.g. all 🦷 marks)
@@ -6353,10 +6528,17 @@ function saveEvent(){
 }
 function deleteEvent(){
   if(!evEditId)return;
+  const idx=calEvents.findIndex(e=>e.id===evEditId);
+  if(idx<0)return;
+  const deleted=JSON.parse(JSON.stringify(calEvents[idx]));
   calEvents=calEvents.filter(e=>e.id!==evEditId);
   sv('calEvents',calEvents);
   closeEvModal();
   renderCal();
+  toastUndo('已删除日程',()=>{
+    if(!calEvents.some(e=>e.id===deleted.id))calEvents.splice(Math.min(idx,calEvents.length),0,deleted);
+    sv('calEvents',calEvents);renderCal();toast('已恢复');
+  });
 }
 
 // Type selector
@@ -6599,18 +6781,6 @@ function memoSwitch(type){
 function escapeHtml(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
-}
-
-// Convert system emoji in the DOM to unified Twemoji images. Safe no-op if lib not loaded (offline).
-function renderTwemoji(root){
-  root=root||document.body;
-  if(!window.twemoji||!root)return;
-  try{
-    twemoji.parse(root,{
-      folder:'svg',ext:'.svg',className:'twemoji',
-      attributes:()=>({draggable:'false',loading:'lazy',decoding:'async'})
-    });
-  }catch(e){}
 }
 
 // ----------- TODO -----------
@@ -7090,10 +7260,19 @@ function memoToggle(type,id){
   }
 }
 function memoDel(type,id){
+  if(!memos[type])return;
+  const idx=memos[type].findIndex(i=>i.id===id);
+  if(idx<0)return;
+  const deleted=JSON.parse(JSON.stringify(memos[type][idx]));
   memos[type]=memos[type].filter(i=>i.id!==id);
   sv('memos',memos);
-  if(type==='shopping'||type==='ingredient')renderShopList();
-  else renderMemoList(type);
+  const rerender=()=>{if(type==='shopping'||type==='ingredient')renderShopList();else renderMemoList(type);};
+  rerender();
+  toastUndo('已删除',()=>{
+    if(!memos[type])memos[type]=[];
+    if(!memos[type].some(i=>i.id===deleted.id))memos[type].splice(Math.min(idx,memos[type].length),0,deleted);
+    sv('memos',memos);rerender();toast('已恢复');
+  });
 }
 function memoStartEdit(type,id){
   const item=memos[type].find(i=>i.id===id);
@@ -7355,10 +7534,28 @@ function attachSubDrag(){
 function toast(msg){
   let t=document.getElementById('fanToast');
   if(!t){t=document.createElement('div');t.id='fanToast';t.className='fan-toast';document.body.appendChild(t);}
+  t.className='fan-toast';
   t.textContent=msg;
   t.classList.add('show');
   clearTimeout(t._timer);
   t._timer=setTimeout(()=>t.classList.remove('show'),1600);
+}
+// Same toast element, but with an "撤销" button — used after destructive actions (delete)
+function toastUndo(msg,undoFn,ms){
+  ms=ms||6500;
+  let t=document.getElementById('fanToast');
+  if(!t){t=document.createElement('div');t.id='fanToast';document.body.appendChild(t);}
+  t.className='fan-toast undo';
+  t.innerHTML=`<span>${escapeHtml(msg)}</span><button type="button">撤销</button>`;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  const btn=t.querySelector('button');
+  btn.onclick=()=>{
+    clearTimeout(t._timer);
+    try{undoFn&&undoFn();}catch(err){console.error('Undo failed:',err);toast('撤销失败');}
+    t.classList.remove('show');
+  };
+  t._timer=setTimeout(()=>t.classList.remove('show'),ms);
 }
 
 function renderTodoItem(item){
@@ -7478,6 +7675,10 @@ function todoSubToggle(itemId,subId){
 function todoSubDel(itemId,subId){
   const item=memos.todo.find(i=>i.id===itemId);
   if(!item||!item.subs)return;
+  const idx=item.subs.findIndex(s=>s.id===subId);
+  if(idx<0)return;
+  const deleted=JSON.parse(JSON.stringify(item.subs[idx]));
+  const wasItemDone=item.done;
   item.subs=item.subs.filter(s=>s.id!==subId);
   // Re-check auto-complete
   const allDone=item.subs.length>0&&item.subs.every(s=>s.done);
@@ -7485,6 +7686,14 @@ function todoSubDel(itemId,subId){
   else if(!allDone&&item.done){item.done=false;delete item.doneAt;}
   sv('memos',memos);
   renderMemoList('todo');
+  toastUndo('已删除细目',()=>{
+    const it=memos.todo.find(i=>i.id===itemId);
+    if(!it)return;
+    if(!it.subs)it.subs=[];
+    if(!it.subs.some(s=>s.id===deleted.id))it.subs.splice(Math.min(idx,it.subs.length),0,deleted);
+    it.done=wasItemDone;
+    sv('memos',memos);renderMemoList('todo');toast('已恢复');
+  });
 }
 
 function todoSubEdit(itemId,subId){
@@ -7547,7 +7756,6 @@ function renderHabits(){
   }
   const tk=todayK();
   el.innerHTML=`<div class="habit-gallery">${habits.map(h=>renderHabitCard(h,tk)).join('')}</div>`;
-  renderTwemoji(el);
   setTimeout(()=>applyUITheme(),50);
 }
 
@@ -7754,15 +7962,6 @@ function dkFromDate(d){
   return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 }
 
-function habitDel(id){
-  const h=habits.find(x=>x.id===id);
-  if(!h)return;
-  if(!confirm('删除习惯「'+h.name+'」？'))return;
-  habits=habits.filter(x=>x.id!==id);
-  sv('habits',habits);
-  renderHabits();
-}
-
 function habitStartEdit(id){
   const h=habits.find(x=>x.id===id);if(!h)return;
   const el=document.querySelector(`[data-hid="${id}"] .habit-name`);
@@ -7789,18 +7988,6 @@ function habitStartEdit(id){
 let habitDraft={emoji:'',freq:'daily',times:2,slots:[],weekdays:[],monthday:1,weeklyTarget:2,gradient:0};
 const HABIT_QUICK_EMOJI_DEFAULT=['💊','💧','🏃','🧘','📖','🥗','🌙','☀️','💪','🧴','🦷','💉','🍵','✍️'];
 let HABIT_QUICK_EMOJI=ld('habitQuickEmoji',HABIT_QUICK_EMOJI_DEFAULT.slice());
-const HABIT_MORE_EMOJI=[
-  '💊','💧','🏃','🧘','📖','🥗','🌙','☀️','💪','🧴','🦷','💉','🍵','✍️',
-  '🏋','🚴','🏊','🚶','🧗','🤸','🧎','🛌','😴','🌅','🌇',
-  '🥛','☕','🧃','🍶','🍚','🥦','🥑','🍎','🍊','🍓','🫐','🥕','🍠','🌰',
-  '💆','💅','🧼','🪥','🛁','🚿','🧖','💄','🦶','🫀','🧠',
-  '📚','📝','✏','🖊','📓','📔','🎨','🎼','🎹','🎸','🎧','🎤',
-  '🧮','💻','⌨','📱','🗂','📊','💰','💵','🏦','📈',
-  '🌱','🌿','🍃','🌳','🌸','🌼','🌻','🪷','🕯','🧵','🪡',
-  '🙏','☯','🔮','📿','⛩',
-  '🏠','🧹','🗑','🪴','🐕','🐈','🐟','🌍',
-  '😊','😌','🥰','🤗','💖','❤','✨','⭐','🌟','🔥','💫','🏆','🎯','✅'
-];
 
 function openHabitCreate(){
   habitDraft={emoji:'💊',freq:'daily',times:2,slots:['早','晚'],weekdays:[],monthday:1,weeklyTarget:2,gradient:0,customGrad:null};
@@ -8221,7 +8408,6 @@ function renderHabitDetail(){
     </div>
   </div>`;
   document.body.insertAdjacentHTML('beforeend',html);
-  renderTwemoji(document.getElementById('habitDetailBg'));
 }
 
 function habitTogglePause(id){
@@ -8415,10 +8601,19 @@ function habitDelFromDetail(){
   box.appendChild(confirmEl);
 }
 function habitConfirmDelete(){
-  habits=habits.filter(x=>x.id!==habitDetailId);
+  const id=habitDetailId;
+  const idx=habits.findIndex(x=>x.id===id);
+  const deleted=idx>=0?JSON.parse(JSON.stringify(habits[idx])):null;
+  habits=habits.filter(x=>x.id!==id);
   sv('habits',habits);
   closeHabitDetail();
   renderHabits();
+  if(deleted){
+    toastUndo('已删除习惯',()=>{
+      if(!habits.some(x=>x.id===deleted.id))habits.splice(Math.min(idx,habits.length),0,deleted);
+      sv('habits',habits);renderHabits();toast('已恢复');
+    });
+  }
 }
 
 function closeHabitDetail(){
@@ -8571,9 +8766,16 @@ function inspChangeState(id,direction){
   renderInsp();
 }
 function inspDel(id){
+  const idx=inspirations.findIndex(i=>i.id===id);
+  if(idx<0)return;
+  const deleted=JSON.parse(JSON.stringify(inspirations[idx]));
   inspirations=inspirations.filter(i=>i.id!==id);
   sv('inspirations',inspirations);
   renderInsp();
+  toastUndo('已删除灵感',()=>{
+    if(!inspirations.some(i=>i.id===deleted.id))inspirations.splice(Math.min(idx,inspirations.length),0,deleted);
+    sv('inspirations',inspirations);renderInsp();toast('已恢复');
+  });
 }
 function inspToggleDone(id){
   const item=inspirations.find(i=>i.id===id);
@@ -9057,6 +9259,11 @@ function cleanupDoneItems(){
 }
 
 function init(){
+  // Data safety first: try a daily local snapshot before anything else mutates data
+  // (throttled internally — this only actually writes once per 24h, cheap otherwise).
+  fanCreateAutoBackup('daily-open',false);
+  renderBackupStatus();
+  fanNoticeLoadErrors();
   // Clean up done items from before today
   cleanupDoneItems();
   todayRecs=allDays[todayK()]||[];
@@ -9067,8 +9274,6 @@ function init(){
   showTodaySchedule();
   document.getElementById('nT').classList.add('on');
   applyGradient();applyUITheme();
-  // Convert all emoji to unified Twemoji style once at startup
-  renderTwemoji(document.body);
   // Recover any timer/pomodoro that was running when app was last closed
   recoverTimer();
   recoverPomo();
