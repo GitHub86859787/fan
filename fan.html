@@ -1396,11 +1396,6 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   z-index:9999;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;
   box-shadow:0 8px 30px rgba(0,0,0,.3)}
 .fan-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.fan-toast.undo{pointer-events:auto;display:flex;align-items:center;gap:12px;white-space:nowrap}
-.fan-toast.undo button{border:none;background:rgba(255,250,244,.14);color:rgba(255,250,244,.95);
-  font-family:'Noto Serif SC',serif;font-weight:400;font-size:11px;letter-spacing:.1em;
-  padding:5px 14px;border-radius:100px;cursor:pointer;flex-shrink:0}
-.fan-toast.undo button:active{background:rgba(255,250,244,.24)}
 .insp-views{display:flex;gap:4px;margin-bottom:12px;padding:3px;
   background:rgba(255,255,255,.03);border-radius:100px;border:1px solid rgba(255,255,255,.05)}
 .insp-view{flex:1;padding:7px 0;border-radius:100px;border:none;background:none;
@@ -4531,24 +4526,15 @@ function delRec(i){
   const rec=todayRecs[i];
   if(!rec){return;}
   const recDk=dkOf(rec.start);
-  let bucketIdx=-1;
   if(allDays[recDk]){
-    bucketIdx=allDays[recDk].findIndex(r=>r.start===rec.start&&r.end===rec.end&&r.tagId===rec.tagId);
-    if(bucketIdx>=0)allDays[recDk].splice(bucketIdx,1);
+    const idx=allDays[recDk].findIndex(r=>r.start===rec.start&&r.end===rec.end&&r.tagId===rec.tagId);
+    if(idx>=0)allDays[recDk].splice(idx,1);
   }
   // Refresh todayRecs from current day
   todayRecs=allDays[todayK()]||[];
   if(!allDays[todayK()])allDays[todayK()]=todayRecs;
   sv('days',allDays);
   renderRecs();
-  const deleted=JSON.parse(JSON.stringify(rec));
-  toastUndo('已删除记录',()=>{
-    if(!allDays[recDk])allDays[recDk]=[];
-    const already=allDays[recDk].some(r=>r.start===deleted.start&&r.end===deleted.end&&r.tagId===deleted.tagId);
-    if(!already)allDays[recDk].splice(Math.min(bucketIdx,allDays[recDk].length),0,deleted);
-    todayRecs=allDays[todayK()]||[];
-    sv('days',allDays);renderRecs();toast('已恢复');
-  });
 }
 function saveRecs(){
   // Ensure today's bucket reflects current todayRecs
@@ -6429,16 +6415,9 @@ function markSave(dk){
 }
 
 function deleteMarkById(id){
-  const idx=calMarks.findIndex(m=>m.id===id);
-  if(idx<0)return;
-  const deleted=JSON.parse(JSON.stringify(calMarks[idx]));
   calMarks=calMarks.filter(m=>m.id!==id);
   sv('calMarks',calMarks);
   renderCal();
-  toastUndo('已删除印记',()=>{
-    if(!calMarks.some(m=>m.id===deleted.id))calMarks.splice(Math.min(idx,calMarks.length),0,deleted);
-    sv('calMarks',calMarks);renderCal();toast('已恢复');
-  });
 }
 
 // Get history for an emoji type (e.g. all 🦷 marks)
@@ -6472,17 +6451,10 @@ function saveEvent(){
 }
 function deleteEvent(){
   if(!evEditId)return;
-  const idx=calEvents.findIndex(e=>e.id===evEditId);
-  if(idx<0)return;
-  const deleted=JSON.parse(JSON.stringify(calEvents[idx]));
   calEvents=calEvents.filter(e=>e.id!==evEditId);
   sv('calEvents',calEvents);
   closeEvModal();
   renderCal();
-  toastUndo('已删除日程',()=>{
-    if(!calEvents.some(e=>e.id===deleted.id))calEvents.splice(Math.min(idx,calEvents.length),0,deleted);
-    sv('calEvents',calEvents);renderCal();toast('已恢复');
-  });
 }
 
 // Type selector
@@ -7204,19 +7176,10 @@ function memoToggle(type,id){
   }
 }
 function memoDel(type,id){
-  if(!memos[type])return;
-  const idx=memos[type].findIndex(i=>i.id===id);
-  if(idx<0)return;
-  const deleted=JSON.parse(JSON.stringify(memos[type][idx]));
   memos[type]=memos[type].filter(i=>i.id!==id);
   sv('memos',memos);
-  const rerender=()=>{if(type==='shopping'||type==='ingredient')renderShopList();else renderMemoList(type);};
-  rerender();
-  toastUndo('已删除',()=>{
-    if(!memos[type])memos[type]=[];
-    if(!memos[type].some(i=>i.id===deleted.id))memos[type].splice(Math.min(idx,memos[type].length),0,deleted);
-    sv('memos',memos);rerender();toast('已恢复');
-  });
+  if(type==='shopping'||type==='ingredient')renderShopList();
+  else renderMemoList(type);
 }
 function memoStartEdit(type,id){
   const item=memos[type].find(i=>i.id===id);
@@ -7478,28 +7441,10 @@ function attachSubDrag(){
 function toast(msg){
   let t=document.getElementById('fanToast');
   if(!t){t=document.createElement('div');t.id='fanToast';t.className='fan-toast';document.body.appendChild(t);}
-  t.className='fan-toast';
   t.textContent=msg;
   t.classList.add('show');
   clearTimeout(t._timer);
   t._timer=setTimeout(()=>t.classList.remove('show'),1600);
-}
-// Same toast element, but with an "撤销" button — used after destructive actions (delete)
-function toastUndo(msg,undoFn,ms){
-  ms=ms||6500;
-  let t=document.getElementById('fanToast');
-  if(!t){t=document.createElement('div');t.id='fanToast';document.body.appendChild(t);}
-  t.className='fan-toast undo';
-  t.innerHTML=`<span>${escapeHtml(msg)}</span><button type="button">撤销</button>`;
-  t.classList.add('show');
-  clearTimeout(t._timer);
-  const btn=t.querySelector('button');
-  btn.onclick=()=>{
-    clearTimeout(t._timer);
-    try{undoFn&&undoFn();}catch(err){console.error('Undo failed:',err);toast('撤销失败');}
-    t.classList.remove('show');
-  };
-  t._timer=setTimeout(()=>t.classList.remove('show'),ms);
 }
 
 function renderTodoItem(item){
@@ -7619,10 +7564,6 @@ function todoSubToggle(itemId,subId){
 function todoSubDel(itemId,subId){
   const item=memos.todo.find(i=>i.id===itemId);
   if(!item||!item.subs)return;
-  const idx=item.subs.findIndex(s=>s.id===subId);
-  if(idx<0)return;
-  const deleted=JSON.parse(JSON.stringify(item.subs[idx]));
-  const wasItemDone=item.done;
   item.subs=item.subs.filter(s=>s.id!==subId);
   // Re-check auto-complete
   const allDone=item.subs.length>0&&item.subs.every(s=>s.done);
@@ -7630,14 +7571,6 @@ function todoSubDel(itemId,subId){
   else if(!allDone&&item.done){item.done=false;delete item.doneAt;}
   sv('memos',memos);
   renderMemoList('todo');
-  toastUndo('已删除细目',()=>{
-    const it=memos.todo.find(i=>i.id===itemId);
-    if(!it)return;
-    if(!it.subs)it.subs=[];
-    if(!it.subs.some(s=>s.id===deleted.id))it.subs.splice(Math.min(idx,it.subs.length),0,deleted);
-    it.done=wasItemDone;
-    sv('memos',memos);renderMemoList('todo');toast('已恢复');
-  });
 }
 
 function todoSubEdit(itemId,subId){
@@ -8545,19 +8478,10 @@ function habitDelFromDetail(){
   box.appendChild(confirmEl);
 }
 function habitConfirmDelete(){
-  const id=habitDetailId;
-  const idx=habits.findIndex(x=>x.id===id);
-  const deleted=idx>=0?JSON.parse(JSON.stringify(habits[idx])):null;
-  habits=habits.filter(x=>x.id!==id);
+  habits=habits.filter(x=>x.id!==habitDetailId);
   sv('habits',habits);
   closeHabitDetail();
   renderHabits();
-  if(deleted){
-    toastUndo('已删除习惯',()=>{
-      if(!habits.some(x=>x.id===deleted.id))habits.splice(Math.min(idx,habits.length),0,deleted);
-      sv('habits',habits);renderHabits();toast('已恢复');
-    });
-  }
 }
 
 function closeHabitDetail(){
@@ -8710,16 +8634,9 @@ function inspChangeState(id,direction){
   renderInsp();
 }
 function inspDel(id){
-  const idx=inspirations.findIndex(i=>i.id===id);
-  if(idx<0)return;
-  const deleted=JSON.parse(JSON.stringify(inspirations[idx]));
   inspirations=inspirations.filter(i=>i.id!==id);
   sv('inspirations',inspirations);
   renderInsp();
-  toastUndo('已删除灵感',()=>{
-    if(!inspirations.some(i=>i.id===deleted.id))inspirations.splice(Math.min(idx,inspirations.length),0,deleted);
-    sv('inspirations',inspirations);renderInsp();toast('已恢复');
-  });
 }
 function inspToggleDone(id){
   const item=inspirations.find(i=>i.id===id);
