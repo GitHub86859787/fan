@@ -4536,6 +4536,16 @@ function delRec(i){
   sv('days',allDays);
   renderRecs();
 }
+// Delete a single record from a specific PAST day (via the calendar day-detail view).
+// Uses the array index directly since showDayD reads recs straight from allDays[dk].
+function delRecOnDate(dk,idx){
+  if(!allDays[dk]||!allDays[dk][idx])return;
+  allDays[dk].splice(idx,1);
+  sv('days',allDays);
+  // Keep today's live view in sync if we just edited today
+  if(dk===todayK())todayRecs=allDays[dk]||[];
+  showDayD(dk);
+}
 function saveRecs(){
   // Ensure today's bucket reflects current todayRecs
   allDays[todayK()]=todayRecs;
@@ -5314,6 +5324,12 @@ function exportAllJSON(rangeStart,rangeEnd){
   });
   
   const data={};
+  data['说明']={
+    '用途':'这是个人时间流导出，按日期顺序记录了每一天做了什么、想了什么、完成了什么，供AI顺着时间线复盘理解，而不是简单归类统计。',
+    '时间线规则':'带"HH:MM-HH:MM"的是持续时间段（一段专注做的事）；只有单个"HH:MM"的是某一刻发生的点状记录（灵感、完成、情绪、起床睡觉）。带"次日"的时间段跨过了午夜。',
+    '符号':{'✅':'完成的待办/细目（括号里是创建和完成的具体日期时间）','💭':'记录下的灵感/想法','⚡':'当时的状态或情绪节点，后面的文字是详细说明','🌙':'入睡时间','☀️':'起床时间'},
+    '注意':'同一时间段偶尔可能有重叠或重复的记录（比如手动开启了两次计时），属于真实记录，不是数据错误；统计总时长时优先参考"记录时长"字段，不要简单把所有时间段相加。'
+  };
   data['日']=days;
   if(blankDays.length)data['空白天']=blankDays;
   if(pending.length)data['未完成']=pending;
@@ -6207,11 +6223,12 @@ function showDayD(dk){
     </div>`;
   });
   // 3. Time records
-  recs.forEach(r=>{const s=new Date(r.start),e=new Date(r.end);tot+=r.duration;
+  recs.forEach((r,ri)=>{const s=new Date(r.start),e=new Date(r.end);tot+=r.duration;
     html+=`<div class="rec"><div class="r-dot" style="background:${r.tagColor}"></div>
     <div class="r-info"><div class="r-nm">${r.tagName}</div>
     <div class="r-tm">${pad(s.getHours())}:${pad(s.getMinutes())}—${pad(e.getHours())}:${pad(e.getMinutes())}</div></div>
-    <div class="r-dur">${fmtD(r.duration)}</div></div>`;});
+    <div class="r-dur">${fmtD(r.duration)}</div>
+    <span onclick="delRecOnDate('${dk}',${ri})" style="font-size:9px;opacity:.3;cursor:pointer;padding:4px 6px">✕</span></div>`;});
   if(tot)html+=`<div style="text-align:center;margin-top:8px;font-size:9px;letter-spacing:.1em;opacity:.5">总计 ${fmtD(tot)}</div>`;
   // 4. Energy records with emoji + collapsible reason
   enLogs.forEach((en,i)=>{
