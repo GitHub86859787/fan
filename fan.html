@@ -5096,7 +5096,19 @@ function exportAllJSON(rangeStart,rangeEnd){
   const allDates=new Set();
   Object.keys(allDays).forEach(dk=>{if(inRange(dk))allDates.add(dk)});
   (energyLog||[]).forEach(e=>{const dk=dkOf(e.ts);if(inRange(dk))allDates.add(dk)});
-  (inspirations||[]).forEach(i=>{const dk=dkOf(i.createdAt);if(inRange(dk))allDates.add(dk)});
+  (inspirations||[]).forEach(i=>{
+    const dk=dkOf(i.createdAt);if(inRange(dk))allDates.add(dk);
+    // A day where an idea was only COMPLETED (not created) must also be included,
+    // otherwise that day silently disappears from the export entirely.
+    if(i.done&&i.doneAt){const dk2=dkOf(i.doneAt);if(inRange(dk2))allDates.add(dk2);}
+  });
+  (memos.todo||[]).forEach(t=>{
+    if(t.createdAt){const dk=dkOf(t.createdAt);if(inRange(dk))allDates.add(dk);}
+    if(t.done&&t.doneAt){const dk2=dkOf(t.doneAt);if(inRange(dk2))allDates.add(dk2);}
+  });
+  (doneArchive||[]).forEach(a=>{
+    const dk=dkOf(a.doneAt||a.createdAt);if(inRange(dk))allDates.add(dk);
+  });
   (calEvents||[]).forEach(ev=>{
     if(!ev.start)return;
     const s=new Date(ev.start+'T00:00:00');
@@ -5107,6 +5119,10 @@ function exportAllJSON(rangeStart,rangeEnd){
     }
   });
   (calMarks||[]).forEach(m=>{if(inRange(m.date))allDates.add(m.date)});
+  Object.keys(sleepWake||{}).forEach(dk=>{
+    const sw=sleepWake[dk];
+    if((sw.wake||sw.sleep)&&inRange(dk))allDates.add(dk);
+  });
   // Fill gaps
   if(rangeStart&&rangeEnd){
     const s=new Date(rangeStart+'T00:00:00');
@@ -5123,19 +5139,22 @@ function exportAllJSON(rangeStart,rangeEnd){
   sortedDates.forEach(dk=>{
     const recs=(allDays[dk]||[]).slice().sort((a,b)=>a.start-b.start);
     const dayEnergy=(energyLog||[]).filter(e=>dkOf(e.ts)===dk).sort((a,b)=>a.ts-b.ts);
-    const dayThoughts=(inspirations||[]).filter(i=>dkOf(i.createdAt)===dk);
+    const dayThoughts=(inspirations||[]).filter(i=>!i.done&&dkOf(i.createdAt)===dk);
     const dayEvents=getEventsForDate(dk);
     const dayMarks=getMarksForDate(dk);
     const dayCompleted=[
       ...(memos.todo||[]).filter(t=>t.done&&dkOf(t.doneAt||t.createdAt)===dk),
+      ...(inspirations||[]).filter(i=>i.done&&dkOf(i.doneAt||i.createdAt)===dk).map(i=>({...i,_type:'灵感'})),
       ...(doneArchive||[]).filter(a=>{
         if(a._type==='购物'||a._type==='食材')return false;
         return dkOf(a.doneAt||a.createdAt)===dk;
       })
     ];
     
+    const swData=(sleepWake||{})[dk]||{};
+    const hasSW=!!(swData.wake||swData.sleep);
     const hasData=recs.length||dayEnergy.length||dayThoughts.length||
-      dayEvents.length||dayMarks.length||dayCompleted.length;
+      dayEvents.length||dayMarks.length||dayCompleted.length||hasSW;
     
     if(!hasData){blankDays.push(dk);return}
     
@@ -5157,7 +5176,6 @@ function exportAllJSON(rangeStart,rangeEnd){
     const timeline=[];
     
     // Wake/Sleep
-    const swData=(sleepWake||{})[dk]||{};
     if(swData.wake){
       const d=new Date(swData.wake);
       timeline.push({ts:swData.wake,text:`${pad(d.getHours())}:${pad(d.getMinutes())} ☀️起床`});
@@ -5212,20 +5230,32 @@ function exportAllJSON(rangeStart,rangeEnd){
       const isIdea=type==='灵感';
       const icon=isIdea?'💭':'✅';
       
-      // Show creation date if different from completion date
+      // Show creation date+time if different from completion date
       let createdTag='';
       if(created){
         const createdDk=dkOf(t.createdAt);
         const doneDk=dkOf(t.doneAt||t.createdAt);
         if(createdDk!==doneDk){
-          createdTag=` (${created.getMonth()+1}/${created.getDate()}创建)`;
+          createdTag=` (${created.getMonth()+1}/${created.getDate()} ${pad(created.getHours())}:${pad(created.getMinutes())}创建)`;
         }
       }
       
-      // Include sub-items (细目) inline, e.g. "✅更新App (含: 修复bug, 加功能)"
+      // Include sub-items (细目) inline with their own full create/complete date+time
+      // e.g. "✅更新App [含: 修复bug(完成于7/6 14:20)、加功能(6/30 10:00创建→7/6 16:05完成)]"
       let subsTag='';
       if(t.subs&&t.subs.length){
-        const doneSubs=t.subs.filter(s=>s.done).map(s=>s.text);
+        const doneSubs=t.subs.filter(s=>s.done).map(s=>{
+          if(!s.doneAt)return s.text; // older data safety: no timestamp recorded
+          const sd=new Date(s.doneAt);
+          const doneStr=`${sd.getMonth()+1}/${sd.getDate()} ${pad(sd.getHours())}:${pad(sd.getMinutes())}`;
+          let extra=`完成于${doneStr}`;
+          if(s.createdAt&&dkOf(s.createdAt)!==dkOf(s.doneAt)){
+            const scd=new Date(s.createdAt);
+            const createdStr=`${scd.getMonth()+1}/${scd.getDate()} ${pad(scd.getHours())}:${pad(scd.getMinutes())}`;
+            extra=`${createdStr}创建→${doneStr}完成`;
+          }
+          return `${s.text}(${extra})`;
+        });
         if(doneSubs.length)subsTag=` [含: ${doneSubs.join('、')}]`;
       }
       
