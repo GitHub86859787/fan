@@ -541,6 +541,33 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .tb-task-item:active{transform:scale(.985)}
 .tb-task-empty{text-align:center;padding:28px 10px;font-family:'Cormorant',serif;font-style:italic;
   font-size:12px;letter-spacing:.06em;color:rgba(255,250,244,.35);position:relative;z-index:1;line-height:1.8}
+/* --- 细目分组：父任务只是标题，真正可选的是它底下未完成的细目 --- */
+.tb-task-group{display:flex;flex-direction:column;gap:5px;margin-bottom:3px}
+.tb-task-parent-lbl{display:flex;align-items:baseline;gap:7px;padding:2px 4px 0;
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10.5px;
+  color:rgba(255,250,244,.4);letter-spacing:.03em}
+.tb-parent-progress{font-family:'EB Garamond',serif;font-style:normal;color:rgba(232,180,150,.65)}
+.tb-task-item.tb-sub{margin-left:18px;padding:9px 12px}
+.tb-done-parent{text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:11px;color:rgba(255,250,244,.4);margin-bottom:2px}
+/* 观页 · AI 词库建议 */
+.guan-ai-ask{display:block;width:100%;padding:6px 0;background:transparent;border:none;
+  cursor:pointer;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10.5px;
+  color:rgba(255,250,244,.35);letter-spacing:.03em}
+.guan-ai-ask:active{color:rgba(232,180,150,.7)}
+.guan-ai-loading{text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:10.5px;color:rgba(255,250,244,.4);padding:4px 0;animation:aiHintPulseGuan 1.3s ease-in-out infinite}
+@keyframes aiHintPulseGuan{0%,100%{opacity:.5}50%{opacity:1}}
+.guan-ai-card{background:rgba(0,0,0,.15);border-radius:12px;padding:12px 14px}
+.guan-ai-card-hint{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:9.5px;
+  color:rgba(255,250,244,.35);margin-bottom:6px}
+.guan-ai-card-word{font-family:'Noto Serif SC',serif;font-weight:300;font-size:13px;
+  color:rgba(255,250,244,.9);line-height:1.6;margin-bottom:10px}
+.guan-ai-card-acts{display:flex;gap:8px}
+.guan-ai-card-acts button{flex:1;padding:9px 0;border-radius:100px;cursor:pointer;
+  font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px}
+.guan-ai-dismiss{border:1px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,250,244,.5)}
+.guan-ai-accept{border:none;background:rgba(255,255,255,.16);color:rgba(255,250,244,.95)}
 
 /* --- Step 1b: mode cards --- */
 .tb-config{position:relative;z-index:1}
@@ -972,14 +999,11 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 @keyframes wiggle{from{transform:rotate(-1deg)}to{transform:rotate(1deg)}}
 
 .memo-input-row{display:flex;gap:8px;margin-bottom:6px}
-/* AI 整理待办的入口是隐形的：长按输入框旁的 + 号触发，不占视觉重量。
-   这行小字只在没用过这个功能时出现一次，用过一次就不再显示。 */
-.ai-entry-hint{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;
-  color:rgba(255,250,244,.3);text-align:right;margin:0 0 14px;letter-spacing:.02em;
-  opacity:0;animation:ghostFadeOnce 3.4s ease forwards}
-.ai-entry-hint.hidden{display:none}
-@keyframes ghostFadeOnce{0%{opacity:0}12%{opacity:1}75%{opacity:1}100%{opacity:0}}
-.memo-add-btn.ai-sort-pressing{background:rgba(192,91,69,.35)!important;transition:background .55s linear}
+.ai-sort-icon-btn{flex-shrink:0;width:28px;height:28px;border:none;background:none;
+  color:rgba(255,250,244,.16);font-size:14px;cursor:pointer;transition:color .3s;
+  display:flex;align-items:center;justify-content:center;padding:0}
+.ai-sort-icon-btn:active{color:rgba(232,180,150,.9);transform:scale(.9)}
+.ai-sort-icon-btn.used{color:rgba(255,250,244,.28)}
 /* Todo history (归档) view */
 .cat-tab-hist{opacity:.7;font-style:italic}
 .todo-hist-toggle{display:flex;gap:8px;justify-content:center;margin-bottom:16px}
@@ -995,6 +1019,8 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .th-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;
   border-bottom:1px solid rgba(255,250,244,.04)}
 .th-icon{font-size:14px;min-width:18px;line-height:1.4;margin-top:1px}
+.th-item.th-partial .th-icon{color:rgba(232,180,150,.75)}
+.th-item.th-partial .th-text{opacity:.85}
 .th-body{flex:1}
 .th-text{font-family:'Noto Serif SC',serif;font-weight:300;font-size:13px;
   color:rgba(255,250,244,.92);letter-spacing:.02em;line-height:1.5}
@@ -2741,15 +2767,19 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
           <div class="tb-done-check" id="tbDoneCheck" onclick="tbToggleDone()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
           </div>
+          <div class="tb-done-parent" id="tbDoneParent" style="display:none"></div>
           <div class="tb-done-task" id="tbDoneTask"></div>
           <div class="tb-done-meta">
             <span class="tb-done-time" id="tbDoneTime"></span>
             <span class="tb-done-dur" id="tbDoneDur"></span>
           </div>
-          <div class="tb-done-hint">已同步进今日计时记录 · 点击左上勾选标记待办完成</div>
-          <div class="acts" style="margin-top:20px">
+          <div class="tb-done-hint" id="tbDoneHint">已同步进今日计时记录 · 点击左上勾选标记待办完成</div>
+          <div class="acts" id="tbDoneActs" style="margin-top:20px">
             <button class="btn" onclick="tbReset()">再来一次</button>
             <button class="btn btn-strong" onclick="tbReset()">完 成</button>
+          </div>
+          <div class="acts" id="tbSubActs" style="margin-top:20px;display:none">
+            <button class="btn btn-strong" id="tbNextBtn" onclick="tbGoNextSub()"></button>
           </div>
         </div>
       </div>
@@ -2878,14 +2908,17 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 
       <!-- ===== Todo tab content ===== -->
       <div id="memoSecTodo" style="display:none">
-        <div class="cat-tabs" id="todoCatTabs">
-          <!-- categories rendered dynamically -->
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="cat-tabs" id="todoCatTabs" style="flex:1;margin-bottom:0">
+            <!-- categories rendered dynamically -->
+          </div>
+          <button class="ai-sort-icon-btn" id="aiSortIconBtn" onclick="aiSortTodos()" title="AI 帮我看看先做哪个">✨</button>
         </div>
+        <div style="height:12px"></div>
         <div class="memo-input-row">
           <textarea class="memo-input" id="todoInp" placeholder="添加待办..." rows="1"></textarea>
-          <button class="memo-add-btn" id="todoAddBtn" onclick="if(!this.dataset.justFinishedLongPress)todoAdd()">+</button>
+          <button class="memo-add-btn" id="todoAddBtn" onclick="todoAdd()">+</button>
         </div>
-        <div class="ai-entry-hint" id="aiEntryHint">按住 + ，AI 帮你看看先做哪个</div>
         <div class="memo-list" id="todoList"></div>
       </div>
 
@@ -2941,6 +2974,7 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
             <button class="gs1-reason-toggle" id="gs1ReasonToggle" onclick="guanToggleReason()">+ 缘由</button>
             <textarea class="gs1-reason-input" id="gs1ReasonInput" placeholder="缘由..." rows="2" oninput="guanReasonOnInput()"></textarea>
             <button class="gs1-seal-btn" id="gs1SealBtn" onclick="guanCommitReason()">封 存</button>
+            <div id="guanAiRow" style="display:none;margin-top:10px"></div>
           </div>
           
           <div class="gs1-confirm-row">
@@ -3979,6 +4013,10 @@ const GUAN_STATES=[
   {icon:'🔪',name:'刺',color:'#8B8B8B',feel:'愤怒、烦躁、恨、想发火'},
   {icon:'🕳️',name:'空',color:'#1A1418',feel:'痛苦、无力、想哭、虚脱'}
 ];
+// 用户自己长出来的词——AI 发现某种反复出现、但 9 个词都不太贴切的状态时会建议加一个，
+// 用户点头才会真正加进来，长按可以删掉。始终追加在固定 9 个后面。
+let guanCustomStates = ld('guanCustomStates', []);
+function guanAllStates(){ return GUAN_STATES.concat(guanCustomStates); }
 
 // ============ 干支历计算 (Ganzhi/八字) ============
 const GZ_STEMS=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
@@ -4081,16 +4119,16 @@ let gs1Idx = 4;
 let gs1Inited = false;
 let gs1ActivePop = null;
 
-function guanInit(){
-  if(gs1Inited){return;}
-  gs1Inited = true;
-  
-  // Build emoji row
+function guanBuildEmojiRow(){
   const cont = document.getElementById('gs1Emojis');
+  if(!cont)return;
   cont.innerHTML = '';
-  GUAN_STATES.forEach((s,i)=>{
+  const all = guanAllStates();
+  const fixedCount = GUAN_STATES.length;
+  all.forEach((s,i)=>{
+    const isCustom = i>=fixedCount;
     const cell = document.createElement('div');
-    cell.className = 'gs1-emoji';
+    cell.className = 'gs1-emoji'+(isCustom?' gs1-emoji-custom':'');
     cell.dataset.i = i;
     cell.innerHTML = `<span class="gs1-emoji-icon">${s.icon}</span>
       <span class="gs1-emoji-label" data-meaning="${i}">${s.name}</span>`;
@@ -4099,25 +4137,61 @@ function guanInit(){
       guanSetSlider(i);
       guanShowConfirm();
     });
+    // 自己长出来的词可以长按删掉，和 app 里其它"长按删除"预设的手感一致
+    if(isCustom){
+      let timer=null;
+      const start=()=>{timer=setTimeout(()=>{
+        timer=null;
+        if(navigator.vibrate)navigator.vibrate(30);
+        guanDeleteCustomState(i-fixedCount);
+      },500);};
+      const cancel=()=>{if(timer){clearTimeout(timer);timer=null;}};
+      cell.addEventListener('touchstart',start,{passive:true});
+      cell.addEventListener('touchend',cancel);
+      cell.addEventListener('touchmove',cancel,{passive:true});
+      cell.addEventListener('mousedown',start);
+      cell.addEventListener('mouseup',cancel);
+      cell.addEventListener('mouseleave',cancel);
+    }
     cont.appendChild(cell);
   });
   document.querySelectorAll('.gs1-emoji-label').forEach(label=>{
     label.addEventListener('click',(e)=>{
       e.stopPropagation();
       const i = parseInt(label.dataset.meaning);
-      guanShowMeaning(GUAN_STATES[i], label);
+      guanShowMeaning(guanAllStates()[i], label);
     });
   });
+  // Re-center the thumb on whatever's currently selected, now that slot widths may have changed
+  setTimeout(()=>guanSetSlider(gs1Idx),0);
+}
+
+function guanDeleteCustomState(customIdx){
+  const s=guanCustomStates[customIdx];
+  if(!s)return;
+  if(!confirm(`删掉「${s.name}」这个词？`))return;
+  guanCustomStates.splice(customIdx,1);
+  sv('guanCustomStates',guanCustomStates);
+  if(gs1Idx>=guanAllStates().length)gs1Idx=guanAllStates().length-1;
+  guanBuildEmojiRow();
+}
+
+function guanInit(){
+  if(gs1Inited){return;}
+  gs1Inited = true;
   
-  // Slider drag — map x to emoji slot (9 equal slots)
+  // Build emoji row
+  guanBuildEmojiRow();
+  
+  // Slider drag — map x to emoji slot (N equal slots, N = fixed 9 + any personal words)
   const track = document.getElementById('gs1Track');
   let drag = false;
   function move(x){
     const r = track.getBoundingClientRect();
     const relX = Math.max(0, Math.min(r.width, x - r.left));
-    // Each slot is r.width/9 wide; index = floor(relX / slotWidth), clamped 0-8
-    const slotW = r.width / 9;
-    const idx = Math.max(0, Math.min(8, Math.floor(relX / slotW)));
+    const n = guanAllStates().length;
+    const slotW = r.width / n;
+    const idx = Math.max(0, Math.min(n-1, Math.floor(relX / slotW)));
     guanSetSlider(idx);
   }
   track.addEventListener('mousedown', e=>{drag=true; move(e.clientX); guanShowConfirm();});
@@ -4145,9 +4219,10 @@ function guanSetSlider(i){
   const track = document.getElementById('gs1Track');
   const thumb = document.getElementById('gs1thumb');
   if(!track || !thumb) return;
-  // Each emoji is flex:1 in a 9-column row; center of emoji i is at (i+0.5)*W/9
+  // Each emoji is flex:1 across N columns (N = fixed 9 + any personal words); center of emoji i is at (i+0.5)*W/N
+  const n = guanAllStates().length;
   const trackW = track.getBoundingClientRect().width;
-  const center = (i + 0.5) * (trackW / 9);
+  const center = (i + 0.5) * (trackW / n);
   // Thumb is 22px wide, center it
   thumb.style.left = (center - 11) + 'px';
   document.querySelectorAll('.gs1-emoji').forEach((e,j)=>{
@@ -4209,8 +4284,22 @@ function guanCommitReason(){
   toggle.classList.remove('hidden');
   document.getElementById('gs1ReasonInput').classList.remove('show');
   document.getElementById('gs1SealBtn').classList.remove('show');
+
+  // 写得足够详细的缘由，值得问问 AI 这是不是一个值得单独造词的状态——
+  // 可选，不打字就完全不会出现，纯粹是个安静的邀请。
+  const aiRow=document.getElementById('guanAiRow');
+  const offerAi = reason.length>=6;
+  if(aiRow){
+    if(offerAi){
+      aiRow.style.display='block';
+      aiRow.innerHTML=`<button class="guan-ai-ask" onclick="guanAskAiState()">✨ 问问 AI 这算什么状态</button>`;
+    }else{
+      aiRow.style.display='none';
+      aiRow.innerHTML='';
+    }
+  }
   
-  // After 封存, set a short timer to reset
+  // After 封存, set a short timer to reset (a bit longer if the AI affordance is showing)
   if(window._gs1ResetTimer)clearTimeout(window._gs1ResetTimer);
   window._gs1ResetTimer=setTimeout(()=>{
     const rec=document.getElementById('gs1Recorded');
@@ -4222,8 +4311,82 @@ function guanCommitReason(){
     toggle.style.color='';
     toggle.style.fontSize='';
     toggle.style.letterSpacing='';
+    if(aiRow){aiRow.style.display='none';aiRow.innerHTML='';}
     gs1LastEntryTs=null;
-  },4000);
+  },offerAi?7000:4000);
+}
+
+// Ask AI whether this reason describes an existing state well, or deserves its own new word.
+async function guanAskAiState(){
+  const aiRow=document.getElementById('guanAiRow');
+  if(!aiRow||!gs1LastEntryTs)return;
+  const entry=energyLog.find(e=>e.ts===gs1LastEntryTs);
+  if(!entry||!entry.reason)return;
+  if(!aiApiKey){openAiKeySettings();return;}
+  // Writing here buys more time before the panel auto-resets
+  if(window._gs1ResetTimer)clearTimeout(window._gs1ResetTimer);
+  aiRow.innerHTML=`<div class="guan-ai-loading">✨ AI 正在想…</div>`;
+  const all=guanAllStates();
+  const sysPrompt=`你在帮用户判断她记录的一条"能量/情绪"状态描述，是否已经被她现有的词库覆盖，还是描述了一种值得单独造词的、反复可能出现的新状态。
+
+她现有的词库（每个词是一种能量/情绪状态）：
+${all.map(s=>`${s.icon} 「${s.name}」— ${s.feel||''}`).join('\n')}
+
+她刚才选的词是「${entry.state}」，并写了这样一段缘由："${entry.reason}"
+
+判断标准：
+- 如果这段描述本质上就是「${entry.state}」或词库里其他某个词的意思，只是换了个说法，fits 填 true，不需要新词。
+- 只有当这段描述明显不属于词库里任何一个词、感觉是一种独立的、有辨识度的状态时，才建议新词。新词要简短（1个字最好，最多2个字），配一个贴切的 emoji，feel 字段一句话说清楚这个词描述的感觉，30字以内。
+- 不要轻易建议新词——她的词库应该保持精炼，只有真正独特、值得记住的状态才配拥有自己的词。
+
+只返回 JSON，不要有其他文字：
+{"fits":true} 或 {"fits":false,"icon":"...","name":"...","feel":"..."}`;
+  try{
+    const result=await callClaudeJSON(sysPrompt,'请判断。');
+    if(!result)throw new Error('AI 没有返回结果');
+    if(result.fits||!result.name){
+      aiRow.innerHTML=`<div class="guan-ai-card"><div class="guan-ai-card-word" style="text-align:center;margin-bottom:0">AI 觉得「${entry.state}」这个词已经很贴切了</div></div>`;
+    }else{
+      aiRow.dataset.pendingIcon=result.icon||'✨';
+      aiRow.dataset.pendingName=result.name;
+      aiRow.dataset.pendingFeel=result.feel||'';
+      aiRow.innerHTML=`<div class="guan-ai-card">
+        <div class="guan-ai-card-hint">AI 发现一个新状态</div>
+        <div class="guan-ai-card-word">${result.icon||'✨'} 「${escapeHtml(result.name)}」——${escapeHtml(result.feel||'')}</div>
+        <div class="guan-ai-card-acts">
+          <button class="guan-ai-dismiss" onclick="guanDismissAiSuggestion()">忽略</button>
+          <button class="guan-ai-accept" onclick="guanAcceptAiSuggestion()">采纳</button>
+        </div>
+      </div>`;
+    }
+  }catch(err){
+    aiRow.innerHTML=`<div class="guan-ai-loading">AI 没看明白，再试试？</div>`;
+    setTimeout(()=>{
+      if(aiRow)aiRow.innerHTML=`<button class="guan-ai-ask" onclick="guanAskAiState()">✨ 问问 AI 这算什么状态</button>`;
+    },1500);
+  }
+}
+
+function guanAcceptAiSuggestion(){
+  const aiRow=document.getElementById('guanAiRow');
+  if(!aiRow)return;
+  const name=aiRow.dataset.pendingName;
+  if(!name)return;
+  guanCustomStates.push({
+    icon:aiRow.dataset.pendingIcon||'✨',
+    name,
+    feel:aiRow.dataset.pendingFeel||'',
+    color:'#C05B45'
+  });
+  sv('guanCustomStates',guanCustomStates);
+  guanBuildEmojiRow();
+  aiRow.innerHTML=`<div class="guan-ai-loading" style="animation:none">已经加进你的词库了 · 下次可以直接选「${escapeHtml(name)}」</div>`;
+  delete aiRow.dataset.pendingIcon;delete aiRow.dataset.pendingName;delete aiRow.dataset.pendingFeel;
+}
+
+function guanDismissAiSuggestion(){
+  const aiRow=document.getElementById('guanAiRow');
+  if(aiRow){aiRow.style.display='none';aiRow.innerHTML='';}
 }
 
 // Track most recent entry for reason updates
@@ -4307,17 +4470,17 @@ function guanConfirmRecord(){
   const nowMinute = Math.floor(Date.now() / 60000);
   const recent = energyLog.find(e=>{
     const eMinute = Math.floor((e.ts||0) / 60000);
-    return e.state === GUAN_STATES[gs1Idx].name && eMinute === nowMinute;
+    return e.state === guanAllStates()[gs1Idx].name && eMinute === nowMinute;
   });
   if(recent){
-    if(!confirm(`刚才已记录过「${GUAN_STATES[gs1Idx].name}」,确认要再记一次吗?`))return;
+    if(!confirm(`刚才已记录过「${guanAllStates()[gs1Idx].name}」,确认要再记一次吗?`))return;
   }
   
   const gz = getGanzhi(now);
   const entry = {
     ts: Date.now(),
     idx: gs1Idx,
-    state: GUAN_STATES[gs1Idx].name,
+    state: guanAllStates()[gs1Idx].name,
     solar: fmtSolar(now),
     ganzhi: gz.full,
     gzYear: gz.year, gzMonth: gz.month, gzDay: gz.day, gzHour: gz.hour
@@ -4330,7 +4493,7 @@ function guanConfirmRecord(){
   document.getElementById('gs1Confirm').classList.remove('show');
   const rec = document.getElementById('gs1Recorded');
   rec.classList.add('show');
-  rec.textContent = `已 记 录 · ${GUAN_STATES[gs1Idx].name}`;
+  rec.textContent = `已 记 录 · ${guanAllStates()[gs1Idx].name}`;
   
   // Now show reason toggle (optional)
   const reasonToggle = document.getElementById('gs1ReasonToggle');
@@ -5240,7 +5403,7 @@ function exportAllCSV(){
       const d=new Date(e.ts);
       const solar=e.solar||fmtSolar(d);
       const gz=e.ganzhi||(getGanzhi(d).full);
-      const state=e.state||(typeof GUAN_STATES!=='undefined'&&GUAN_STATES[e.idx]?GUAN_STATES[e.idx].name:'');
+      const state=e.state||(typeof guanAllStates==='function'&&guanAllStates()[e.idx]?guanAllStates()[e.idx].name:'');
       records.push({
         ts:e.ts,
         type:'energy',
@@ -5437,7 +5600,7 @@ function exportAllJSON(rangeStart,rangeEnd){
     dayEnergy.forEach(e=>{
       const d=new Date(e.ts);
       const egz=getGanzhi(d);
-      const state=e.state||(GUAN_STATES[e.idx]?GUAN_STATES[e.idx].name:'');
+      const state=e.state||(guanAllStates()[e.idx]?guanAllStates()[e.idx].name:'');
       let str=`${pad(d.getHours())}:${pad(d.getMinutes())} ${egz.hour}时 ⚡${state}`;
       if(e.reason)str+=' — '+e.reason;
       timeline.push({ts:e.ts,text:str});
@@ -6122,8 +6285,9 @@ function resetPomo(){
 // store the 计时 tab reads/exports) — no separate log is created.
 // ================================================================
 let pomoUiMode=ld('pomoUiMode','tomato'); // 'tomato' | 'timebox'
-let tbSelId=null,tbSelText=null,tbType='stopwatch',tbDur=25;
+let tbSelId=null,tbSelText=null,tbParentId=null,tbParentText=null,tbType='stopwatch',tbDur=25;
 let tbRunning=false,tbStart=null,tbEnd=null,tbInt=null;
+let _tbPendingNext=null; // {parentId,parentText,subId,subText} — set on the done screen when a next sub is available
 
 function pmSetUiMode(mode){
   pomoUiMode=mode;sv('pomoUiMode',mode);
@@ -6148,21 +6312,53 @@ function tbRenderTasks(){
     document.getElementById('tbConfig').style.display='none';
   }else{
     el.innerHTML='';
-    open.forEach((t,i)=>{
+    let anyRendered=false;
+    open.forEach((t)=>{
       const cat=todoCats.find(c=>c.id===(t.priority||'normal'));
-      const sel=tbSelId===t.id;
-      const d=document.createElement('div');
-      d.className='tb-task-item'+(sel?' sel':'');
-      d.innerHTML=`<span class="tb-task-num">${sel?'✓':(i+1)}</span><span class="tb-task-txt">${escapeHtml(t.text)}</span><span class="tb-task-cat">${cat?escapeHtml(cat.label):''}</span>`;
-      d.onclick=()=>tbSelectTask(t.id,t.text);
-      el.appendChild(d);
+      // 有细目的任务：父任务本身不计时——只有细目可以选，父任务全部做完会自动打勾。
+      if(t.subs&&t.subs.length){
+        const undone=t.subs.filter(s=>!s.done);
+        if(!undone.length)return; // 理论上不会出现：全部完成时父任务已自动完成、被上面的过滤器排除
+        anyRendered=true;
+        const group=document.createElement('div');
+        group.className='tb-task-group';
+        const doneCount=t.subs.length-undone.length;
+        group.innerHTML=`<div class="tb-task-parent-lbl">${escapeHtml(t.text)} <span class="tb-parent-progress">${doneCount}/${t.subs.length}</span></div>`;
+        undone.forEach((s,i)=>{
+          const sel=tbSelId===s.id&&tbParentId===t.id;
+          const d=document.createElement('div');
+          d.className='tb-task-item tb-sub'+(sel?' sel':'');
+          d.innerHTML=`<span class="tb-task-num">${sel?'✓':(i+1)}</span><span class="tb-task-txt">${escapeHtml(s.text)}</span>`;
+          d.onclick=()=>tbSelectSub(t.id,t.text,s.id,s.text);
+          group.appendChild(d);
+        });
+        el.appendChild(group);
+      }else{
+        anyRendered=true;
+        const sel=tbSelId===t.id&&!tbParentId;
+        const d=document.createElement('div');
+        d.className='tb-task-item'+(sel?' sel':'');
+        d.innerHTML=`<span class="tb-task-num">${sel?'✓':'·'}</span><span class="tb-task-txt">${escapeHtml(t.text)}</span><span class="tb-task-cat">${cat?escapeHtml(cat.label):''}</span>`;
+        d.onclick=()=>tbSelectTask(t.id,t.text);
+        el.appendChild(d);
+      }
     });
+    if(!anyRendered){
+      el.innerHTML='<div class="tb-task-empty">待办里还没有事 · 先去添一件</div>';
+      document.getElementById('tbConfig').style.display='none';
+    }
   }
   setTimeout(()=>applyUITheme(),50);
 }
 
 function tbSelectTask(id,text){
-  tbSelId=id;tbSelText=text;
+  tbSelId=id;tbSelText=text;tbParentId=null;tbParentText=null;
+  tbRenderTasks();
+  document.getElementById('tbConfig').style.display='block';
+}
+
+function tbSelectSub(parentId,parentText,subId,subText){
+  tbSelId=subId;tbSelText=subText;tbParentId=parentId;tbParentText=parentText;
   tbRenderTasks();
   document.getElementById('tbConfig').style.display='block';
 }
@@ -6198,7 +6394,7 @@ function tbRenderDurPresets(){
 function tbApplyRunUI(){
   const ring=document.getElementById('tbRingFg');
   document.getElementById('tbPhase').textContent=tbType==='countdown'?'时间盒 · 倒计时':'时间盒 · 正计时';
-  document.getElementById('tbRunTask').textContent=tbSelText;
+  document.getElementById('tbRunTask').textContent=tbParentId?(tbParentText+' · '+tbSelText):tbSelText;
   document.getElementById('tbHardNote').style.display=tbType==='countdown'?'flex':'none';
   if(tbType==='countdown'){
     ring.classList.remove('idle');
@@ -6244,10 +6440,17 @@ function tbFinish(hardStop){
   try{timerEndBowl()}catch(e){}
   const end=hardStop?tbEnd:Date.now();
   const dur=Math.max(0,Math.floor((end-tbStart)/1000));
+  const isSub=!!tbParentId;
+  let parent=null,sub=null,parentDone=false,nextSub=null;
+  if(isSub){
+    parent=(memos.todo||[]).find(t=>t.id===tbParentId);
+    sub=parent&&parent.subs&&parent.subs.find(s=>s.id===tbSelId);
+  }
   if(dur>0){
     // Same record shape as stopTimer() below — lands in the exact same
     // store the 计时 tab, calendar and exports already read from.
-    const rec={tagId:'todo_'+tbSelId,tagName:tbSelText,tagColor:'#A8313A',start:tbStart,end,duration:dur};
+    const rec={tagId:isSub?('sub_'+tbParentId+'_'+tbSelId):('todo_'+tbSelId),
+      tagName:isSub?(tbParentText+' · '+tbSelText):tbSelText,tagColor:'#A8313A',start:tbStart,end,duration:dur};
     const dk=dkOf(tbStart);
     if(!allDays[dk])allDays[dk]=[];
     allDays[dk].push(rec);
@@ -6256,21 +6459,73 @@ function tbFinish(hardStop){
     sv('days',allDays);
     renderRecs();
   }
+  // 细目模式：计时结束 = 这条细目做完了，直接标记完成并累加它的精确计时时长；
+  // 不需要像单独任务那样手动点勾。
+  if(isSub&&sub){
+    sub.done=true;sub.doneAt=Date.now();
+    sub.timeboxSec=(sub.timeboxSec||0)+dur;
+    const allDone=parent.subs.length>0&&parent.subs.every(s=>s.done);
+    if(allDone&&!parent.done){parent.done=true;parent.doneAt=Date.now();parentDone=true;}
+    nextSub=parent.subs.find(s=>!s.done)||null;
+    sv('memos',memos);
+    renderMemoList('todo');
+  }
   tbClearState();
   const chk=document.getElementById('tbDoneCheck');
   chk.classList.remove('checked');
-  document.getElementById('tbDoneTask').textContent=tbSelText;
+  const doneParentEl=document.getElementById('tbDoneParent');
+  const hintEl=document.getElementById('tbDoneHint');
+  const doneActsEl=document.getElementById('tbDoneActs');
+  const subActsEl=document.getElementById('tbSubActs');
   const s=new Date(tbStart),e2=new Date(end);
   document.getElementById('tbDoneTime').textContent=pad(s.getHours())+':'+pad(s.getMinutes())+' — '+pad(e2.getHours())+':'+pad(e2.getMinutes());
   document.getElementById('tbDoneDur').textContent=(hardStop?'到点硬停 · ':'')+fmtD(dur);
+  if(isSub){
+    chk.style.display='none';
+    doneActsEl.style.display='none';
+    subActsEl.style.display='flex';
+    document.getElementById('tbDoneTask').textContent=tbSelText;
+    if(parentDone){
+      const total=parent.subs.reduce((sum,s2)=>sum+(s2.timeboxSec||0),0);
+      doneParentEl.style.display='block';
+      doneParentEl.textContent=`「${tbParentText}」全部完成 · 精确总时长 ${fmtD(total)}`;
+      hintEl.textContent='已同步进今日计时记录';
+      _tbPendingNext=null;
+      document.getElementById('tbNextBtn').textContent='好';
+      document.getElementById('tbNextBtn').onclick=()=>tbReset();
+    }else{
+      doneParentEl.style.display='block';
+      const doneCount=parent.subs.filter(s2=>s2.done).length;
+      doneParentEl.textContent=`「${tbParentText}」· ${doneCount}/${parent.subs.length}`;
+      hintEl.textContent='已同步进今日计时记录 · 这条细目已自动完成';
+      _tbPendingNext={parentId:tbParentId,parentText:tbParentText,subId:nextSub.id,subText:nextSub.text};
+      document.getElementById('tbNextBtn').textContent='下一条：'+nextSub.text+' →';
+      document.getElementById('tbNextBtn').onclick=()=>tbGoNextSub();
+    }
+  }else{
+    chk.style.display='';
+    doneActsEl.style.display='flex';
+    subActsEl.style.display='none';
+    doneParentEl.style.display='none';
+    document.getElementById('tbDoneTask').textContent=tbSelText;
+    hintEl.textContent='已同步进今日计时记录 · 点击左上勾选标记待办完成';
+  }
   tbShowStep('done');
+}
+
+function tbGoNextSub(){
+  if(!_tbPendingNext)return;
+  const n=_tbPendingNext;_tbPendingNext=null;
+  tbSelectSub(n.parentId,n.parentText,n.subId,n.subText);
+  tbShowStep('pick');
 }
 
 function tbStop(){tbFinish(false)}
 
 // Manual completion only — matches the app's existing todo-check behavior.
+// Only used in standalone (no-subtask) mode; sub-mode auto-completes on timer finish.
 function tbToggleDone(){
-  if(!tbSelId)return;
+  if(!tbSelId||tbParentId)return;
   const item=(memos.todo||[]).find(t=>t.id===tbSelId);
   if(!item)return;
   memoToggle('todo',tbSelId);
@@ -6279,7 +6534,7 @@ function tbToggleDone(){
 }
 
 function tbReset(){
-  tbSelId=null;tbSelText=null;
+  tbSelId=null;tbSelText=null;tbParentId=null;tbParentText=null;_tbPendingNext=null;
   document.getElementById('tbConfig').style.display='none';
   tbShowStep('pick');
   tbRenderTasks();
@@ -6287,15 +6542,20 @@ function tbReset(){
 
 function tbSaveState(){
   if(!tbRunning){try{localStorage.removeItem('fan_tbActive')}catch(e){}return;}
-  try{localStorage.setItem('fan_tbActive',JSON.stringify({tbSelId,tbSelText,tbType,tbDur,tbStart,tbEnd}));}catch(e){}
+  try{localStorage.setItem('fan_tbActive',JSON.stringify({tbSelId,tbSelText,tbParentId,tbParentText,tbType,tbDur,tbStart,tbEnd}));}catch(e){}
 }
 function tbClearState(){try{localStorage.removeItem('fan_tbActive')}catch(e){}}
 function tbRecover(){
   let saved;try{saved=JSON.parse(localStorage.getItem('fan_tbActive')||'null')}catch(e){return}
   if(!saved||!saved.tbStart)return;
-  // Verify the todo still exists (may have been deleted while away)
-  if(!(memos.todo||[]).some(t=>t.id===saved.tbSelId)){tbClearState();return;}
-  tbSelId=saved.tbSelId;tbSelText=saved.tbSelText;tbType=saved.tbType;tbDur=saved.tbDur;
+  // Verify the task still exists (may have been deleted/completed while away)
+  if(saved.tbParentId){
+    const parent=(memos.todo||[]).find(t=>t.id===saved.tbParentId);
+    const sub=parent&&parent.subs&&parent.subs.find(s=>s.id===saved.tbSelId);
+    if(!parent||!sub||sub.done){tbClearState();return;}
+  }else if(!(memos.todo||[]).some(t=>t.id===saved.tbSelId)){tbClearState();return;}
+  tbSelId=saved.tbSelId;tbSelText=saved.tbSelText;tbParentId=saved.tbParentId||null;tbParentText=saved.tbParentText||null;
+  tbType=saved.tbType;tbDur=saved.tbDur;
   tbStart=saved.tbStart;tbEnd=saved.tbEnd;tbRunning=true;
   pmSetUiMode('timebox');
   document.getElementById('tbConfig').style.display='block';
@@ -6644,7 +6904,7 @@ function showDayD(dk){
   enLogs.forEach((en,i)=>{
     const t=new Date(en.ts);
     const tm=pad(t.getHours())+':'+pad(t.getMinutes());
-    const stateObj=GUAN_STATES.find(s=>s.name===en.state);
+    const stateObj=guanAllStates().find(s=>s.name===en.state);
     const icon=stateObj?stateObj.icon:(en.emoji||'');
     html+=`<div class="day-en-card" style="padding-left:4px">
       <div style="flex:1"><div class="day-en-info"><em>${tm} · ${en.state||''}${icon?' '+icon:''}</em></div>
@@ -7172,7 +7432,7 @@ function openAiKeySettings(){
     <div class="hc-title">AI 设 置</div>
     <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;
       color:rgba(255,250,244,.4);text-align:center;margin-bottom:18px;line-height:1.7">
-      粘贴你自己的 Claude API key，只存在你手机本地，不会经过任何服务器
+      粘贴你的API key，只存在你手机本地，不会经过任何服务器
     </div>
     <input class="hc-name-input" id="aiKeyInput" placeholder="sk-ant-..." value="${escapeHtml(aiApiKey)}" style="font-size:11px">
     <div class="hc-actions">
@@ -7302,7 +7562,16 @@ function renderTodoHistory(){
   };
   
   const completed=allTodos.filter(t=>t.done&&t.doneAt&&inRange(t.doneAt))
-    .sort((a,b)=>b.doneAt-a.doneAt);
+    .map(t=>({t,partial:false,sortTs:t.doneAt}))
+    // 细目没全部做完、父任务还没打勾，但今天至少完成了一条细目——
+    // 这也是今天的产出，不该在"今日完成"里完全看不见。
+    .concat(allTodos.filter(t=>!t.done&&t.subs&&t.subs.length&&
+        t.subs.some(s=>s.done&&s.doneAt&&inRange(s.doneAt)))
+      .map(t=>{
+        const doneTimes=t.subs.filter(s=>s.done&&s.doneAt).map(s=>s.doneAt);
+        return {t,partial:true,sortTs:Math.max(...doneTimes)};
+      }))
+    .sort((a,b)=>b.sortTs-a.sortTs);
   
   if(!completed.length){
     const emptyMap={today:'今 日 还 没 有 完 成',week:'本 周 还 没 有 完 成',
@@ -7311,16 +7580,20 @@ function renderTodoHistory(){
     el.innerHTML=html;setTimeout(()=>applyUITheme(),50);return;
   }
   
-  completed.forEach(t=>{
+  completed.forEach(({t,partial})=>{
     const subsHtml=(t.subs&&t.subs.length)
       ?`<div class="th-subs">${t.subs.map(s=>
           `<div class="th-sub${s.done?' done':''}">${s.done?'✓':'○'} ${escapeHtml(s.text)}</div>`
         ).join('')}</div>`
       :'';
-    html+=`<div class="th-item th-done">
-      <span class="th-icon">✅</span>
+    const doneCount=partial?t.subs.filter(s=>s.done).length:0;
+    const detailHtml=partial
+      ?`<div class="th-detail">今日推进 · 细目已完成 ${doneCount}/${t.subs.length}</div>`
+      :`<div class="th-detail">添加 ${fmt(t.createdAt)} → 完成 ${fmt(t.doneAt)}</div>`;
+    html+=`<div class="th-item th-done${partial?' th-partial':''}">
+      <span class="th-icon">${partial?'◐':'✅'}</span>
       <div class="th-body"><span class="th-text">${escapeHtml(t.text)}</span>
-      <div class="th-detail">添加 ${fmt(t.createdAt)} → 完成 ${fmt(t.doneAt)}</div>
+      ${detailHtml}
       ${subsHtml}
       </div>
     </div>`;
@@ -7609,10 +7882,10 @@ async function aiSortTodos(){
   const open=(memos.todo||[]).filter(t=>!t.done);
   if(open.length<2){toast('待办太少，不用整理啦');return;}
   if(!aiApiKey){openAiKeySettings();return;}
-  const hint=document.getElementById('aiEntryHint');
-  const origHintText=hint?hint.textContent:'';
-  const origHintClass=hint?hint.className:'';
-  if(hint){hint.className='ai-entry-hint';hint.style.opacity='1';hint.textContent='✨ AI 正在看…';}
+  const icon=document.getElementById('aiSortIconBtn');
+  // 用过一次之后，这枚角标就常驻亮一点点——从"几乎看不见"变成"看得见但很安静"。
+  sv('aiSortUsed',true);
+  if(icon){icon.classList.add('used');icon.style.animation='bootPulse 1.4s ease-in-out infinite';}
   try{
     // 把每条待办已有的"细目"（subs）也带给 AI，让它知道这件事已经拆到哪一步了，
     // 不要对已经拆过的事再重复建议拆解。
@@ -7633,13 +7906,11 @@ async function aiSortTodos(){
       acceptBreakdown:false
     }))};
     if(!aiSortResult.items.length)throw new Error('AI 没能整理出结果，请重试');
-    sv('aiSortUsed',true);
-    if(hint)hint.classList.add('hidden');
+    if(icon)icon.style.animation='';
     openAiSortReview();
   }catch(err){
     alert('AI 整理失败：'+err.message);
-  }finally{
-    if(hint&&!hint.classList.contains('hidden')){hint.className=origHintClass;hint.textContent=origHintText;}
+    if(icon)icon.style.animation='';
   }
 }
 
@@ -7753,35 +8024,11 @@ function closeAiSortReview(){
   aiSortResult=null;
 }
 
-// 待办输入框旁的 + 号：短按正常添加待办；长按 550ms 触发 AI 整理，
-// 这是这个功能唯一的入口——不额外占视觉重量。
+// 待办输入框旁的 ✨ 角标：默认极淡，几乎看不见；用过一次以后常驻亮一点点。
 function setupAiSortEntry(){
-  const btn=document.getElementById('todoAddBtn');
-  const hint=document.getElementById('aiEntryHint');
-  if(!btn||btn._aiLpBound)return;
-  btn._aiLpBound=true;
-  if(ld('aiSortUsed',false)&&hint)hint.classList.add('hidden');
-  let timer=null;
-  const start=()=>{
-    btn.classList.add('ai-sort-pressing');
-    timer=setTimeout(()=>{
-      btn.dataset.justFinishedLongPress='1';
-      btn.classList.remove('ai-sort-pressing');
-      if(navigator.vibrate)navigator.vibrate(40);
-      aiSortTodos();
-    },550);
-  };
-  const cancel=()=>{
-    if(timer)clearTimeout(timer);
-    btn.classList.remove('ai-sort-pressing');
-    setTimeout(()=>{delete btn.dataset.justFinishedLongPress;},150);
-  };
-  btn.addEventListener('touchstart',start,{passive:true});
-  btn.addEventListener('touchend',cancel);
-  btn.addEventListener('touchmove',cancel,{passive:true});
-  btn.addEventListener('mousedown',start);
-  btn.addEventListener('mouseup',cancel);
-  btn.addEventListener('mouseleave',cancel);
+  const icon=document.getElementById('aiSortIconBtn');
+  if(!icon)return;
+  if(ld('aiSortUsed',false))icon.classList.add('used');
 }
 
 // ----------- SHOPPING -----------
@@ -9494,7 +9741,56 @@ function renderInsp(){
       </div>
     </div>`;
   }).join('');
-  setTimeout(()=>applyUITheme(),50);
+  setTimeout(()=>{applyUITheme();attachInspLongPress();},50);
+}
+
+function copyInspItem(itemId){
+  const item=inspirations.find(i=>i.id===itemId);
+  if(!item)return;
+  copyToClipboard(item.content,'已复制');
+  if(navigator.vibrate)navigator.vibrate(20);
+}
+// Attach long-press to each inspiration card for copy — mirrors attachTodoLongPress.
+function attachInspLongPress(){
+  document.querySelectorAll('#inspList .insp-card[data-iid]').forEach(card=>{
+    if(card._lpBound)return; card._lpBound=true;
+    let timer=null,sx=0,sy=0,pendingCopy=false;
+    const start=(e)=>{
+      // Don't trigger on interactive children (check, tag pills, action buttons)
+      if(e.target.closest('.insp-check,.insp-tag-pill,.insp-act-btn,input,textarea'))return;
+      const t=e.touches?e.touches[0]:e; sx=t.clientX;sy=t.clientY;
+      timer=setTimeout(()=>{
+        // Copy must happen from the click event, not this timer — see attachTodoLongPress note.
+        timer=null;
+        pendingCopy=true;
+        if(navigator.vibrate)navigator.vibrate(20);
+        card.classList.add('todo-item-pressed');
+      },500);
+    };
+    const move=(e)=>{
+      if(!timer)return;
+      const t=e.touches?e.touches[0]:e;
+      if(Math.abs(t.clientX-sx)>10||Math.abs(t.clientY-sy)>10){clearTimeout(timer);timer=null;}
+    };
+    const end=()=>{
+      if(timer){clearTimeout(timer);timer=null;}
+      card.classList.remove('todo-item-pressed');
+    };
+    card.addEventListener('touchstart',start,{passive:true});
+    card.addEventListener('touchmove',move,{passive:true});
+    card.addEventListener('touchend',end);
+    card.addEventListener('mousedown',start);
+    card.addEventListener('mousemove',move);
+    card.addEventListener('mouseup',end);
+    card.addEventListener('mouseleave',()=>{if(timer){clearTimeout(timer);timer=null;}card.classList.remove('todo-item-pressed');});
+    card.addEventListener('click',(e)=>{
+      if(pendingCopy){
+        e.stopPropagation();e.preventDefault();
+        pendingCopy=false;
+        copyInspItem(card.dataset.iid);
+      }
+    },true);
+  });
 }
 
 // Init memo tabs and bind enter keys
