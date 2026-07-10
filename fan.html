@@ -38,6 +38,11 @@
 })();
 </script>
 <title>梵</title>
+<template id="__bundler_thumbnail" data-bg-color="#1E2820">
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <text x="100" y="120" font-size="90" text-anchor="middle" fill="#FFFAF4" font-family="serif">梵</text>
+  </svg>
+</template>
 <!-- App icons (I1 经典版) -->
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -999,7 +1004,7 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 @keyframes wiggle{from{transform:rotate(-1deg)}to{transform:rotate(1deg)}}
 
 .memo-input-row{display:flex;gap:8px;margin-bottom:6px}
-.ai-sort-icon-btn{flex-shrink:0;width:28px;height:28px;border:none;background:none;
+.ai-sort-icon-btn{flex-shrink:0;width:36px;height:36px;border-radius:50%;border:none;background:none;
   color:rgba(255,250,244,.16);font-size:14px;cursor:pointer;transition:color .3s;
   display:flex;align-items:center;justify-content:center;padding:0}
 .ai-sort-icon-btn:active{color:rgba(232,180,150,.9);transform:scale(.9)}
@@ -2908,15 +2913,12 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 
       <!-- ===== Todo tab content ===== -->
       <div id="memoSecTodo" style="display:none">
-        <div style="display:flex;align-items:center;gap:8px">
-          <div class="cat-tabs" id="todoCatTabs" style="flex:1;margin-bottom:0">
-            <!-- categories rendered dynamically -->
-          </div>
-          <button class="ai-sort-icon-btn" id="aiSortIconBtn" onclick="aiSortTodos()" title="AI 帮我看看先做哪个">✨</button>
+        <div class="cat-tabs" id="todoCatTabs">
+          <!-- categories rendered dynamically -->
         </div>
-        <div style="height:12px"></div>
         <div class="memo-input-row">
           <textarea class="memo-input" id="todoInp" placeholder="添加待办..." rows="1"></textarea>
+          <button class="ai-sort-icon-btn" id="aiSortIconBtn" onclick="aiSortTodos()" title="AI 帮我看看先做哪个">✨</button>
           <button class="memo-add-btn" id="todoAddBtn" onclick="todoAdd()">+</button>
         </div>
         <div class="memo-list" id="todoList"></div>
@@ -4016,7 +4018,13 @@ const GUAN_STATES=[
 // 用户自己长出来的词——AI 发现某种反复出现、但 9 个词都不太贴切的状态时会建议加一个，
 // 用户点头才会真正加进来，长按可以删掉。始终追加在固定 9 个后面。
 let guanCustomStates = ld('guanCustomStates', []);
-function guanAllStates(){ return GUAN_STATES.concat(guanCustomStates); }
+// 固定的 9 个词也可以删——被删掉的记在这里（按名字），guanAllStates() 里会跳过它们。
+let guanHiddenFixed = ld('guanHiddenFixed', []);
+function guanAllStates(){
+  const fixed = GUAN_STATES.filter(s=>!guanHiddenFixed.includes(s.name)).map(s=>({...s,_custom:false}));
+  const custom = guanCustomStates.map(s=>({...s,_custom:true}));
+  return fixed.concat(custom);
+}
 
 // ============ 干支历计算 (Ganzhi/八字) ============
 const GZ_STEMS=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
@@ -4124,11 +4132,9 @@ function guanBuildEmojiRow(){
   if(!cont)return;
   cont.innerHTML = '';
   const all = guanAllStates();
-  const fixedCount = GUAN_STATES.length;
   all.forEach((s,i)=>{
-    const isCustom = i>=fixedCount;
     const cell = document.createElement('div');
-    cell.className = 'gs1-emoji'+(isCustom?' gs1-emoji-custom':'');
+    cell.className = 'gs1-emoji'+(s._custom?' gs1-emoji-custom':'');
     cell.dataset.i = i;
     cell.innerHTML = `<span class="gs1-emoji-icon">${s.icon}</span>
       <span class="gs1-emoji-label" data-meaning="${i}">${s.name}</span>`;
@@ -4137,22 +4143,24 @@ function guanBuildEmojiRow(){
       guanSetSlider(i);
       guanShowConfirm();
     });
-    // 自己长出来的词可以长按删掉，和 app 里其它"长按删除"预设的手感一致
-    if(isCustom){
-      let timer=null;
-      const start=()=>{timer=setTimeout(()=>{
+    // 长按任意一个词（固定的或自己加的）可以删掉——用一个贴合 app 风格的小弹窗确认，
+    // 不用系统自带的 confirm() 弹窗。
+    let timer=null;
+    const start=(e)=>{
+      const t=e.touches?e.touches[0]:e;
+      timer=setTimeout(()=>{
         timer=null;
         if(navigator.vibrate)navigator.vibrate(30);
-        guanDeleteCustomState(i-fixedCount);
-      },500);};
-      const cancel=()=>{if(timer){clearTimeout(timer);timer=null;}};
-      cell.addEventListener('touchstart',start,{passive:true});
-      cell.addEventListener('touchend',cancel);
-      cell.addEventListener('touchmove',cancel,{passive:true});
-      cell.addEventListener('mousedown',start);
-      cell.addEventListener('mouseup',cancel);
-      cell.addEventListener('mouseleave',cancel);
-    }
+        showGuanDeletePopover(cell,i);
+      },500);
+    };
+    const cancel=()=>{if(timer){clearTimeout(timer);timer=null;}};
+    cell.addEventListener('touchstart',start,{passive:true});
+    cell.addEventListener('touchend',cancel);
+    cell.addEventListener('touchmove',cancel,{passive:true});
+    cell.addEventListener('mousedown',start);
+    cell.addEventListener('mouseup',cancel);
+    cell.addEventListener('mouseleave',cancel);
     cont.appendChild(cell);
   });
   document.querySelectorAll('.gs1-emoji-label').forEach(label=>{
@@ -4166,13 +4174,52 @@ function guanBuildEmojiRow(){
   setTimeout(()=>guanSetSlider(gs1Idx),0);
 }
 
-function guanDeleteCustomState(customIdx){
-  const s=guanCustomStates[customIdx];
-  if(!s)return;
-  if(!confirm(`删掉「${s.name}」这个词？`))return;
-  guanCustomStates.splice(customIdx,1);
-  sv('guanCustomStates',guanCustomStates);
-  if(gs1Idx>=guanAllStates().length)gs1Idx=guanAllStates().length-1;
+// 长按弹出的小删除确认——贴合 app 的深色磨砂弹窗风格，取代系统自带的 confirm()
+function showGuanDeletePopover(cell,idx){
+  document.querySelectorAll('.guan-del-pop').forEach(p=>p.remove());
+  const all=guanAllStates();
+  const target=all[idx];
+  if(!target)return;
+  const pop=document.createElement('div');
+  pop.className='cat-edit-pop guan-del-pop';
+  const delBtn=document.createElement('button');
+  delBtn.className='danger';
+  delBtn.textContent=`删除「${target.name}」`;
+  delBtn.onclick=()=>{ pop.remove(); guanDeleteStateAt(idx); };
+  pop.appendChild(delBtn);
+  document.body.appendChild(pop);
+  const rect=cell.getBoundingClientRect();
+  const popW=100; // approx, matches .cat-edit-pop min-width + padding
+  pop.style.left=Math.max(8,Math.min(window.innerWidth-popW-8,rect.left+rect.width/2-popW/2))+'px';
+  pop.style.top=(rect.bottom+8)+'px';
+  setTimeout(()=>{
+    const closeOnce=(e)=>{
+      if(pop.contains(e.target))return;
+      pop.remove();
+      document.removeEventListener('click',closeOnce);
+      document.removeEventListener('touchstart',closeOnce);
+    };
+    document.addEventListener('click',closeOnce);
+    document.addEventListener('touchstart',closeOnce);
+  },400);
+}
+
+function guanDeleteStateAt(idx){
+  const all=guanAllStates();
+  if(all.length<=1){toast('至少要留一个状态');return;}
+  const target=all[idx];
+  if(!target)return;
+  if(target._custom){
+    const ci=guanCustomStates.findIndex(c=>c.name===target.name&&c.icon===target.icon);
+    if(ci>-1)guanCustomStates.splice(ci,1);
+    sv('guanCustomStates',guanCustomStates);
+  }else{
+    if(!guanHiddenFixed.includes(target.name)){
+      guanHiddenFixed.push(target.name);
+      sv('guanHiddenFixed',guanHiddenFixed);
+    }
+  }
+  if(gs1Idx>=guanAllStates().length)gs1Idx=Math.max(0,guanAllStates().length-1);
   guanBuildEmojiRow();
 }
 
