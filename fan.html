@@ -971,13 +971,15 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .memo-tab.drag-mode{animation:wiggle .3s ease-in-out infinite alternate}
 @keyframes wiggle{from{transform:rotate(-1deg)}to{transform:rotate(1deg)}}
 
-.memo-input-row{display:flex;gap:8px;margin-bottom:14px}
-.ai-sort-row{margin:-6px 0 14px}
-.ai-sort-btn{width:100%;padding:9px;border-radius:100px;
-  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
-  color:rgba(255,250,244,.5);font-family:'Cormorant Garamond',serif;font-style:italic;
-  font-size:11.5px;letter-spacing:.03em;cursor:pointer;transition:all .25s}
-.ai-sort-btn:active{background:rgba(255,255,255,.08);transform:scale(.98)}
+.memo-input-row{display:flex;gap:8px;margin-bottom:6px}
+/* AI 整理待办的入口是隐形的：长按输入框旁的 + 号触发，不占视觉重量。
+   这行小字只在没用过这个功能时出现一次，用过一次就不再显示。 */
+.ai-entry-hint{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;
+  color:rgba(255,250,244,.3);text-align:right;margin:0 0 14px;letter-spacing:.02em;
+  opacity:0;animation:ghostFadeOnce 3.4s ease forwards}
+.ai-entry-hint.hidden{display:none}
+@keyframes ghostFadeOnce{0%{opacity:0}12%{opacity:1}75%{opacity:1}100%{opacity:0}}
+.memo-add-btn.ai-sort-pressing{background:rgba(192,91,69,.35)!important;transition:background .55s linear}
 /* Todo history (归档) view */
 .cat-tab-hist{opacity:.7;font-style:italic}
 .todo-hist-toggle{display:flex;gap:8px;justify-content:center;margin-bottom:16px}
@@ -1321,19 +1323,32 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   margin:auto}
 .ai-sort-hint{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10.5px;
-  color:rgba(255,250,244,.4);text-align:center;margin-bottom:16px;letter-spacing:.02em}
-.ai-sort-list{display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow-y:auto}
-.ai-sort-item{display:flex;gap:8px;padding:12px;border-radius:14px;
-  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
-  transition:box-shadow .2s}
-.ai-sort-item.dragging{box-shadow:0 8px 24px rgba(0,0,0,.3);background:rgba(255,255,255,.08);z-index:5;position:relative}
-.ai-sort-drag{flex-shrink:0;color:rgba(255,250,244,.2);font-size:11px;letter-spacing:-2px;
-  cursor:grab;padding-top:2px;touch-action:none}
-.ai-sort-body{flex:1;min-width:0}
-.ai-sort-txt{font-family:'Noto Serif SC',serif;font-weight:300;font-size:13px;
-  color:rgba(255,250,244,.9);line-height:1.5;letter-spacing:.02em}
+  color:rgba(255,250,244,.4);text-align:center;margin-bottom:18px;letter-spacing:.02em}
+/* 递减时间轴：越靠上越重。字号/透明度的递减直接传达轻重，不靠数字徽章 */
+.ai-sort-list{display:flex;flex-direction:column;gap:0;max-height:54vh;overflow-y:auto;
+  position:relative;padding-left:15px;margin-left:1px}
+.ai-sort-tl-line{position:absolute;left:2px;top:6px;bottom:22px;width:1px;background:rgba(255,250,244,.12)}
+.ai-sort-item{position:relative;padding:0 0 20px}
+.ai-sort-item:last-child{padding-bottom:2px}
+.ai-sort-dot{position:absolute;left:-15px;top:6px;width:7px;height:7px;border-radius:50%;background:rgba(232,180,150,.85)}
+.ai-sort-row-top{display:flex;align-items:flex-start;gap:8px}
+.ai-sort-body{flex:1;min-width:0;cursor:pointer}
+.ai-sort-txt{font-family:'Noto Serif SC',serif;font-weight:300;
+  color:rgba(255,250,244,.92);line-height:1.5;letter-spacing:.02em}
 .ai-sort-reason{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10.5px;
   color:rgba(232,180,150,.6);margin-top:4px;line-height:1.5}
+.ai-sort-reorder{display:flex;flex-direction:column;gap:2px;flex-shrink:0;margin-top:1px}
+.ai-sort-reorder button{width:22px;height:17px;border:none;background:rgba(255,255,255,.05);
+  color:rgba(255,250,244,.4);border-radius:5px;font-size:9px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:'EB Garamond',serif}
+.ai-sort-reorder button:active{background:rgba(255,255,255,.14);color:rgba(255,250,244,.8);transform:scale(.94)}
+.ai-sort-reorder button:disabled{opacity:.15;cursor:default}
+.ai-sort-existing-subs{margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.03)}
+.ai-sort-existing-subs-hint{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:9.5px;
+  color:rgba(255,250,244,.35);margin-bottom:4px}
+.ai-sort-existing-sub{font-family:'Noto Serif SC',serif;font-weight:300;font-size:10.5px;
+  color:rgba(255,250,244,.5);line-height:1.6}
+.ai-sort-existing-sub.done{text-decoration:line-through;opacity:.5}
 .ai-sort-breakdown{margin-top:10px;padding:10px;border-radius:10px;background:rgba(0,0,0,.15)}
 .ai-sort-bd-hint{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;
   color:rgba(255,250,244,.4);margin-bottom:6px}
@@ -2868,11 +2883,9 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
         </div>
         <div class="memo-input-row">
           <textarea class="memo-input" id="todoInp" placeholder="添加待办..." rows="1"></textarea>
-          <button class="memo-add-btn" onclick="todoAdd()">+</button>
+          <button class="memo-add-btn" id="todoAddBtn" onclick="if(!this.dataset.justFinishedLongPress)todoAdd()">+</button>
         </div>
-        <div class="ai-sort-row">
-          <button class="ai-sort-btn" onclick="aiSortTodos()">✨ AI 帮我看看先做哪个</button>
-        </div>
+        <div class="ai-entry-hint" id="aiEntryHint">按住 + ，AI 帮你看看先做哪个</div>
         <div class="memo-list" id="todoList"></div>
       </div>
 
@@ -7579,7 +7592,10 @@ const AI_TODO_SYSTEM_PROMPT=`你在帮用户整理她的待办清单，判断标
 
 二、颗粒度判断（任务粒度错觉 / Planning Fallacy）：
 人预估没做过的任务时，习惯性低估所需步骤，规划时用的是简化的"外部视角"。看到一条待办，先判断它是"一个动作"（单一步骤，5-15分钟内可完成）还是"一个项目"（名字听起来简单，展开后有多个决策点，比如涉及比价、查资料、多方权衡）。
-如果判断是"项目"级别、颗粒度太粗，请在 coarse 里标记为 true，并在 breakdown 里给出具体的下一步动作清单（3-6步），只给"第一步要做什么"这类具体可执行的动作，不要空泛的话。
+每条待办可能附带她已经拆好的"细目"（subs 字段，数组，每项有 text 和 done）——这是她自己写下的下一步动作。判断颗粒度粗细时必须参考这个：
+- 如果 subs 已经覆盖了这件事剩下要做的步骤，就不算颗粒度粗，coarse 填 false，不要重复建议拆解。
+- 只有当这件事听起来仍是"项目"级别、而 subs 为空或明显没覆盖完，才把 coarse 标为 true，并在 breakdown 里给出具体的下一步动作清单（3-6步），只给"第一步要做什么"这类具体可执行的动作，不要和已有的 subs 重复。
+- 判断这件事还剩多少工作量时，把 subs 里未完成（done:false）的条数也算进去，而不是只看标题本身。
 
 三、用户的决策风格是"最大化型"（maximizer）——她倾向寻找最优解而不是差不多就行，这不是缺点，不需要建议她"随便选一个/降低标准"。如果某条待办需要她做出选择性决策，可以在 reason 里提示"这条建议给自己设一个时间上限去决定，而不是无限展开搜索"，但不要建议她降低判断标准。
 
@@ -7593,27 +7609,37 @@ async function aiSortTodos(){
   const open=(memos.todo||[]).filter(t=>!t.done);
   if(open.length<2){toast('待办太少，不用整理啦');return;}
   if(!aiApiKey){openAiKeySettings();return;}
-  const btn=document.querySelector('.ai-sort-btn');
-  const origText=btn?btn.textContent:'';
-  if(btn){btn.textContent='AI 正在看…';btn.disabled=true;}
+  const hint=document.getElementById('aiEntryHint');
+  const origHintText=hint?hint.textContent:'';
+  const origHintClass=hint?hint.className:'';
+  if(hint){hint.className='ai-entry-hint';hint.style.opacity='1';hint.textContent='✨ AI 正在看…';}
   try{
-    const userPrompt='这是我现在的待办清单（JSON数组，id和text）：\n'+
-      JSON.stringify(open.map(t=>({id:t.id,text:t.text})),null,2);
+    // 把每条待办已有的"细目"（subs）也带给 AI，让它知道这件事已经拆到哪一步了，
+    // 不要对已经拆过的事再重复建议拆解。
+    const payload=open.map(t=>({
+      id:t.id,text:t.text,
+      subs:(t.subs||[]).map(s=>({text:s.text,done:!!s.done}))
+    }));
+    const userPrompt='这是我现在的待办清单（JSON数组，包含 id、text，以及已有的细目 subs）：\n'+
+      JSON.stringify(payload,null,2);
     const result=await callClaudeJSON(AI_TODO_SYSTEM_PROMPT,userPrompt);
     if(!result||!Array.isArray(result.items))throw new Error('AI 返回的格式不对，请重试');
     // Map back to full todo objects, keep only ones that still exist
     const byId={};open.forEach(t=>byId[t.id]=t);
     aiSortResult={items:result.items.filter(it=>byId[it.id]).map(it=>({
       id:it.id,text:byId[it.id].text,reason:it.reason||'',
+      existingSubs:(byId[it.id].subs||[]).slice(),
       coarse:!!it.coarse,breakdown:Array.isArray(it.breakdown)?it.breakdown:[],
       acceptBreakdown:false
     }))};
     if(!aiSortResult.items.length)throw new Error('AI 没能整理出结果，请重试');
+    sv('aiSortUsed',true);
+    if(hint)hint.classList.add('hidden');
     openAiSortReview();
   }catch(err){
     alert('AI 整理失败：'+err.message);
   }finally{
-    if(btn){btn.textContent=origText;btn.disabled=false;}
+    if(hint&&!hint.classList.contains('hidden')){hint.className=origHintClass;hint.textContent=origHintText;}
   }
 }
 
@@ -7626,7 +7652,7 @@ function openAiSortReview(){
   bg.onclick=(e)=>{if(e.target===bg)closeAiSortReview();};
   bg.innerHTML=`<div class="ai-sort-box">
     <div class="hc-title" style="margin-bottom:6px">AI 建 议 的 顺 序</div>
-    <div class="ai-sort-hint">可以拖动微调 · 满意了再确认，现在什么都还没改</div>
+    <div class="ai-sort-hint">越靠上越优先 · 用箭头微调 · 满意了再确认</div>
     <div class="ai-sort-list" id="aiSortList"></div>
     <div class="acts" style="margin-top:18px">
       <button class="btn" onclick="closeAiSortReview()">取消</button>
@@ -7640,86 +7666,66 @@ function openAiSortReview(){
 function renderAiSortList(){
   const el=document.getElementById('aiSortList');
   if(!el||!aiSortResult)return;
-  el.innerHTML=aiSortResult.items.map((it,idx)=>`
+  const n=aiSortResult.items.length;
+  el.innerHTML='<div class="ai-sort-tl-line"></div>'+aiSortResult.items.map((it,idx)=>{
+    const fontSize=Math.max(11.5,15-idx*1.1).toFixed(1);
+    const opacity=Math.max(0.45,0.94-idx*0.1).toFixed(2);
+    const hasSubs=it.existingSubs&&it.existingSubs.length;
+    let detailHtml='';
+    if(hasSubs){
+      detailHtml=`<div class="ai-sort-existing-subs">
+        <div class="ai-sort-existing-subs-hint">已经拆过的细目：</div>
+        ${it.existingSubs.map(s=>`<div class="ai-sort-existing-sub${s.done?' done':''}">· ${escapeHtml(s.text)}</div>`).join('')}
+      </div>`;
+    }else if(it.coarse&&it.breakdown.length){
+      detailHtml=`<div class="ai-sort-breakdown">
+        <div class="ai-sort-bd-hint">这条看起来颗粒度有点粗，建议拆解：</div>
+        <div class="ai-sort-bd-steps">${it.breakdown.map(s=>`<div class="ai-sort-bd-step">· ${escapeHtml(s)}</div>`).join('')}</div>
+        <label class="ai-sort-bd-accept">
+          <input type="checkbox" ${it.acceptBreakdown?'checked':''} onchange="toggleAiBreakdown(${idx},this.checked)">
+          <span>采纳，拆成细目</span>
+        </label>
+      </div>`;
+    }
+    return `
     <div class="ai-sort-item" data-idx="${idx}">
-      <div class="ai-sort-drag">⋮⋮</div>
-      <div class="ai-sort-body">
-        <div class="ai-sort-txt">${escapeHtml(it.text)}</div>
-        <div class="ai-sort-reason">${escapeHtml(it.reason)}</div>
-        ${it.coarse&&it.breakdown.length?`
-          <div class="ai-sort-breakdown">
-            <div class="ai-sort-bd-hint">这条看起来颗粒度有点粗，建议拆解：</div>
-            <div class="ai-sort-bd-steps">${it.breakdown.map(s=>`<div class="ai-sort-bd-step">· ${escapeHtml(s)}</div>`).join('')}</div>
-            <label class="ai-sort-bd-accept">
-              <input type="checkbox" ${it.acceptBreakdown?'checked':''} onchange="toggleAiBreakdown(${idx},this.checked)">
-              <span>采纳，拆成细目</span>
-            </label>
-          </div>`:''}
+      <div class="ai-sort-dot"></div>
+      <div class="ai-sort-row-top">
+        <div class="ai-sort-body" onclick="toggleAiDetail(${idx})">
+          <div class="ai-sort-txt" style="font-size:${fontSize}px;opacity:${opacity}">${escapeHtml(it.text)}</div>
+          <div class="ai-sort-reason">${escapeHtml(it.reason)}</div>
+        </div>
+        <div class="ai-sort-reorder">
+          <button onclick="aiSortMove(${idx},-1)" ${idx===0?'disabled':''} title="往上移">▲</button>
+          <button onclick="aiSortMove(${idx},1)" ${idx===n-1?'disabled':''} title="往下移">▼</button>
+        </div>
       </div>
-    </div>
-  `).join('');
-  attachAiSortDrag();
+      ${it._detailOpen&&detailHtml?detailHtml:''}
+    </div>`;
+  }).join('');
   setTimeout(()=>applyUITheme(),50);
+}
+
+function toggleAiDetail(idx){
+  const it=aiSortResult&&aiSortResult.items[idx];
+  if(!it)return;
+  if(!(it.existingSubs&&it.existingSubs.length)&&!(it.coarse&&it.breakdown.length))return; // nothing to show
+  it._detailOpen=!it._detailOpen;
+  renderAiSortList();
 }
 
 function toggleAiBreakdown(idx,checked){
   if(aiSortResult&&aiSortResult.items[idx])aiSortResult.items[idx].acceptBreakdown=checked;
 }
 
-// Simple long-press-free drag: whole row draggable, matches the same touch pattern
-// used for sub-todo reordering elsewhere in the app.
-function attachAiSortDrag(){
-  document.querySelectorAll('.ai-sort-item').forEach(row=>{
-    if(row._dragBound)return; row._dragBound=true;
-    const list=row.closest('.ai-sort-list');
-    let dragging=false,startY=0;
-    const onStart=(e)=>{
-      if(e.target.closest('input,label'))return;
-      const t=e.touches?e.touches[0]:e;
-      startY=t.clientY;dragging=true;
-      row.classList.add('dragging');
-      if(navigator.vibrate)navigator.vibrate(15);
-      document.addEventListener('touchmove',onMove,{passive:false});
-      document.addEventListener('touchend',onEnd);
-      document.addEventListener('mousemove',onMove);
-      document.addEventListener('mouseup',onEnd);
-    };
-    const onMove=(e)=>{
-      if(!dragging)return;
-      e.preventDefault();
-      const t=e.touches?e.touches[0]:e;
-      const y=t.clientY;
-      row.style.transform=`translateY(${y-startY}px)`;
-      const siblings=[...list.querySelectorAll('.ai-sort-item:not(.dragging)')];
-      for(const sib of siblings){
-        const r=sib.getBoundingClientRect();
-        if(y>r.top&&y<r.bottom){
-          const before=y<r.top+r.height/2;
-          if(before)list.insertBefore(row,sib);else list.insertBefore(row,sib.nextSibling);
-          startY=y;row.style.transform='translateY(0)';
-          break;
-        }
-      }
-    };
-    const onEnd=()=>{
-      if(!dragging)return;
-      dragging=false;
-      row.classList.remove('dragging');
-      row.style.transform='';
-      document.removeEventListener('touchmove',onMove);
-      document.removeEventListener('touchend',onEnd);
-      document.removeEventListener('mousemove',onMove);
-      document.removeEventListener('mouseup',onEnd);
-      // Persist the new order into aiSortResult
-      const ids=[...list.querySelectorAll('.ai-sort-item')].map(r=>parseInt(r.dataset.idx));
-      const newItems=ids.map(i=>aiSortResult.items[i]);
-      aiSortResult.items=newItems;
-      // Re-render to refresh data-idx values to match the new array positions
-      renderAiSortList();
-    };
-    row.addEventListener('touchstart',onStart,{passive:true});
-    row.addEventListener('mousedown',onStart);
-  });
+// 用箭头按钮把某一条和相邻一条互换位置，比拖拽更稳，触屏和桌面都好用。
+function aiSortMove(idx,dir){
+  if(!aiSortResult)return;
+  const items=aiSortResult.items;
+  const j=idx+dir;
+  if(j<0||j>=items.length)return;
+  [items[idx],items[j]]=[items[j],items[idx]];
+  renderAiSortList();
 }
 
 function confirmAiSort(){
@@ -7745,6 +7751,37 @@ function confirmAiSort(){
 function closeAiSortReview(){
   document.getElementById('aiSortBg')?.remove();
   aiSortResult=null;
+}
+
+// 待办输入框旁的 + 号：短按正常添加待办；长按 550ms 触发 AI 整理，
+// 这是这个功能唯一的入口——不额外占视觉重量。
+function setupAiSortEntry(){
+  const btn=document.getElementById('todoAddBtn');
+  const hint=document.getElementById('aiEntryHint');
+  if(!btn||btn._aiLpBound)return;
+  btn._aiLpBound=true;
+  if(ld('aiSortUsed',false)&&hint)hint.classList.add('hidden');
+  let timer=null;
+  const start=()=>{
+    btn.classList.add('ai-sort-pressing');
+    timer=setTimeout(()=>{
+      btn.dataset.justFinishedLongPress='1';
+      btn.classList.remove('ai-sort-pressing');
+      if(navigator.vibrate)navigator.vibrate(40);
+      aiSortTodos();
+    },550);
+  };
+  const cancel=()=>{
+    if(timer)clearTimeout(timer);
+    btn.classList.remove('ai-sort-pressing');
+    setTimeout(()=>{delete btn.dataset.justFinishedLongPress;},150);
+  };
+  btn.addEventListener('touchstart',start,{passive:true});
+  btn.addEventListener('touchend',cancel);
+  btn.addEventListener('touchmove',cancel,{passive:true});
+  btn.addEventListener('mousedown',start);
+  btn.addEventListener('mouseup',cancel);
+  btn.addEventListener('mouseleave',cancel);
 }
 
 // ----------- SHOPPING -----------
@@ -9848,6 +9885,7 @@ function init(){
   if(pomoUiMode==='timebox')tbRenderTasks();
   tbRecover();
   setupCalLongPress();
+  setupAiSortEntry();
   updSWDisplay();
   showTodaySchedule();
   document.getElementById('nT').classList.add('on');
