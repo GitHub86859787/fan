@@ -972,6 +972,12 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 @keyframes wiggle{from{transform:rotate(-1deg)}to{transform:rotate(1deg)}}
 
 .memo-input-row{display:flex;gap:8px;margin-bottom:14px}
+.ai-sort-row{margin:-6px 0 14px}
+.ai-sort-btn{width:100%;padding:9px;border-radius:100px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  color:rgba(255,250,244,.5);font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:11.5px;letter-spacing:.03em;cursor:pointer;transition:all .25s}
+.ai-sort-btn:active{background:rgba(255,255,255,.08);transform:scale(.98)}
 /* Todo history (归档) view */
 .cat-tab-hist{opacity:.7;font-style:italic}
 .todo-hist-toggle{display:flex;gap:8px;justify-content:center;margin-bottom:16px}
@@ -1305,6 +1311,40 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   background:var(--hgrad);
   border:1px solid rgba(255,250,244,.08);
   margin-bottom:30px}
+
+/* AI 待办整理 · 审阅弹窗 */
+.ai-sort-box{width:100%;max-width:340px;position:relative;
+  animation:popIn .3s cubic-bezier(.16,1,.3,1);
+  border-radius:22px;padding:24px 20px;
+  background:linear-gradient(165deg,rgba(58,48,40,.7),rgba(38,32,26,.6));
+  border:1px solid rgba(255,240,220,.1);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  margin:auto}
+.ai-sort-hint{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10.5px;
+  color:rgba(255,250,244,.4);text-align:center;margin-bottom:16px;letter-spacing:.02em}
+.ai-sort-list{display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow-y:auto}
+.ai-sort-item{display:flex;gap:8px;padding:12px;border-radius:14px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+  transition:box-shadow .2s}
+.ai-sort-item.dragging{box-shadow:0 8px 24px rgba(0,0,0,.3);background:rgba(255,255,255,.08);z-index:5;position:relative}
+.ai-sort-drag{flex-shrink:0;color:rgba(255,250,244,.2);font-size:11px;letter-spacing:-2px;
+  cursor:grab;padding-top:2px;touch-action:none}
+.ai-sort-body{flex:1;min-width:0}
+.ai-sort-txt{font-family:'Noto Serif SC',serif;font-weight:300;font-size:13px;
+  color:rgba(255,250,244,.9);line-height:1.5;letter-spacing:.02em}
+.ai-sort-reason{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10.5px;
+  color:rgba(232,180,150,.6);margin-top:4px;line-height:1.5}
+.ai-sort-breakdown{margin-top:10px;padding:10px;border-radius:10px;background:rgba(0,0,0,.15)}
+.ai-sort-bd-hint{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;
+  color:rgba(255,250,244,.4);margin-bottom:6px}
+.ai-sort-bd-steps{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
+.ai-sort-bd-step{font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;
+  color:rgba(255,250,244,.6);line-height:1.5}
+.ai-sort-bd-accept{display:flex;align-items:center;gap:6px;cursor:pointer}
+.ai-sort-bd-accept input{width:13px;height:13px;accent-color:#C05B45}
+.ai-sort-bd-accept span{font-family:'Noto Serif SC',serif;font-weight:300;font-size:10.5px;
+  color:rgba(255,250,244,.55)}
+
 .hd-hero{padding:32px 20px 24px;text-align:center;position:relative}
 .hd-close{position:absolute;top:14px;right:14px;width:28px;height:28px;border-radius:50%;
   background:rgba(0,0,0,.18);border:none;color:rgba(255,255,255,.75);
@@ -2718,6 +2758,9 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
         <button class="export-btn" onclick="document.getElementById('importFile').click()">导入备份</button>
       </div>
+      <div class="export-row" style="margin-top:8px">
+        <button class="export-btn" onclick="openAiKeySettings()">AI 设置</button>
+      </div>
     </div>
 
     <!-- ============ 添加/编辑 日程事件 — fullscreen ============ -->
@@ -2826,6 +2869,9 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
         <div class="memo-input-row">
           <textarea class="memo-input" id="todoInp" placeholder="添加待办..." rows="1"></textarea>
           <button class="memo-add-btn" onclick="todoAdd()">+</button>
+        </div>
+        <div class="ai-sort-row">
+          <button class="ai-sort-btn" onclick="aiSortTodos()">✨ AI 帮我看看先做哪个</button>
         </div>
         <div class="memo-list" id="todoList"></div>
       </div>
@@ -7097,6 +7143,85 @@ function escapeHtml(s){
     .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
 }
 
+// ================================================================
+// AI — 你自带 Claude API key，存在本地，直接从浏览器调用
+// ================================================================
+let aiApiKey=ld('aiApiKey','');
+
+function openAiKeySettings(){
+  const existing=document.getElementById('aiKeyBg');
+  if(existing){existing.remove();return;}
+  const bg=document.createElement('div');
+  bg.id='aiKeyBg';
+  bg.className='habit-create-bg';
+  bg.onclick=(e)=>{if(e.target===bg)bg.remove();};
+  bg.innerHTML=`<div class="habit-create-box" style="max-width:320px">
+    <div class="hc-title">AI 设 置</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;
+      color:rgba(255,250,244,.4);text-align:center;margin-bottom:18px;line-height:1.7">
+      粘贴你自己的 Claude API key，只存在你手机本地，不会经过任何服务器
+    </div>
+    <input class="hc-name-input" id="aiKeyInput" placeholder="sk-ant-..." value="${escapeHtml(aiApiKey)}" style="font-size:11px">
+    <div class="hc-actions">
+      <button class="hc-save" onclick="saveAiKey()">保 存</button>
+    </div>
+    ${aiApiKey?'<button class="hc-cancel" onclick="clearAiKey()" style="color:rgba(220,140,130,.5)">清除已保存的 key</button>':''}
+    <button class="hc-cancel" onclick="document.getElementById('aiKeyBg').remove()">关闭</button>
+  </div>`;
+  document.body.appendChild(bg);
+  setTimeout(()=>document.getElementById('aiKeyInput')?.focus(),100);
+}
+function saveAiKey(){
+  const v=(document.getElementById('aiKeyInput').value||'').trim();
+  if(!v){toast('请先粘贴 key');return;}
+  aiApiKey=v;
+  sv('aiApiKey',aiApiKey);
+  document.getElementById('aiKeyBg')?.remove();
+  toast('已保存');
+}
+function clearAiKey(){
+  if(!confirm('清除已保存的 API key？'))return;
+  aiApiKey='';
+  sv('aiApiKey','');
+  document.getElementById('aiKeyBg')?.remove();
+  toast('已清除');
+}
+
+// Core call — sends a system+user prompt to Claude, expects/returns parsed JSON.
+// Throws with a friendly message on any failure (no key, network, bad response).
+async function callClaudeJSON(systemPrompt,userPrompt){
+  if(!aiApiKey)throw new Error('还没有设置 API key，去"AI 设置"里粘贴一下');
+  const resp=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'content-type':'application/json',
+      'x-api-key':aiApiKey,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({
+      model:'claude-sonnet-4-5',
+      max_tokens:2048,
+      system:systemPrompt,
+      messages:[{role:'user',content:userPrompt}]
+    })
+  });
+  if(!resp.ok){
+    let msg='请求失败 ('+resp.status+')';
+    try{const e=await resp.json();if(e&&e.error&&e.error.message)msg=e.error.message;}catch(err){}
+    throw new Error(msg);
+  }
+  const data=await resp.json();
+  const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+  // Strip markdown code fences if the model wrapped the JSON in them
+  const cleaned=text.replace(/^```json\s*|^```\s*|```\s*$/g,'').trim();
+  try{
+    return JSON.parse(cleaned);
+  }catch(err){
+    throw new Error('AI 返回的内容没能解析，请重试');
+  }
+}
+
 // ----------- TODO -----------
 // Categories with id (stable) and label (editable). User can add/rename/delete/reorder.
 // Default categories: urgent, important, normal
@@ -7440,6 +7565,188 @@ function todoAdd(){
   renderMemoList('todo');
 }
 
+// ================================================================
+// AI · 待办整理 — 建议顺序 + 理由 + 颗粒度太粗的拆解建议
+// AI 只给"建议"，原始待办数据在你点"确认"之前不会被改动一个字；
+// 理由和拆解说明只出现在这个审阅界面里，写回去的时候不会进正文。
+// ================================================================
+const AI_TODO_SYSTEM_PROMPT=`你在帮用户整理她的待办清单，判断标准来自以下几条认知负荷管理的原理，请严格按这套框架思考，不要用"紧急/重要"这种通用四象限。
+
+一、排序判断标准（不是按感觉排"重要"，而是看因果链条）：
+- 杠杆类（leverage）：做完这件事，后面别的事会变得更容易推进，即使耗时也该优先启动。
+- 清空类（clear）：不产生杠杆效应，但占用背景注意力带宽，处理成本很低，应该顺手尽快清掉。
+- 不要考虑"这条放了多久了"，这个不重要。
+
+二、颗粒度判断（任务粒度错觉 / Planning Fallacy）：
+人预估没做过的任务时，习惯性低估所需步骤，规划时用的是简化的"外部视角"。看到一条待办，先判断它是"一个动作"（单一步骤，5-15分钟内可完成）还是"一个项目"（名字听起来简单，展开后有多个决策点，比如涉及比价、查资料、多方权衡）。
+如果判断是"项目"级别、颗粒度太粗，请在 coarse 里标记为 true，并在 breakdown 里给出具体的下一步动作清单（3-6步），只给"第一步要做什么"这类具体可执行的动作，不要空泛的话。
+
+三、用户的决策风格是"最大化型"（maximizer）——她倾向寻找最优解而不是差不多就行，这不是缺点，不需要建议她"随便选一个/降低标准"。如果某条待办需要她做出选择性决策，可以在 reason 里提示"这条建议给自己设一个时间上限去决定，而不是无限展开搜索"，但不要建议她降低判断标准。
+
+请只返回 JSON，不要有任何其他文字，格式如下：
+{"items":[{"id":"...","reason":"一句话，为什么排在这个位置，用杠杆/清空的逻辑说明","coarse":false,"breakdown":[]}]}
+items 数组的顺序就是你建议的新顺序。coarse 为 true 时，breakdown 给出3-6条具体步骤；否则 breakdown 给空数组。reason 控制在30字以内。`;
+
+let aiSortResult=null; // {items:[{id,text,reason,coarse,breakdown,acceptBreakdown}]}
+
+async function aiSortTodos(){
+  const open=(memos.todo||[]).filter(t=>!t.done);
+  if(open.length<2){toast('待办太少，不用整理啦');return;}
+  if(!aiApiKey){openAiKeySettings();return;}
+  const btn=document.querySelector('.ai-sort-btn');
+  const origText=btn?btn.textContent:'';
+  if(btn){btn.textContent='AI 正在看…';btn.disabled=true;}
+  try{
+    const userPrompt='这是我现在的待办清单（JSON数组，id和text）：\n'+
+      JSON.stringify(open.map(t=>({id:t.id,text:t.text})),null,2);
+    const result=await callClaudeJSON(AI_TODO_SYSTEM_PROMPT,userPrompt);
+    if(!result||!Array.isArray(result.items))throw new Error('AI 返回的格式不对，请重试');
+    // Map back to full todo objects, keep only ones that still exist
+    const byId={};open.forEach(t=>byId[t.id]=t);
+    aiSortResult={items:result.items.filter(it=>byId[it.id]).map(it=>({
+      id:it.id,text:byId[it.id].text,reason:it.reason||'',
+      coarse:!!it.coarse,breakdown:Array.isArray(it.breakdown)?it.breakdown:[],
+      acceptBreakdown:false
+    }))};
+    if(!aiSortResult.items.length)throw new Error('AI 没能整理出结果，请重试');
+    openAiSortReview();
+  }catch(err){
+    alert('AI 整理失败：'+err.message);
+  }finally{
+    if(btn){btn.textContent=origText;btn.disabled=false;}
+  }
+}
+
+function openAiSortReview(){
+  const existing=document.getElementById('aiSortBg');
+  if(existing)existing.remove();
+  const bg=document.createElement('div');
+  bg.id='aiSortBg';
+  bg.className='habit-detail-bg';
+  bg.onclick=(e)=>{if(e.target===bg)closeAiSortReview();};
+  bg.innerHTML=`<div class="ai-sort-box">
+    <div class="hc-title" style="margin-bottom:6px">AI 建 议 的 顺 序</div>
+    <div class="ai-sort-hint">可以拖动微调 · 满意了再确认，现在什么都还没改</div>
+    <div class="ai-sort-list" id="aiSortList"></div>
+    <div class="acts" style="margin-top:18px">
+      <button class="btn" onclick="closeAiSortReview()">取消</button>
+      <button class="btn btn-strong" onclick="confirmAiSort()">确 认</button>
+    </div>
+  </div>`;
+  document.body.appendChild(bg);
+  renderAiSortList();
+}
+
+function renderAiSortList(){
+  const el=document.getElementById('aiSortList');
+  if(!el||!aiSortResult)return;
+  el.innerHTML=aiSortResult.items.map((it,idx)=>`
+    <div class="ai-sort-item" data-idx="${idx}">
+      <div class="ai-sort-drag">⋮⋮</div>
+      <div class="ai-sort-body">
+        <div class="ai-sort-txt">${escapeHtml(it.text)}</div>
+        <div class="ai-sort-reason">${escapeHtml(it.reason)}</div>
+        ${it.coarse&&it.breakdown.length?`
+          <div class="ai-sort-breakdown">
+            <div class="ai-sort-bd-hint">这条看起来颗粒度有点粗，建议拆解：</div>
+            <div class="ai-sort-bd-steps">${it.breakdown.map(s=>`<div class="ai-sort-bd-step">· ${escapeHtml(s)}</div>`).join('')}</div>
+            <label class="ai-sort-bd-accept">
+              <input type="checkbox" ${it.acceptBreakdown?'checked':''} onchange="toggleAiBreakdown(${idx},this.checked)">
+              <span>采纳，拆成细目</span>
+            </label>
+          </div>`:''}
+      </div>
+    </div>
+  `).join('');
+  attachAiSortDrag();
+  setTimeout(()=>applyUITheme(),50);
+}
+
+function toggleAiBreakdown(idx,checked){
+  if(aiSortResult&&aiSortResult.items[idx])aiSortResult.items[idx].acceptBreakdown=checked;
+}
+
+// Simple long-press-free drag: whole row draggable, matches the same touch pattern
+// used for sub-todo reordering elsewhere in the app.
+function attachAiSortDrag(){
+  document.querySelectorAll('.ai-sort-item').forEach(row=>{
+    if(row._dragBound)return; row._dragBound=true;
+    const list=row.closest('.ai-sort-list');
+    let dragging=false,startY=0;
+    const onStart=(e)=>{
+      if(e.target.closest('input,label'))return;
+      const t=e.touches?e.touches[0]:e;
+      startY=t.clientY;dragging=true;
+      row.classList.add('dragging');
+      if(navigator.vibrate)navigator.vibrate(15);
+      document.addEventListener('touchmove',onMove,{passive:false});
+      document.addEventListener('touchend',onEnd);
+      document.addEventListener('mousemove',onMove);
+      document.addEventListener('mouseup',onEnd);
+    };
+    const onMove=(e)=>{
+      if(!dragging)return;
+      e.preventDefault();
+      const t=e.touches?e.touches[0]:e;
+      const y=t.clientY;
+      row.style.transform=`translateY(${y-startY}px)`;
+      const siblings=[...list.querySelectorAll('.ai-sort-item:not(.dragging)')];
+      for(const sib of siblings){
+        const r=sib.getBoundingClientRect();
+        if(y>r.top&&y<r.bottom){
+          const before=y<r.top+r.height/2;
+          if(before)list.insertBefore(row,sib);else list.insertBefore(row,sib.nextSibling);
+          startY=y;row.style.transform='translateY(0)';
+          break;
+        }
+      }
+    };
+    const onEnd=()=>{
+      if(!dragging)return;
+      dragging=false;
+      row.classList.remove('dragging');
+      row.style.transform='';
+      document.removeEventListener('touchmove',onMove);
+      document.removeEventListener('touchend',onEnd);
+      document.removeEventListener('mousemove',onMove);
+      document.removeEventListener('mouseup',onEnd);
+      // Persist the new order into aiSortResult
+      const ids=[...list.querySelectorAll('.ai-sort-item')].map(r=>parseInt(r.dataset.idx));
+      const newItems=ids.map(i=>aiSortResult.items[i]);
+      aiSortResult.items=newItems;
+      // Re-render to refresh data-idx values to match the new array positions
+      renderAiSortList();
+    };
+    row.addEventListener('touchstart',onStart,{passive:true});
+    row.addEventListener('mousedown',onStart);
+  });
+}
+
+function confirmAiSort(){
+  if(!aiSortResult)return;
+  const now=Date.now();
+  aiSortResult.items.forEach((it,idx)=>{
+    const todo=memos.todo.find(t=>t.id===it.id);
+    if(!todo)return;
+    todo.order=idx; // final on-screen order becomes the persisted manual order
+    if(it.coarse&&it.acceptBreakdown&&it.breakdown.length){
+      if(!todo.subs)todo.subs=[];
+      it.breakdown.forEach((step,i)=>{
+        todo.subs.push({id:'st'+now+'_'+i+'_'+Math.random().toString(36).slice(2,5),text:step,done:false,createdAt:now});
+      });
+    }
+  });
+  sv('memos',memos);
+  closeAiSortReview();
+  renderMemoList('todo');
+  toast('已按建议整理');
+}
+
+function closeAiSortReview(){
+  document.getElementById('aiSortBg')?.remove();
+  aiSortResult=null;
+}
+
 // ----------- SHOPPING -----------
 function shopAdd(){
   const inp=document.getElementById('shopInp');
@@ -7619,6 +7926,14 @@ function renderMemoList(type,forceElId){
   }
   const sorted=list.slice().sort((a,b)=>{
     if(a.done!==b.done)return a.done?1:-1;
+    // Todos support an explicit manual order (set by drag-reorder or AI-sort);
+    // items that have one always come first, sorted by it. Items without one
+    // (never touched by either) fall back to newest-first, appended after.
+    if(type==='todo'){
+      const ao=typeof a.order==='number',bo=typeof b.order==='number';
+      if(ao&&bo)return a.order-b.order;
+      if(ao!==bo)return ao?-1:1;
+    }
     return b.createdAt-a.createdAt;
   });
   el.innerHTML=sorted.map(item=>{
@@ -9569,7 +9884,11 @@ function init(){
       if(window.screen&&isPortraitNow()){
         screenH=Math.max(window.screen.height||0,window.screen.width||0);
       }
-      let h=Math.max(vvH||0,winH||0,screenH||0,lastFullHeight||0);
+      // Deliberately NOT comparing against lastFullHeight here — a truly fresh, unbiased
+      // reading is what lets applyHeight's force=true path actually self-correct a bad
+      // locked value. (Protection against a transient too-small reading, e.g. while the
+      // keyboard is briefly animating, lives separately in applyHeight's non-force branch.)
+      let h=Math.max(vvH||0,winH||0,screenH||0);
       if(!h||h<500)h=screenH||winH||vvH||lastFullHeight||0;
       return Math.ceil(h||0)+2; // +2px guards against sub-pixel rounding leaving a bottom sliver
     }
@@ -9582,10 +9901,23 @@ function init(){
     function applyHeight(force){
       const h=currentHeight();
       if(!h)return;
-      // Only allow growing; never silently shrink (this alone prevents keyboard-open
-      // from permanently shrinking the background — no special-casing needed).
+      if(force){
+        // Trustworthy recalibration moments (page load, pageshow, orientationchange,
+        // returning from background) — fully replace the locked height instead of only
+        // allowing growth. Without this, a bad/inflated height measured once (e.g. a
+        // stray reading during a transition) would get stuck forever with no way to
+        // self-correct, leaving a permanent dead scroll area below the real content.
+        lastFullHeight=h;
+        root.style.setProperty('--app-height',Math.ceil(lastFullHeight)+'px');
+        root.classList.add('vh-locked');
+        persist(lastFullHeight);
+        return;
+      }
+      // Passive triggers (plain resize / visualViewport resize — typically the keyboard
+      // opening or closing): only allow growing, never shrink. This is what prevents the
+      // background from flickering/shrinking every time the keyboard appears.
       if(lastFullHeight&&h<=lastFullHeight+2)return;
-      if(!force&&lastFullHeight&&h<lastFullHeight-24)return;
+      if(lastFullHeight&&h<lastFullHeight-24)return;
       lastFullHeight=Math.max(lastFullHeight||0,h);
       root.style.setProperty('--app-height',Math.ceil(lastFullHeight)+'px');
       root.classList.add('vh-locked');
