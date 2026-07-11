@@ -846,11 +846,10 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   border-radius:50%;background:rgba(196,142,92,.65);pointer-events:none}
 .cal-ev-badge.cal-ev-emoji{width:auto;height:auto;background:none;border-radius:0;
   font-size:9px;line-height:1;top:2px;right:2px}
-/* Trip range — no shape at all, just the day number itself in a warm accent color.
-   Every day in the range (including the first/last) looks the same; the exact
-   start/end only shows up once you open that day's detail. Keeps the whole cell
-   free for the user's own emoji marks at the bottom. */
-.cal-d.trip-range{color:#D9A876;font-weight:500}
+/* Trip range — day number recolored with a warm terracotta accent whose lightness
+   flips with the current background (see applyUITheme/tripCol) so it always has
+   real contrast, never a fixed hue fighting whatever period is showing. */
+.cal-d.trip-range{font-weight:600}
 
 /* Day detail — event card */
 .day-ev-card{padding:10px 14px;border-radius:10px;
@@ -919,6 +918,38 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .ev-di:focus{color:rgba(255,250,244,.9)}
 .ev-di[type="date"],.ev-di[type="time"]{color-scheme:dark;min-height:34px;max-width:100%}
 .ev-sep{color:rgba(255,250,244,.15);font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px}
+
+/* Custom dual mini-calendar date picker — replaces native <input type=date> */
+.ev-pick-row{display:flex;gap:10px;margin-bottom:16px}
+.ev-pick-cal{flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;padding:9px}
+.ev-pick-cal.active{border-color:rgba(217,168,118,.5);background:rgba(217,168,118,.05)}
+.ev-pick-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.ev-pick-lbl{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:8.5px;
+  color:rgba(255,250,244,.3);letter-spacing:.08em}
+.ev-pick-mon{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:9px;color:rgba(255,250,244,.45)}
+.ev-pick-nav{display:flex;gap:4px}
+.ev-pick-nav button{background:none;border:none;color:rgba(255,250,244,.3);font-size:10px;
+  cursor:pointer;padding:0 2px;font-family:'Cormorant Garamond',serif}
+.ev-pick-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px}
+.ev-pick-d{aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:rgba(255,250,244,.4);font-family:'Noto Serif SC',serif;font-weight:300;
+  cursor:pointer;border-radius:3px}
+.ev-pick-d.range{background:rgba(217,168,118,.16);color:rgba(255,250,244,.75)}
+.ev-pick-d.sel{background:rgba(217,168,118,.9);color:#231F1A;font-weight:600}
+.ev-pick-d.empty{cursor:default}
+
+/* Time stepper — replaces native <input type=time> */
+.ev-time-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:16px}
+.ev-time-lbl{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;
+  color:rgba(255,250,244,.25);letter-spacing:.08em;margin-right:2px}
+.ev-time-btn{width:22px;height:22px;border-radius:50%;border:1px solid rgba(255,250,244,.15);
+  background:none;color:rgba(255,250,244,.55);font-size:12px;cursor:pointer;line-height:1;
+  display:flex;align-items:center;justify-content:center;padding:0}
+.ev-time-btn:active{transform:scale(.9)}
+.ev-time-val{font-family:'EB Garamond',serif;font-size:16px;color:rgba(255,250,244,.85);min-width:56px;text-align:center}
+.ev-time-clear{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:9px;
+  color:rgba(255,250,244,.3);cursor:pointer;margin-left:4px}
 .ev-types{display:flex;gap:5px;justify-content:center;margin-bottom:16px}
 .ev-type{padding:3px 10px;border-radius:100px;
   border:1px solid rgba(255,250,244,.08);color:rgba(255,250,244,.28);
@@ -2849,17 +2880,20 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
         <div class="ev-date-big" id="evDateBig">18<span class="ev-date-month">M A Y</span></div>
         <input class="ev-main-input" id="evInpTitle" placeholder="一件事..." oninput="evOnType(this)">
         <div class="ev-reveal" id="evReveal">
-          <div class="ev-dr">
-            <div class="ev-dl">起</div>
-            <input class="ev-di" id="evInpStart" type="date">
-            <div class="ev-sep">—</div>
-            <input class="ev-di" id="evInpEnd" type="date">
-            <div class="ev-dl">归</div>
+          <div class="ev-pick-row">
+            <div class="ev-pick-cal" id="evPickStartCal"></div>
+            <div class="ev-pick-cal" id="evPickEndCal"></div>
           </div>
-          <div class="ev-dr">
-            <div class="ev-dl">时</div>
-            <input class="ev-di" id="evInpTime" type="time" style="max-width:75px">
+          <input id="evInpStart" type="hidden">
+          <input id="evInpEnd" type="hidden">
+          <div class="ev-time-row" id="evTimeRow">
+            <span class="ev-time-lbl">时 刻</span>
+            <button class="ev-time-btn" onclick="evTimeStep(-30)">−</button>
+            <span class="ev-time-val" id="evTimeVal">全天</span>
+            <button class="ev-time-btn" onclick="evTimeStep(30)">+</button>
+            <span class="ev-time-clear" id="evTimeClear" onclick="evTimeClear()" style="display:none">清除</span>
           </div>
+          <input id="evInpTime" type="hidden">
           <div class="ev-types" id="evTypes">
             <span class="ev-type sel" data-t="trip">行 程</span>
             <span class="ev-type" data-t="schedule">日 程</span>
@@ -3402,13 +3436,14 @@ function applyGradient(){
 // UI THEME UPDATE
 // ================================================================
 function applyUITheme(){
-  let textCol,tlCol,periodName,timeStr;
+  let textCol,tlCol,tripCol,periodName,timeStr;
   if(currentMode==='tomato'){
     // Tomato page UI uses warm tomato text colors
     const h=hourFloat();
     const isDark=(h>=22||h<7);
     textCol=isDark?'#F0DDD0':'#3A1410';
     tlCol=isDark?'#C8A090':'#7C2820';
+    tripCol=isDark?'#E8A87A':'#A85A2E';
     periodName='番茄 · Pomodoro';
     const d=new Date();
     timeStr=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
@@ -3418,6 +3453,12 @@ function applyUITheme(){
     periodName=`${cs.period.name} · ${cs.period.element}`;
     const d=new Date();
     timeStr=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    // 行程用的暖赭橙色系——背景浅（奶油色）时用深赭色，背景深（夜晚紫/绿）时用浅杏色，
+    // 同一个色相，明暗跟着背景反过来调，保证任何时段都看得清、都不撞色。
+    const bgHex=(cs.bg||'#EEE').replace('#','');
+    const r=parseInt(bgHex.slice(0,2),16)||200,g=parseInt(bgHex.slice(2,4),16)||200,b=parseInt(bgHex.slice(4,6),16)||200;
+    const bgLum=(0.299*r+0.587*g+0.114*b)/255;
+    tripCol=bgLum>0.5?'#A85A2E':'#E8A87A';
   }
   _lastThemeTextCol=textCol;_lastThemeTlCol=tlCol;
   
@@ -3439,6 +3480,7 @@ function applyUITheme(){
   document.querySelectorAll('.slbl,.t-meta,.t-paused,.r-tm,.cal-w,.tg-add,.tg-manage,.r-x,.empty-msg,.export-btn,.pm-rlbl')
     .forEach(e=>e.style.color=tlCol);
   document.querySelectorAll('.cal-d:not(.trip-range)').forEach(e=>e.style.color=textCol);
+  document.querySelectorAll('.cal-d.trip-range').forEach(e=>e.style.color=tripCol);
   document.querySelectorAll('.tg').forEach(e=>e.style.color=textCol);
   document.querySelectorAll('.btn').forEach(e=>{
     if(!e.closest('.add-box')&&!e.closest('.sum-box'))e.style.color=textCol;
@@ -7115,8 +7157,7 @@ function openEvModal(dateStr,editId){
     document.getElementById('evInpEnd').value=dateStr||'';
     document.getElementById('evInpTime').value='';
     document.getElementById('evInpNote').value='';
-    evSelType='trip';
-    // New mode: hide reveal until typing
+    evSelType='schedule';
     reveal.classList.remove('show');
     saveWrap.classList.remove('show');
     delRow.style.display='none';
@@ -7124,8 +7165,82 @@ function openEvModal(dateStr,editId){
   document.querySelectorAll('.ev-type').forEach(t=>{
     t.classList.toggle('sel',t.dataset.t===evSelType);
   });
+  // Init the two mini-calendar pickers + time stepper on the values we just set
+  const sParts=(document.getElementById('evInpStart').value||dateStr||todayK()).split('-');
+  const eParts=(document.getElementById('evInpEnd').value||dateStr||todayK()).split('-');
+  evPickStartYM={y:parseInt(sParts[0]),m:parseInt(sParts[1])-1};
+  evPickEndYM={y:parseInt(eParts[0]),m:parseInt(eParts[1])-1};
+  renderEvPickCal('start');
+  renderEvPickCal('end');
+  evUpdateTimeDisplay();
+  evApplyTypeUI();
   modal.classList.add('show');
   setTimeout(()=>document.getElementById('evInpTitle').focus(),500);
+}
+
+// ---- Custom dual-calendar date picker (replaces native <input type=date>) ----
+let evPickStartYM=null,evPickEndYM=null;
+function renderEvPickCal(which){
+  const ym=which==='start'?evPickStartYM:evPickEndYM;
+  const selVal=document.getElementById(which==='start'?'evInpStart':'evInpEnd').value;
+  const first=new Date(ym.y,ym.m,1).getDay(),dim=new Date(ym.y,ym.m+1,0).getDate();
+  const startVal=document.getElementById('evInpStart').value;
+  const endVal=document.getElementById('evInpEnd').value;
+  let cells='';
+  for(let i=0;i<first;i++)cells+='<div class="ev-pick-d empty"></div>';
+  for(let day=1;day<=dim;day++){
+    const dk=ym.y+'-'+pad(ym.m+1)+'-'+pad(day);
+    const isSel=dk===selVal;
+    const inRange=startVal&&endVal&&dk>=startVal&&dk<=endVal;
+    cells+=`<div class="ev-pick-d${isSel?' sel':(inRange?' range':'')}" onclick="evPickDate('${which}','${dk}')">${day}</div>`;
+  }
+  const el=document.getElementById(which==='start'?'evPickStartCal':'evPickEndCal');
+  if(!el)return;
+  el.innerHTML=`<div class="ev-pick-hd">
+    <span class="ev-pick-nav"><button onclick="evPickMon('${which}',-1)">‹</button></span>
+    <span class="ev-pick-mon">${which==='start'?'起':'止'} · ${ym.y}/${ym.m+1}</span>
+    <span class="ev-pick-nav"><button onclick="evPickMon('${which}',1)">›</button></span>
+  </div>
+  <div class="ev-pick-grid">${cells}</div>`;
+}
+function evPickMon(which,d){
+  const ym=which==='start'?evPickStartYM:evPickEndYM;
+  ym.m+=d;
+  if(ym.m<0){ym.m=11;ym.y--;}
+  if(ym.m>11){ym.m=0;ym.y++;}
+  renderEvPickCal(which);
+}
+function evPickDate(which,dk){
+  document.getElementById(which==='start'?'evInpStart':'evInpEnd').value=dk;
+  // Keep start/end sane — if start moves past end (or vice versa), snap the other to match
+  const s=document.getElementById('evInpStart'),e=document.getElementById('evInpEnd');
+  if(which==='start'&&s.value>e.value)e.value=s.value;
+  if(which==='end'&&e.value<s.value)s.value=e.value;
+  renderEvPickCal('start');
+  renderEvPickCal('end');
+  evOnType(document.getElementById('evInpTitle'));
+}
+
+// ---- Time stepper (replaces native <input type=time>) ----
+function evUpdateTimeDisplay(){
+  const v=document.getElementById('evInpTime').value;
+  document.getElementById('evTimeVal').textContent=v||'全天';
+  document.getElementById('evTimeClear').style.display=v?'inline':'none';
+}
+function evTimeStep(deltaMin){
+  const inp=document.getElementById('evInpTime');
+  let mins;
+  if(!inp.value){mins=deltaMin>0?0:23*60+30;}
+  else{
+    const [h,m]=inp.value.split(':').map(Number);
+    mins=((h*60+m+deltaMin)+24*60)%(24*60);
+  }
+  inp.value=pad(Math.floor(mins/60))+':'+pad(mins%60);
+  evUpdateTimeDisplay();
+}
+function evTimeClear(){
+  document.getElementById('evInpTime').value='';
+  evUpdateTimeDisplay();
 }
 
 function evOnType(el){
@@ -7324,12 +7439,31 @@ function deleteEvent(){
   renderCal();
 }
 
+function evApplyTypeUI(){
+  const endCal=document.getElementById('evPickEndCal');
+  const timeRow=document.getElementById('evTimeRow');
+  const isTrip=evSelType==='trip';
+  const isSchedule=evSelType==='schedule';
+  if(endCal)endCal.style.display=isTrip?'':'none';
+  if(timeRow)timeRow.style.display=isSchedule?'':'none';
+  // 非"行程"类型不需要止日期——直接跟起日期保持一致，存下来的数据也干净
+  if(!isTrip){
+    const s=document.getElementById('evInpStart'),e=document.getElementById('evInpEnd');
+    if(e&&s)e.value=s.value;
+  }
+  if(!isSchedule){
+    const t=document.getElementById('evInpTime');
+    if(t)t.value='';
+    evUpdateTimeDisplay();
+  }
+}
 // Type selector
 document.querySelectorAll('.ev-type').forEach(t=>{
   t.onclick=()=>{
     document.querySelectorAll('.ev-type').forEach(x=>x.classList.remove('sel'));
     t.classList.add('sel');
     evSelType=t.dataset.t;
+    evApplyTypeUI();
   };
 });
 
