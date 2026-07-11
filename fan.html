@@ -558,21 +558,21 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 /* 观页 · AI 词库建议 */
 .guan-ai-ask{display:block;width:100%;padding:6px 0;background:transparent;border:none;
   cursor:pointer;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10.5px;
-  color:rgba(255,250,244,.35);letter-spacing:.03em}
-.guan-ai-ask:active{color:rgba(232,180,150,.7)}
+  color:inherit;opacity:.45;letter-spacing:.03em}
+.guan-ai-ask:active{opacity:.85}
 .guan-ai-loading{text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;
-  font-size:10.5px;color:rgba(255,250,244,.4);padding:4px 0;animation:aiHintPulseGuan 1.3s ease-in-out infinite}
+  font-size:10.5px;opacity:.5;padding:4px 0;animation:aiHintPulseGuan 1.3s ease-in-out infinite}
 @keyframes aiHintPulseGuan{0%,100%{opacity:.5}50%{opacity:1}}
-.guan-ai-card{background:rgba(0,0,0,.15);border-radius:12px;padding:12px 14px}
+.guan-ai-card{background:rgba(128,128,128,.1);border-radius:12px;padding:12px 14px}
 .guan-ai-card-hint{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:9.5px;
-  color:rgba(255,250,244,.35);margin-bottom:6px}
+  opacity:.5;margin-bottom:6px}
 .guan-ai-card-word{font-family:'Noto Serif SC',serif;font-weight:300;font-size:13px;
-  color:rgba(255,250,244,.9);line-height:1.6;margin-bottom:10px}
+  opacity:.92;line-height:1.6;margin-bottom:10px}
 .guan-ai-card-acts{display:flex;gap:8px}
-.guan-ai-card-acts button{flex:1;padding:9px 0;border-radius:100px;cursor:pointer;
+.guan-ai-card-acts button{flex:1;padding:9px 0;border-radius:100px;cursor:pointer;color:inherit;
   font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px}
-.guan-ai-dismiss{border:1px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,250,244,.5)}
-.guan-ai-accept{border:none;background:rgba(255,255,255,.16);color:rgba(255,250,244,.95)}
+.guan-ai-dismiss{border:1px solid rgba(128,128,128,.25);background:transparent;opacity:.55}
+.guan-ai-accept{border:none;background:rgba(128,128,128,.22);opacity:.95}
 
 /* --- Step 1b: mode cards --- */
 .tb-config{position:relative;z-index:1}
@@ -1005,10 +1005,10 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 
 .memo-input-row{display:flex;gap:8px;margin-bottom:6px}
 .ai-sort-icon-btn{flex-shrink:0;width:36px;height:36px;border-radius:50%;border:none;background:none;
-  color:rgba(255,250,244,.16);font-size:14px;cursor:pointer;transition:color .3s;
-  display:flex;align-items:center;justify-content:center;padding:0}
-.ai-sort-icon-btn:active{color:rgba(232,180,150,.9);transform:scale(.9)}
-.ai-sort-icon-btn.used{color:rgba(255,250,244,.28)}
+  color:var(--theme-text,rgba(255,250,244,.5));opacity:.14;font-size:14px;cursor:pointer;
+  transition:opacity .3s;display:flex;align-items:center;justify-content:center;padding:0}
+.ai-sort-icon-btn:active{opacity:.8;transform:scale(.9)}
+.ai-sort-icon-btn.used{opacity:.24}
 /* Todo history (归档) view */
 .cat-tab-hist{opacity:.7;font-style:italic}
 .todo-hist-toggle{display:flex;gap:8px;justify-content:center;margin-bottom:16px}
@@ -1345,7 +1345,22 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   border:1px solid rgba(255,250,244,.08);
   margin-bottom:30px}
 
-/* AI 待办整理 · 审阅弹窗 */
+/* AI 错误提示 — 内置弹窗，取代系统 alert() */
+.ai-err-overlay{position:fixed;inset:0;z-index:500;
+  background:rgba(20,18,16,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  display:flex;align-items:center;justify-content:center;padding:24px;
+  animation:fadeUp .25s ease both}
+.ai-err-card{width:100%;max-width:300px;border-radius:20px;padding:22px 20px 18px;
+  background:rgba(32,28,26,.94);border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 20px 60px rgba(0,0,0,.4);text-align:center;
+  animation:popIn .3s cubic-bezier(.16,1,.3,1)}
+.ai-err-icon{font-size:22px;margin-bottom:10px;opacity:.7}
+.ai-err-msg{font-family:'Noto Serif SC',serif;font-weight:300;font-size:13px;
+  color:rgba(255,250,244,.85);line-height:1.7;margin-bottom:18px}
+.ai-err-btn{width:100%;padding:12px 0;border-radius:100px;border:none;cursor:pointer;
+  background:rgba(255,255,255,.14);color:rgba(255,250,244,.95);
+  font-family:'Noto Serif SC',serif;font-weight:300;font-size:12.5px;letter-spacing:.1em}
+.ai-err-btn:active{background:rgba(255,255,255,.22)}
 .ai-sort-box{width:100%;max-width:340px;position:relative;
   animation:popIn .3s cubic-bezier(.16,1,.3,1);
   border-radius:22px;padding:24px 20px;
@@ -2245,6 +2260,10 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 /* Track wrap matches emoji row width perfectly */
 .gs1-track-wrap{position:relative;height:40px;display:flex;align-items:center;
   cursor:pointer;width:100%}
+/* "照" — 永远排在状态行最后一格，跟其它状态用法完全一样（选它、记录、写缘由、
+   封存、问问 AI），只是稍微淡一点，暗示它是个"还说不清"的兜底选项。 */
+.gs1-emoji-decide{opacity:.55}
+.gs1-emoji-decide .gs1-emoji-icon{filter:saturate(.4)}
 .gs1-track{position:absolute;left:0;right:0;height:6px;border-radius:3px;
   background:linear-gradient(to right,
     #D4A857 0%,#E85A2C 12.5%,#5E6B5C 25%,#9FB8C9 37.5%,
@@ -4020,10 +4039,13 @@ const GUAN_STATES=[
 let guanCustomStates = ld('guanCustomStates', []);
 // 固定的 9 个词也可以删——被删掉的记在这里（按名字），guanAllStates() 里会跳过它们。
 let guanHiddenFixed = ld('guanHiddenFixed', []);
+// "悟" — 跟其它状态用法完全一样（选它、记录、写缘由、封存、问问 AI），
+// 只是永远排在最后一格：用于"还说不清是什么感觉"的时候，先记下来再靠 AI 帮着辨认。
+const GUAN_WU_STATE = {icon:'🧘',name:'照',color:'#8B7355',feel:'照见此刻情绪',_meta:true};
 function guanAllStates(){
   const fixed = GUAN_STATES.filter(s=>!guanHiddenFixed.includes(s.name)).map(s=>({...s,_custom:false}));
   const custom = guanCustomStates.map(s=>({...s,_custom:true}));
-  return fixed.concat(custom);
+  return fixed.concat(custom).concat([GUAN_WU_STATE]);
 }
 
 // ============ 干支历计算 (Ganzhi/八字) ============
@@ -4134,7 +4156,7 @@ function guanBuildEmojiRow(){
   const all = guanAllStates();
   all.forEach((s,i)=>{
     const cell = document.createElement('div');
-    cell.className = 'gs1-emoji'+(s._custom?' gs1-emoji-custom':'');
+    cell.className = 'gs1-emoji'+(s._custom?' gs1-emoji-custom':'')+(s._meta?' gs1-emoji-decide':'');
     cell.dataset.i = i;
     cell.innerHTML = `<span class="gs1-emoji-icon">${s.icon}</span>
       <span class="gs1-emoji-label" data-meaning="${i}">${s.name}</span>`;
@@ -4143,6 +4165,11 @@ function guanBuildEmojiRow(){
       guanSetSlider(i);
       guanShowConfirm();
     });
+    // "照"是永久的元状态，不能被长按删除；固定词和自己加的词可以。
+    if(s._meta){
+      cont.appendChild(cell);
+      return;
+    }
     // 长按任意一个词（固定的或自己加的）可以删掉——用一个贴合 app 风格的小弹窗确认，
     // 不用系统自带的 confirm() 弹窗。
     let timer=null;
@@ -4222,6 +4249,8 @@ function guanDeleteStateAt(idx){
   if(gs1Idx>=guanAllStates().length)gs1Idx=Math.max(0,guanAllStates().length-1);
   guanBuildEmojiRow();
 }
+
+
 
 function guanInit(){
   if(gs1Inited){return;}
@@ -4332,7 +4361,7 @@ function guanCommitReason(){
   document.getElementById('gs1ReasonInput').classList.remove('show');
   document.getElementById('gs1SealBtn').classList.remove('show');
 
-  // 写得足够详细的缘由，值得问问 AI 这是不是一个值得单独造词的状态——
+  // 情绪命名法：写得足够详细的缘由，值得问问 AI 这到底算什么状态——
   // 可选，不打字就完全不会出现，纯粹是个安静的邀请。
   const aiRow=document.getElementById('guanAiRow');
   const offerAi = reason.length>=6;
@@ -4374,24 +4403,32 @@ async function guanAskAiState(){
   if(window._gs1ResetTimer)clearTimeout(window._gs1ResetTimer);
   aiRow.innerHTML=`<div class="guan-ai-loading">✨ AI 正在想…</div>`;
   const all=guanAllStates();
-  const sysPrompt=`你在帮用户判断她记录的一条"能量/情绪"状态描述，是否已经被她现有的词库覆盖，还是描述了一种值得单独造词的、反复可能出现的新状态。
+  const sysPrompt=`你在帮用户判断她记录的一条"能量/情绪"状态描述，是否已经被她现有的词库精确覆盖，还是值得单独造一个新词。
 
-她现有的词库（每个词是一种能量/情绪状态）：
+她现有的词库（每个词是一种能量/情绪状态，定义要严格按字面理解，不要泛化）：
 ${all.map(s=>`${s.icon} 「${s.name}」— ${s.feel||''}`).join('\n')}
 
 她刚才选的词是「${entry.state}」，并写了这样一段缘由："${entry.reason}"
 
-判断标准：
-- 如果这段描述本质上就是「${entry.state}」或词库里其他某个词的意思，只是换了个说法，fits 填 true，不需要新词。
-- 只有当这段描述明显不属于词库里任何一个词、感觉是一种独立的、有辨识度的状态时，才建议新词。新词要简短（1个字最好，最多2个字），配一个贴切的 emoji，feel 字段一句话说清楚这个词描述的感觉，30字以内。
-- 不要轻易建议新词——她的词库应该保持精炼，只有真正独特、值得记住的状态才配拥有自己的词。
+判断标准（这是这个功能存在的意义——精准比省事更重要，宁可多造词也不要凑合）：
+- 只有当这段描述的核心情绪，跟词库里某个词的定义几乎逐字对得上（不只是表面都出现"想很多"这种字眼，而是本质上是同一种体验）时，才判定 fits 为 true。
+- 千万不要因为字面/主题上的联想就归类——比如"发工资"这种跟钱有关的场景，不能因为字面沾到"盈余"就归到"盈"，得看这段话背后真正的情绪体验是什么（是感恩满溢的满足？还是努力有回报的欣慰？还是别的？），这两种完全不是一回事。判断时始终问自己："这段话具体在说的心理体验，是不是跟这个词的定义完全对得上，而不只是主题、场景、字面上有点像。"
+- 只要这段描述里有词库任何一个词都没捕捉到的独特成分——哪怕只是其中一部分，比如同时夹杂着一种满足感、痛快感、或者说不清道不明的复杂心情——就应该判定不 fits，并建议一个新词。不要因为"大致有点像"就偷懒选现有词，那样命名会越来越不准。
+- 新词要简短（1个字最好，最多2个字），配一个贴切的 emoji。feel 字段必须跟词库里其它词一样严格、精准，不能写得笼统模糊——具体说清楚这个词描述的是什么感觉、跟词库里最接近的那个词有什么不同（比如"不是XX，是XX"这种排除写法），30字以内。如果这段话里有多种情绪混在一起，挑其中最突出、最值得被记住的那个感觉来命名，不用面面俱到。
+- 造新词前，把它跟词库里已有的每一个词（包括固定的和其他自造的）都比一遍——如果这个新词的定义会跟已有某个词高度重合，就不该造，应该判 fits:true 归到那个已有词里。新词存在的价值就是"跟任何一个都不一样"。
+- 新词的名字（name 字段）绝对不能跟词库里任何一个已有词（固定的或自造的）重名，哪怕意思完全不同——重名会造成混淆，一个字/词只能对应一种状态。取名前，先检查这个名字是否已经出现在上面的词库列表里，如果已经存在，必须换一个不同的字。
+- 配的 emoji 必须覆盖 feel 描述里的全部情绪面向，不能只挑其中正面、单一、或最好画的那一半——如果这个状态是复杂或混合的（比如"轻松又带点害怕"、"好笑又五味杂陈"），emoji 也要能传达出那种复杂或矛盾感，不能选一个只表现了一半、显得比文字定义更单薄或更欢快的图案。选之前问自己："光看这个 emoji，会不会让人误以为这个词只是单纯的开心/庆祝，而丢掉了它本来该有的复杂或沉重的一面？"
+- 词库不用刻意保持精简——精准命名比数量少更重要，只要是真实、独特、以后可能再遇到的状态，都值得拥有自己的词。
+- 如果这段描述根本不是情绪/心理状态，而是纯生理需求或身体信号（比如饿了、困了、想上厕所、单纯的身体疼痛），不要为它造情绪新词——这类不属于"能量/情绪"词库的范畴。返回 {"notEmotion":true}。
 
 只返回 JSON，不要有其他文字：
-{"fits":true} 或 {"fits":false,"icon":"...","name":"...","feel":"..."}`;
+{"fits":true} 或 {"fits":false,"icon":"...","name":"...","feel":"..."} 或 {"notEmotion":true}`;
   try{
     const result=await callClaudeJSON(sysPrompt,'请判断。');
     if(!result)throw new Error('AI 没有返回结果');
-    if(result.fits||!result.name){
+    if(result.notEmotion){
+      aiRow.innerHTML=`<div class="guan-ai-card"><div class="guan-ai-card-word" style="text-align:center;margin-bottom:0">这更像是身体在说话，不是情绪状态——不用勉强给它造词</div></div>`;
+    }else if(result.fits||!result.name){
       aiRow.innerHTML=`<div class="guan-ai-card"><div class="guan-ai-card-word" style="text-align:center;margin-bottom:0">AI 觉得「${entry.state}」这个词已经很贴切了</div></div>`;
     }else{
       aiRow.dataset.pendingIcon=result.icon||'✨';
@@ -4407,7 +4444,7 @@ ${all.map(s=>`${s.icon} 「${s.name}」— ${s.feel||''}`).join('\n')}
       </div>`;
     }
   }catch(err){
-    aiRow.innerHTML=`<div class="guan-ai-loading">AI 没看明白，再试试？</div>`;
+    aiRow.innerHTML=`<div class="guan-ai-loading">这一次没看清，再试试</div>`;
     setTimeout(()=>{
       if(aiRow)aiRow.innerHTML=`<button class="guan-ai-ask" onclick="guanAskAiState()">✨ 问问 AI 这算什么状态</button>`;
     },1500);
@@ -4419,6 +4456,12 @@ function guanAcceptAiSuggestion(){
   if(!aiRow)return;
   const name=aiRow.dataset.pendingName;
   if(!name)return;
+  // 保险起见：就算 AI 万一还是取了个重名，这里也不让它真的存进去，避免两个状态共用一个字。
+  if(guanAllStates().some(s=>s.name===name)){
+    aiRow.innerHTML=`<div class="guan-ai-loading" style="animation:none">「${escapeHtml(name)}」这个字已经在用了，没能存成新词</div>`;
+    delete aiRow.dataset.pendingIcon;delete aiRow.dataset.pendingName;delete aiRow.dataset.pendingFeel;
+    return;
+  }
   guanCustomStates.push({
     icon:aiRow.dataset.pendingIcon||'✨',
     name,
@@ -5849,7 +5892,7 @@ function openMemoActionSheet(){
   
   const isInteractive=(el)=>{
     if(!el)return false;
-    return el.closest('input, textarea, button, .memo-item, .insp-item, .memo-tab');
+    return el.closest('input, textarea, button, .memo-item, .insp-card, .todo-item, .memo-tab');
   };
   
   const onStart=(e)=>{
@@ -7509,36 +7552,60 @@ function clearAiKey(){
 
 // Core call — sends a system+user prompt to Claude, expects/returns parsed JSON.
 // Throws with a friendly message on any failure (no key, network, bad response).
-async function callClaudeJSON(systemPrompt,userPrompt){
-  if(!aiApiKey)throw new Error('还没有设置 API key，去"AI 设置"里粘贴一下');
-  const resp=await fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{
-      'content-type':'application/json',
-      'x-api-key':aiApiKey,
-      'anthropic-version':'2023-06-01',
-      'anthropic-dangerous-direct-browser-access':'true'
-    },
-    body:JSON.stringify({
-      model:'claude-sonnet-4-5',
-      max_tokens:2048,
-      system:systemPrompt,
-      messages:[{role:'user',content:userPrompt}]
-    })
-  });
+// 把网络/接口层面的报错，翻译成中文、贴合这个 app 语气的提示——用户不需要看到
+// Anthropic 接口原始的英文错误文本，那些留在 console 里给排查用就够了。
+function friendlyAiErrorMessage(status,rawMsg){
+  if(status===401||status===403)return '这把钥匙好像不太对——去"AI 设置"里再看看';
+  if(status===429)return '问得有点急了，歇一口气再问';
+  if(status===529||status===503)return '此刻它有点满，稍候再来';
+  if(status>=500)return '这一次，它没能接住，稍后再试';
+  if(status===400)return '这次它没看懂，换个说法再试试';
+  console.warn('Fan AI error (raw):',status,rawMsg);
+  return '这一次没能成，再来一次看看';
+}
+async function callClaudeJSON(systemPrompt,userPrompt,_retrying,maxTokens){
+  if(!aiApiKey)throw new Error('还没有放进那把钥匙——去"AI 设置"里粘贴一下');
+  let resp;
+  try{
+    resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'content-type':'application/json',
+        'x-api-key':aiApiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-5',
+        max_tokens:maxTokens||2048,
+        system:systemPrompt,
+        messages:[{role:'user',content:userPrompt}]
+      })
+    });
+  }catch(err){
+    // 网络请求本身失败（比如切到后台时被系统打断）——自动悄悄重试一次，
+    // 只有重试也失败才把错误抛给上层显示。
+    if(!_retrying)return callClaudeJSON(systemPrompt,userPrompt,true,maxTokens);
+    throw new Error('此刻网络不太通畅，稍后再试');
+  }
   if(!resp.ok){
-    let msg='请求失败 ('+resp.status+')';
-    try{const e=await resp.json();if(e&&e.error&&e.error.message)msg=e.error.message;}catch(err){}
-    throw new Error(msg);
+    let rawMsg='';
+    try{const e=await resp.json();if(e&&e.error&&e.error.message)rawMsg=e.error.message;}catch(err){}
+    if(!_retrying&&resp.status>=500)return callClaudeJSON(systemPrompt,userPrompt,true,maxTokens);
+    throw new Error(friendlyAiErrorMessage(resp.status,rawMsg));
   }
   const data=await resp.json();
   const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
-  // Strip markdown code fences if the model wrapped the JSON in them
-  const cleaned=text.replace(/^```json\s*|^```\s*|```\s*$/g,'').trim();
+  // 有时模型会在 JSON 前后多说几句话或用 ```json 包起来——不管哪种情况，
+  // 都只取第一个 { 到最后一个 } 之间的内容来解析，比单纯去掉代码围栏更稳。
+  const first=text.indexOf('{');
+  const last=text.lastIndexOf('}');
+  const cleaned=(first>=0&&last>first)?text.slice(first,last+1):text.trim();
   try{
     return JSON.parse(cleaned);
   }catch(err){
-    throw new Error('AI 返回的内容没能解析，请重试');
+    if(!_retrying)return callClaudeJSON(systemPrompt,userPrompt,true,maxTokens);
+    throw new Error('没能读懂它的回声，再试一次');
   }
 }
 
@@ -7925,6 +7992,21 @@ items 数组的顺序就是你建议的新顺序。coarse 为 true 时，breakdo
 
 let aiSortResult=null; // {items:[{id,text,reason,coarse,breakdown,acceptBreakdown}]}
 
+// AI 相关的错误提示——用这个内置弹窗，不用系统自带的 alert()
+function showAiError(msg){
+  document.getElementById('aiErrOverlay')?.remove();
+  const ov=document.createElement('div');
+  ov.id='aiErrOverlay';
+  ov.className='ai-err-overlay';
+  ov.onclick=(e)=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div class="ai-err-card">
+    <div class="ai-err-icon">✨</div>
+    <div class="ai-err-msg">${escapeHtml(msg)}</div>
+    <button class="ai-err-btn" onclick="document.getElementById('aiErrOverlay').remove()">知道了</button>
+  </div>`;
+  document.body.appendChild(ov);
+}
+
 async function aiSortTodos(){
   const open=(memos.todo||[]).filter(t=>!t.done);
   if(open.length<2){toast('待办太少，不用整理啦');return;}
@@ -7942,8 +8024,8 @@ async function aiSortTodos(){
     }));
     const userPrompt='这是我现在的待办清单（JSON数组，包含 id、text，以及已有的细目 subs）：\n'+
       JSON.stringify(payload,null,2);
-    const result=await callClaudeJSON(AI_TODO_SYSTEM_PROMPT,userPrompt);
-    if(!result||!Array.isArray(result.items))throw new Error('AI 返回的格式不对，请重试');
+    const result=await callClaudeJSON(AI_TODO_SYSTEM_PROMPT,userPrompt,false,8192);
+    if(!result||!Array.isArray(result.items))throw new Error('这次的整理不太完整，再试一次');
     // Map back to full todo objects, keep only ones that still exist
     const byId={};open.forEach(t=>byId[t.id]=t);
     aiSortResult={items:result.items.filter(it=>byId[it.id]).map(it=>({
@@ -7952,11 +8034,11 @@ async function aiSortTodos(){
       coarse:!!it.coarse,breakdown:Array.isArray(it.breakdown)?it.breakdown:[],
       acceptBreakdown:false
     }))};
-    if(!aiSortResult.items.length)throw new Error('AI 没能整理出结果，请重试');
+    if(!aiSortResult.items.length)throw new Error('这次没能理出头绪，再试一次');
     if(icon)icon.style.animation='';
     openAiSortReview();
   }catch(err){
-    alert('AI 整理失败：'+err.message);
+    showAiError(err.message);
     if(icon)icon.style.animation='';
   }
 }
