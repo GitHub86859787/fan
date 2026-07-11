@@ -842,11 +842,15 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .cal-d.has-mk::after{display:none}
 .cal-emoji-mark{position:absolute;bottom:1px;left:50%;transform:translateX(-50%);
   font-size:8px;line-height:1;white-space:nowrap;pointer-events:none}
-/* Trip range — direct background on cells */
-.cal-d.trip-range{background:rgba(120,90,50,.07)!important;border-radius:0}
-.cal-d.trip-start{border-radius:6px 0 0 6px!important}
-.cal-d.trip-end{border-radius:0 6px 6px 0!important}
-.cal-d.trip-start.trip-end{border-radius:6px!important}
+.cal-ev-badge{position:absolute;top:3px;right:4px;width:4px;height:4px;
+  border-radius:50%;background:rgba(196,142,92,.65);pointer-events:none}
+.cal-ev-badge.cal-ev-emoji{width:auto;height:auto;background:none;border-radius:0;
+  font-size:9px;line-height:1;top:2px;right:2px}
+/* Trip range — no shape at all, just the day number itself in a warm accent color.
+   Every day in the range (including the first/last) looks the same; the exact
+   start/end only shows up once you open that day's detail. Keeps the whole cell
+   free for the user's own emoji marks at the bottom. */
+.cal-d.trip-range{color:#D9A876;font-weight:500}
 
 /* Day detail — event card */
 .day-ev-card{padding:10px 14px;border-radius:10px;
@@ -1133,6 +1137,10 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 
 /* ===== HABIT SYSTEM ===== */
 .habit-list{display:flex;flex-direction:column}
+.habit-summary{text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:12px;letter-spacing:.15em;opacity:.5;margin-bottom:16px}
+.habit-paused-hd{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;
+  letter-spacing:.3em;text-indent:.3em;opacity:.35;text-align:center;margin:26px 0 12px}
 /* Gallery layout — 2-column grid of ambient cards */
 .habit-gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .gal-card{border-radius:18px;padding:16px 15px;min-height:150px;
@@ -1281,6 +1289,9 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .hc-cp-slider::-moz-range-thumb{width:14px;height:14px;border:none;border-radius:50%;
   background:rgba(245,242,236,.9);cursor:pointer}
+.hc-cp-hue-slider{background:linear-gradient(to right,
+  hsl(0,30%,55%),hsl(60,30%,55%),hsl(120,30%,55%),hsl(180,30%,55%),
+  hsl(240,30%,55%),hsl(300,30%,55%),hsl(360,30%,55%))!important}
 .hc-cp-done{width:100%;padding:7px;background:transparent;border:1px solid rgba(255,250,244,.15);
   border-radius:100px;color:rgba(255,250,244,.7);
   font-family:'Noto Serif SC',serif;font-weight:300;font-size:10px;letter-spacing:.2em;cursor:pointer;transition:all .25s}
@@ -3427,14 +3438,14 @@ function applyUITheme(){
     .forEach(e=>e.style.color=textCol);
   document.querySelectorAll('.slbl,.t-meta,.t-paused,.r-tm,.cal-w,.tg-add,.tg-manage,.r-x,.empty-msg,.export-btn,.pm-rlbl')
     .forEach(e=>e.style.color=tlCol);
-  document.querySelectorAll('.cal-d').forEach(e=>e.style.color=textCol);
+  document.querySelectorAll('.cal-d:not(.trip-range)').forEach(e=>e.style.color=textCol);
   document.querySelectorAll('.tg').forEach(e=>e.style.color=textCol);
   document.querySelectorAll('.btn').forEach(e=>{
     if(!e.closest('.add-box')&&!e.closest('.sum-box'))e.style.color=textCol;
   });
   document.querySelectorAll('.end-btn').forEach(e=>e.style.color=tlCol);
   document.querySelectorAll('.r-dur').forEach(e=>e.style.color=textCol);
-  document.querySelectorAll('.cal-d.has,.cal-d.today').forEach(e=>e.style.color=textCol);
+  document.querySelectorAll('.cal-d.has:not(.trip-range),.cal-d.today:not(.trip-range)').forEach(e=>e.style.color=textCol);
   document.querySelectorAll('.cal-n button').forEach(e=>e.style.color=tlCol);
   document.querySelectorAll('.t-pulse').forEach(e=>e.style.background=textCol);
   document.querySelectorAll('.tomato-lbl').forEach(e=>e.style.color=tlCol);
@@ -4375,21 +4386,46 @@ function guanCommitReason(){
     }
   }
   
-  // After 封存, set a short timer to reset (a bit longer if the AI affordance is showing)
+  // After 封存, set a short timer to reset — but ONLY when there's no AI offer waiting on
+  // a decision. If the offer is showing (or the AI call/suggestion is in flight), leave it
+  // open indefinitely; auto-collapsing here would yank the "问问AI"/建议卡片 away before the
+  // user even gets to read it, and silently drop the rename-on-accept fix below.
+  if(window._gs1ResetTimer)clearTimeout(window._gs1ResetTimer);
+  if(!offerAi){
+    window._gs1ResetTimer=setTimeout(()=>{
+      const rec=document.getElementById('gs1Recorded');
+      rec.classList.remove('show');
+      document.getElementById('gs1Preview').style.display='inline';
+      document.getElementById('gs1Detail').classList.remove('show');
+      document.getElementById('gs1ReasonInput').value='';
+      toggle.textContent='+ 缘由';
+      toggle.style.color='';
+      toggle.style.fontSize='';
+      toggle.style.letterSpacing='';
+      gs1LastEntryTs=null;
+    },4000);
+  }
+}
+
+// 安全的情况下（用户已经采纳/忽略了AI的建议，或者压根没触发AI这一步）才重新安排自动收起。
+function guanScheduleCollapse(){
   if(window._gs1ResetTimer)clearTimeout(window._gs1ResetTimer);
   window._gs1ResetTimer=setTimeout(()=>{
     const rec=document.getElementById('gs1Recorded');
+    if(!rec)return;
     rec.classList.remove('show');
     document.getElementById('gs1Preview').style.display='inline';
     document.getElementById('gs1Detail').classList.remove('show');
     document.getElementById('gs1ReasonInput').value='';
-    toggle.textContent='+ 缘由';
-    toggle.style.color='';
-    toggle.style.fontSize='';
-    toggle.style.letterSpacing='';
-    if(aiRow){aiRow.style.display='none';aiRow.innerHTML='';}
+    const toggle=document.getElementById('gs1ReasonToggle');
+    if(toggle){
+      toggle.textContent='+ 缘由';
+      toggle.style.color='';
+      toggle.style.fontSize='';
+      toggle.style.letterSpacing='';
+    }
     gs1LastEntryTs=null;
-  },offerAi?7000:4000);
+  },4000);
 }
 
 // Ask AI whether this reason describes an existing state well, or deserves its own new word.
@@ -4425,10 +4461,12 @@ ${all.map(s=>`${s.icon} 「${s.name}」— ${s.feel||''}`).join('\n')}
     if(!judge)throw new Error('AI 没有返回结果');
     if(judge.notEmotion){
       aiRow.innerHTML=`<div class="guan-ai-card"><div class="guan-ai-card-word" style="text-align:center;margin-bottom:0">这更像是身体在说话，不是情绪状态——不用勉强给它造词</div></div>`;
+      guanScheduleCollapse();
       return;
     }
     if(judge.fits||!judge.concept){
       aiRow.innerHTML=`<div class="guan-ai-card"><div class="guan-ai-card-word" style="text-align:center;margin-bottom:0">AI 觉得「${entry.state}」这个词已经很贴切了</div></div>`;
+      guanScheduleCollapse();
       return;
     }
     // 第二步：只负责写——给一个方向和参考例子，不再堆一堆规则，让文字回到词库本来的语感。
@@ -4482,14 +4520,25 @@ function guanAcceptAiSuggestion(){
     color:'#C05B45'
   });
   sv('guanCustomStates',guanCustomStates);
+  // 把刚才记录时用的占位状态"照"，改写成真正生成的新词——不然日历/历史里
+  // 看到的还是"照"，新词等于白造了。
+  if(gs1LastEntryTs){
+    const entry=energyLog.find(e=>e.ts===gs1LastEntryTs);
+    if(entry&&entry.state==='照'){
+      entry.state=name;
+      sv('energyLog',energyLog);
+    }
+  }
   guanBuildEmojiRow();
   aiRow.innerHTML=`<div class="guan-ai-loading" style="animation:none">已经加进你的词库了 · 下次可以直接选「${escapeHtml(name)}」</div>`;
   delete aiRow.dataset.pendingIcon;delete aiRow.dataset.pendingName;delete aiRow.dataset.pendingFeel;
+  guanScheduleCollapse();
 }
 
 function guanDismissAiSuggestion(){
   const aiRow=document.getElementById('guanAiRow');
   if(aiRow){aiRow.style.display='none';aiRow.innerHTML='';}
+  guanScheduleCollapse();
 }
 
 // Track most recent entry for reason updates
@@ -6920,25 +6969,23 @@ function renderCal(){
     const hasMk=marks.length>0;
     const isTrip=evs.some(e=>e.type==='trip');
     let cls='cal-d'+(isT?' today':'')+(has?' has':'');
-    if(isTrip){
-      cls+=' trip-range';
-      const tripEv=evs.find(e=>e.type==='trip');
-      if(tripEv){
-        if(k===tripEv.start)cls+=' trip-start';
-        if(k===(tripEv.end||tripEv.start))cls+=' trip-end';
-      }
-    }
+    if(isTrip)cls+=' trip-range';
     d.className=cls;
     let inner=String(day);
-    // Combine all emoji marks: user marks + 🗓 for events
-    const allEmoji=[];
-    if(hasMk)marks.forEach(m=>allEmoji.push(m.emoji));
-    if(hasEv&&!isTrip)allEmoji.push('🗓');
-    if(allEmoji.length){
-      inner+=`<div class="cal-emoji-mark">${allEmoji.join('')}</div>`;
+    // 用户自己贴的emoji + 事件的emoji，共用格子最下面同一行——生日🎂、节日🎉、
+    // 日程🕰️，各自有自己的图标，不用小灰点了。
+    const scheduleEv=evs.find(e=>e.type==='schedule');
+    const birthdayEv=evs.find(e=>e.type==='birthday');
+    const holidayEv=evs.find(e=>e.type==='holiday');
+    const rowEmoji=marks.map(m=>m.emoji);
+    if(scheduleEv)rowEmoji.push('🗓️');
+    if(birthdayEv)rowEmoji.push('🎂');
+    if(holidayEv)rowEmoji.push('🎉');
+    if(rowEmoji.length){
+      inner+=`<div class="cal-emoji-mark">${rowEmoji.join('')}</div>`;
       cls+=' has-mk';
-      d.className=cls;
     }
+    d.className=cls;
     d.innerHTML=inner;
     // All dates clickable
     if(has||hasEv||hasMk){
@@ -8763,6 +8810,12 @@ const HABIT_GRADIENTS_DEFAULT=[
 ];
 let HABIT_GRADIENTS=ld('habitGradients',HABIT_GRADIENTS_DEFAULT.slice());
 
+function isHabitDoneToday(h,tk){
+  const c=(h.log||{})[tk]||0;
+  if(h.freq==='multi')return c>=(h.times||2);
+  return c>=1;
+}
+
 function renderHabits(){
   const el=document.getElementById('habitList');
   if(!el)return;
@@ -8771,7 +8824,19 @@ function renderHabits(){
     setTimeout(()=>applyUITheme(),50);return;
   }
   const tk=todayK();
-  el.innerHTML=`<div class="habit-gallery">${habits.map(h=>renderHabitCard(h,tk)).join('')}</div>`;
+  const active=habits.filter(h=>!h.paused);
+  const paused=habits.filter(h=>h.paused);
+  const doneCount=active.filter(h=>isHabitDoneToday(h,tk)).length;
+  const summary=active.length
+    ? `<div class="habit-summary">今 日 · ${doneCount} / ${active.length}</div>`
+    : '';
+  const activeGrid=active.length
+    ? `<div class="habit-gallery">${active.map(h=>renderHabitCard(h,tk)).join('')}</div>`
+    : '<div class="habit-empty-sub" style="text-align:center;padding:20px 0">活跃的习惯都在下面的休眠区</div>';
+  const pausedSection=paused.length
+    ? `<div class="habit-paused-hd">休 眠 中</div><div class="habit-gallery">${paused.map(h=>renderHabitCard(h,tk)).join('')}</div>`
+    : '';
+  el.innerHTML=summary+activeGrid+pausedSection;
   setTimeout(()=>applyUITheme(),50);
 }
 
@@ -9157,54 +9222,47 @@ function hcDeleteGradient(i){
   hcRenderGradients();
 }
 function hcOpenCustomColor(){
-  // Build a small inline color picker panel — always for creating a NEW color
+  // Build a small inline color picker panel — always for creating a NEW color.
+  // 只给一个"色相"转盘（0-360°，实际上有几百个可选色相）+ 一个"浅深"档位，
+  // 饱和度和明暗范围都锁死在跟页面其它渐变一致的克制区间——这样不管选哪个色相，
+  // 生成出来的渐变都还是"梵"这套大地色的味道，不会跳出去变成鲜艳色。
   let existing=document.getElementById('hcColorPanel');
   if(existing){existing.remove();return;}
-  const cg=['#C8A88A','#9A7B5E'];
   const panel=document.createElement('div');
   panel.id='hcColorPanel';
   panel.className='hc-color-panel';
   panel.innerHTML=`
-    <div class="hc-cp-row">
-      <span class="hc-cp-lbl">起</span>
-      <input type="color" id="hcColor1" value="${cg[0]}" oninput="hcUpdateCustom()">
-      <span class="hc-cp-lbl">止</span>
-      <input type="color" id="hcColor2" value="${cg[1]}" oninput="hcUpdateCustom()">
+    <div class="hc-cp-slider-row">
+      <span class="hc-cp-slbl">色相</span>
+      <input type="range" id="hcHue" min="0" max="360" value="30" step="1" class="hc-cp-slider hc-cp-hue-slider" oninput="hcUpdateCustom()">
     </div>
     <div class="hc-cp-slider-row">
-      <span class="hc-cp-slbl">明暗</span>
-      <input type="range" id="hcBright" min="-60" max="40" value="0" step="1" class="hc-cp-slider" oninput="hcUpdateCustom()">
+      <span class="hc-cp-slbl">浅深</span>
+      <input type="range" id="hcShade" min="0" max="100" value="50" step="1" class="hc-cp-slider" oninput="hcUpdateCustom()">
     </div>
-    <div class="hc-cp-slider-row">
-      <span class="hc-cp-slbl">透明</span>
-      <input type="range" id="hcOpacity" min="30" max="100" value="100" step="1" class="hc-cp-slider" oninput="hcUpdateCustom()">
-    </div>
-    <div class="hc-cp-preview" id="hcCpPreview" style="background:linear-gradient(135deg,${cg[0]},${cg[1]})"></div>
+    <div class="hc-cp-preview" id="hcCpPreview"></div>
     <button class="hc-cp-done" onclick="hcConfirmCustom()">用这个</button>
   `;
   const wrap=document.getElementById('hcGradients');
   wrap.parentNode.insertBefore(panel,wrap.nextSibling);
+  hcUpdateCustom();
 }
-// Adjust a hex color's brightness (amt: -100..100) and blend toward dark bg for opacity
-function _adjustColor(hex,brightAmt,opacity){
-  let r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-  // brightness
-  r=Math.max(0,Math.min(255,r+brightAmt*2.55));
-  g=Math.max(0,Math.min(255,g+brightAmt*2.55));
-  b=Math.max(0,Math.min(255,b+brightAmt*2.55));
-  // opacity: blend toward app dark bg (approx #1a1512 = 26,21,18)
-  const o=opacity/100;
-  r=Math.round(r*o+26*(1-o));
-  g=Math.round(g*o+21*(1-o));
-  b=Math.round(b*o+18*(1-o));
-  return '#'+[r,g,b].map(v=>Math.round(v).toString(16).padStart(2,'0')).join('');
+function _hslToHex(h,s,l){
+  s/=100;l/=100;
+  const k=n=>(n+h/30)%12;
+  const a=s*Math.min(l,1-l);
+  const f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));
+  const toHex=v=>Math.round(v*255).toString(16).padStart(2,'0');
+  return '#'+toHex(f(0))+toHex(f(8))+toHex(f(4));
 }
+// 饱和度和明暗区间都固定，只有色相是自由的——保证生成出来的颜色始终是克制的大地色调。
 function _customColors(){
-  const c1=document.getElementById('hcColor1').value;
-  const c2=document.getElementById('hcColor2').value;
-  const bright=parseInt(document.getElementById('hcBright').value)||0;
-  const opacity=parseInt(document.getElementById('hcOpacity').value)||100;
-  return [_adjustColor(c1,bright,opacity),_adjustColor(c2,bright,opacity)];
+  const hue=parseInt(document.getElementById('hcHue').value)||0;
+  const shade=parseInt(document.getElementById('hcShade').value)||50;
+  const sat=30;
+  const lightL=Math.round(58+(shade/100)*20); // 58% - 78%
+  const darkL=Math.max(30,lightL-23);
+  return [_hslToHex(hue,sat,lightL),_hslToHex(hue,sat,darkL)];
 }
 function hcUpdateCustom(){
   const [a,b]=_customColors();
@@ -9413,6 +9471,7 @@ function renderHabitDetail(){
           <div class="hd-stat"><div class="hd-stat-num">${countTotalDone(h)}</div><div class="hd-stat-lbl">总打卡</div></div>
           <div class="hd-stat"><div class="hd-stat-num">${countMonthDone(h)}</div><div class="hd-stat-lbl">本月</div></div>
           <div class="hd-stat"><div class="hd-stat-num">${calcBestStreak(h)}</div><div class="hd-stat-lbl">最长连续</div></div>
+          <div class="hd-stat"><div class="hd-stat-num">${(()=>{const r=calcCompletionRate(h);return r===null?'--':r+'%';})()}</div><div class="hd-stat-lbl">完成率</div></div>
         </div>
         
         <div class="hd-actions-row">
@@ -9591,6 +9650,40 @@ function calcBestStreak(h){
     else cur=1;
   }
   return best;
+}
+
+// 完成率：从创建那天算起（没有创建时间的老习惯，从最早一条记录算起），
+// 排除"暂停"区间——暂停的日子不算在分母里，不然会拉低一个本来坚持得很好的习惯。
+function calcCompletionRate(h){
+  const log=h.log||{};
+  const doneDates=Object.keys(log).filter(dk=>{
+    if(h.freq==='multi')return (log[dk]||0)>=(h.times||2);
+    return (log[dk]||0)>=1;
+  });
+  let startTs=h.createdAt;
+  if(!startTs){
+    const allDates=Object.keys(log).sort();
+    if(!allDates.length)return null;
+    startTs=new Date(allDates[0]+'T00:00:00').getTime();
+  }
+  const startDk=dkFromDate(new Date(startTs));
+  const todayDk=todayK();
+  const inPause=(dk)=>{
+    if(!h.pauseRanges)return false;
+    return h.pauseRanges.some(r=>dk>=r.from&&(r.to===null||dk<=r.to));
+  };
+  let totalDays=0;
+  const d=new Date(startTs);
+  const end=new Date();
+  while(dkFromDate(d)<=todayDk){
+    const dk=dkFromDate(d);
+    if(!inPause(dk))totalDays++;
+    d.setDate(d.getDate()+1);
+    if(totalDays>3660)break; // sanity guard
+  }
+  if(totalDays<=0)return null;
+  const doneInRange=doneDates.filter(dk=>dk>=startDk&&!inPause(dk)).length;
+  return Math.round(Math.min(1,doneInRange/totalDays)*100);
 }
 
 function habitDelFromDetail(){
