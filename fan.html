@@ -4403,51 +4403,64 @@ async function guanAskAiState(){
   if(window._gs1ResetTimer)clearTimeout(window._gs1ResetTimer);
   aiRow.innerHTML=`<div class="guan-ai-loading">✨ AI 正在想…</div>`;
   const all=guanAllStates();
-  const sysPrompt=`你在帮用户判断她记录的一条"能量/情绪"状态描述，是否已经被她现有的词库精确覆盖，还是值得单独造一个新词。
+  // 第一步：只判断，不写字——这一步把关精准度（是否已被覆盖、是不是纯字面联想、
+  // 是不是生理需求），输出一个"内部方向"给第二步用，不直接生成用户会看到的文字。
+  const judgePrompt=`你在帮用户判断她记录的一条"能量/情绪"状态描述，是否已经被她现有的词库精确覆盖，还是值得单独造一个新词。这一步只做判断，不用写最终呈现的文字。
 
 她现有的词库（每个词是一种能量/情绪状态，定义要严格按字面理解，不要泛化）：
 ${all.map(s=>`${s.icon} 「${s.name}」— ${s.feel||''}`).join('\n')}
 
 她刚才选的词是「${entry.state}」，并写了这样一段缘由："${entry.reason}"
 
-判断标准（这是这个功能存在的意义——精准比省事更重要，宁可多造词也不要凑合）：
+判断标准（精准比省事更重要，宁可多造词也不要凑合）：
 - 只有当这段描述的核心情绪，跟词库里某个词的定义几乎逐字对得上（不只是表面都出现"想很多"这种字眼，而是本质上是同一种体验）时，才判定 fits 为 true。
-- 千万不要因为字面/主题上的联想就归类——比如"发工资"这种跟钱有关的场景，不能因为字面沾到"盈余"就归到"盈"，得看这段话背后真正的情绪体验是什么（是感恩满溢的满足？还是努力有回报的欣慰？还是别的？），这两种完全不是一回事。判断时始终问自己："这段话具体在说的心理体验，是不是跟这个词的定义完全对得上，而不只是主题、场景、字面上有点像。"
-- 只要这段描述里有词库任何一个词都没捕捉到的独特成分——哪怕只是其中一部分，比如同时夹杂着一种满足感、痛快感、或者说不清道不明的复杂心情——就应该判定不 fits，并建议一个新词。不要因为"大致有点像"就偷懒选现有词，那样命名会越来越不准。
-- 新词要简短（1个字最好，最多2个字），配一个贴切的 emoji。feel 字段必须跟词库里其它词一样严格、精准，不能写得笼统模糊——具体说清楚这个词描述的是什么感觉、跟词库里最接近的那个词有什么不同（比如"不是XX，是XX"这种排除写法），30字以内。如果这段话里有多种情绪混在一起，挑其中最突出、最值得被记住的那个感觉来命名，不用面面俱到。
-- 造新词前，把它跟词库里已有的每一个词（包括固定的和其他自造的）都比一遍——如果这个新词的定义会跟已有某个词高度重合，就不该造，应该判 fits:true 归到那个已有词里。新词存在的价值就是"跟任何一个都不一样"。
-- 新词的名字（name 字段）绝对不能跟词库里任何一个已有词（固定的或自造的）重名，哪怕意思完全不同——重名会造成混淆，一个字/词只能对应一种状态。取名前，先检查这个名字是否已经出现在上面的词库列表里，如果已经存在，必须换一个不同的字。
-- 配的 emoji 必须覆盖 feel 描述里的全部情绪面向，不能只挑其中正面、单一、或最好画的那一半——如果这个状态是复杂或混合的（比如"轻松又带点害怕"、"好笑又五味杂陈"），emoji 也要能传达出那种复杂或矛盾感，不能选一个只表现了一半、显得比文字定义更单薄或更欢快的图案。选之前问自己："光看这个 emoji，会不会让人误以为这个词只是单纯的开心/庆祝，而丢掉了它本来该有的复杂或沉重的一面？"
-- 词库不用刻意保持精简——精准命名比数量少更重要，只要是真实、独特、以后可能再遇到的状态，都值得拥有自己的词。
-- 如果这段描述根本不是情绪/心理状态，而是纯生理需求或身体信号（比如饿了、困了、想上厕所、单纯的身体疼痛），不要为它造情绪新词——这类不属于"能量/情绪"词库的范畴。返回 {"notEmotion":true}。
+- 千万不要因为字面/主题上的联想就归类——比如"发工资"这种跟钱有关的场景，不能因为字面沾到"盈余"就归到"盈"，得看这段话背后真正的情绪体验是什么，这两种完全不是一回事。
+- 只要这段描述里有词库任何一个词都没捕捉到的独特成分，就应该判定不 fits。不要因为"大致有点像"就偷懒选现有词。
+- 如果这段描述根本不是情绪/心理状态，而是纯生理需求或身体信号，且完全不带任何情绪色彩（比如单纯饿了、困了、想上厕所、单纯的身体疼痛），返回 {"notEmotion":true}。但注意：像"喝多了脸热晕乎乎""累到不想说话""冷得发抖"这种带着身体感受、但本身就是一种情绪/能量状态的描述（词库里"转""冷""空"本来也都是身体+心理混合的），不算纯生理需求，不要用这条排除掉。
 
 只返回 JSON，不要有其他文字：
-{"fits":true} 或 {"fits":false,"icon":"...","name":"...","feel":"..."} 或 {"notEmotion":true}`;
+{"fits":true} 或 {"fits":false,"concept":"一句话内部笔记，说清楚这段描述里最独特、最值得被命名的那个感觉核心是什么，不用讲究文采，给下一步写词用"} 或 {"notEmotion":true}`;
   try{
-    const result=await callClaudeJSON(sysPrompt,'请判断。');
-    if(!result)throw new Error('AI 没有返回结果');
-    if(result.notEmotion){
+    const judge=await callClaudeJSON(judgePrompt,'请判断。');
+    if(!judge)throw new Error('AI 没有返回结果');
+    if(judge.notEmotion){
       aiRow.innerHTML=`<div class="guan-ai-card"><div class="guan-ai-card-word" style="text-align:center;margin-bottom:0">这更像是身体在说话，不是情绪状态——不用勉强给它造词</div></div>`;
-    }else if(result.fits||!result.name){
-      aiRow.innerHTML=`<div class="guan-ai-card"><div class="guan-ai-card-word" style="text-align:center;margin-bottom:0">AI 觉得「${entry.state}」这个词已经很贴切了</div></div>`;
-    }else{
-      aiRow.dataset.pendingIcon=result.icon||'✨';
-      aiRow.dataset.pendingName=result.name;
-      aiRow.dataset.pendingFeel=result.feel||'';
-      aiRow.innerHTML=`<div class="guan-ai-card">
-        <div class="guan-ai-card-hint">AI 发现一个新状态</div>
-        <div class="guan-ai-card-word">${result.icon||'✨'} 「${escapeHtml(result.name)}」——${escapeHtml(result.feel||'')}</div>
-        <div class="guan-ai-card-acts">
-          <button class="guan-ai-dismiss" onclick="guanDismissAiSuggestion()">忽略</button>
-          <button class="guan-ai-accept" onclick="guanAcceptAiSuggestion()">采纳</button>
-        </div>
-      </div>`;
+      return;
     }
+    if(judge.fits||!judge.concept){
+      aiRow.innerHTML=`<div class="guan-ai-card"><div class="guan-ai-card-word" style="text-align:center;margin-bottom:0">AI 觉得「${entry.state}」这个词已经很贴切了</div></div>`;
+      return;
+    }
+    // 第二步：只负责写——给一个方向和参考例子，不再堆一堆规则，让文字回到词库本来的语感。
+    aiRow.innerHTML=`<div class="guan-ai-loading">✨ AI 正在想怎么形容…</div>`;
+    const writePrompt=`请给下面这个感觉核心取一个词，风格要跟这几个例子完全一样——都是1-2个字的词，配一个贴切的 emoji，feel 是几个用"、"连起来的短语，不是完整解释句：
+🌕「盈」— 充盈、满溢、感恩的满足
+🏔️「根」— 有根、落地、踏实、不慌
+🍷「醺」— 微醉、脸热、飘然、身体软
+
+这次要命名的感觉核心："${judge.concept}"
+
+不能用这些已经存在的名字：${all.map(s=>s.name).join('、')}。emoji 要能传达这个感觉的全部面向，不能只画出其中欢快的一半。
+
+只返回 JSON，不要有其他文字：{"icon":"...","name":"...","feel":"..."}`;
+    const written=await callClaudeJSON(writePrompt,'请命名。');
+    if(!written||!written.name)throw new Error('这次没能写出来，再试一次');
+    aiRow.dataset.pendingIcon=written.icon||'✨';
+    aiRow.dataset.pendingName=written.name;
+    aiRow.dataset.pendingFeel=written.feel||'';
+    aiRow.innerHTML=`<div class="guan-ai-card">
+      <div class="guan-ai-card-hint">AI 发现一个新状态</div>
+      <div class="guan-ai-card-word">${written.icon||'✨'} 「${escapeHtml(written.name)}」——${escapeHtml(written.feel||'')}</div>
+      <div class="guan-ai-card-acts">
+        <button class="guan-ai-dismiss" onclick="guanDismissAiSuggestion()">忽略</button>
+        <button class="guan-ai-accept" onclick="guanAcceptAiSuggestion()">采纳</button>
+      </div>
+    </div>`;
   }catch(err){
-    aiRow.innerHTML=`<div class="guan-ai-loading">这一次没看清，再试试</div>`;
+    aiRow.innerHTML=`<div class="guan-ai-loading">${escapeHtml(err.message||'这一次没看清，再试试')}</div>`;
     setTimeout(()=>{
       if(aiRow)aiRow.innerHTML=`<button class="guan-ai-ask" onclick="guanAskAiState()">✨ 问问 AI 这算什么状态</button>`;
-    },1500);
+    },2200);
   }
 }
 
@@ -8736,16 +8749,16 @@ const WEEKDAY_LABELS=['日','一','二','三','四','五','六'];
 const HABIT_SLOTS=['早','中','晚','午','起床后','空腹','早餐后','午餐后','晚餐后','睡前','运动前','运动后','睡醒','临睡前'];
 const HABIT_GRADIENTS_DEFAULT=[
   ['#C8A88A','#9A7B5E'],
-  ['#D4A5A5','#A56B6B'],
-  ['#A5B8C9','#6B8299'],
-  ['#B5C9A5','#7A9960'],
-  ['#C9B8D4','#8E6BA5'],
-  ['#D4C5A5','#A5905E'],
-  ['#A5C9C5','#6B9995'],
-  ['#D4A5C0','#A56B8E'],
-  ['#C0A5D4','#7B5EA5'],
-  ['#F0C078','#D49030'],
-  ['#A5A5C9','#6B6B99'],
+  ['#C29483','#8F6250'],
+  ['#8FA3AE','#5E7480'],
+  ['#9CAE8F','#6B7F5A'],
+  ['#A891A0','#7A5F72'],
+  ['#C9B48A','#9C8355'],
+  ['#8FADA8','#5E7D77'],
+  ['#B08FA0','#805F72'],
+  ['#9A8CA8','#6B5A7F'],
+  ['#D4A857','#A67C35'],
+  ['#8B8FA8','#5E6280'],
   ['#B89A82','#8A6B52']
 ];
 let HABIT_GRADIENTS=ld('habitGradients',HABIT_GRADIENTS_DEFAULT.slice());
