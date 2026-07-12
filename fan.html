@@ -1086,6 +1086,11 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .th-sub{font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;
   color:rgba(255,250,244,.5);letter-spacing:.02em}
 .th-sub.done{color:rgba(255,250,244,.5)}
+.th-dots{display:flex;gap:5px;margin-top:7px}
+.th-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;
+  border:1px solid rgba(255,250,244,.3);background:transparent;transition:all .3s}
+.th-dot.done{border-color:rgba(232,180,150,.75);background:rgba(232,180,150,.75)}
+.th-sub-time{color:rgba(232,180,150,.6);margin-left:4px}
 /* Time range selector in history */
 .th-range{display:flex;gap:5px;justify-content:center;margin-bottom:14px}
 .th-range-btn{padding:5px 14px;border-radius:100px;border:none;background:transparent;
@@ -2392,7 +2397,7 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 /* 缘由 — optional, paper note style */
 .gs1-detail{max-height:0;overflow:hidden;opacity:0;
   transition:max-height .4s cubic-bezier(.16,1,.3,1),opacity .3s}
-.gs1-detail.show{max-height:200px;opacity:1;margin-top:18px}
+.gs1-detail.show{max-height:640px;opacity:1;margin-top:18px}
 .gs1-reason-toggle{display:block;width:100%;padding:6px 0;
   background:transparent;border:none;cursor:pointer;
   font-family:'Cormorant Garamond','Cormorant',serif;font-style:italic;
@@ -2407,9 +2412,9 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   border-radius:12px;
   color:rgba(255,250,244,.9);font-size:11.5px;
   font-family:'Noto Serif SC',serif;font-weight:300;line-height:1.7;
-  resize:none;outline:none;letter-spacing:.04em;min-height:60px;
+  resize:none;outline:none;letter-spacing:.04em;min-height:60px;height:60px;overflow-y:hidden;
   display:none;
-  transition:background .3s}
+  transition:background .3s,height .18s ease}
 .gs1-reason-input.show{display:block}
 .gs1-reason-input::placeholder{color:rgba(255,250,244,.28);
   font-style:italic;font-family:'Cormorant Garamond',serif;font-size:13px;
@@ -4095,6 +4100,19 @@ function dkOf(ts){const d=new Date(ts);return d.getFullYear()+'-'+pad(d.getMonth
 function pad(n){return n.toString().padStart(2,'0')}
 function fmtD(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);
   if(h>0)return h+'h'+(m>0?' '+m+'m':'');if(m>0)return m+'m';return s+'s'}
+// 把 done/total 这种进度，读成"三分之二"这样的中文分数——比"2/3"更顺眼，
+// 跟 app 里"干支"、serif 字体这套文人气质更搭。数字大到不常见（细目数很少会超过20条）
+// 时优雅退化成阿拉伯数字，不至于读出"二十三分之十七"这种绕口的东西。
+const CN_NUM_SMALL=['零','一','二','三','四','五','六','七','八','九','十'];
+function cnNum(n){
+  if(n>=0&&n<=10)return CN_NUM_SMALL[n];
+  if(n>10&&n<20)return '十'+CN_NUM_SMALL[n-10];
+  return String(n);
+}
+function cnFraction(done,total){
+  if(total>20)return done+'/'+total;
+  return cnNum(total)+'分之'+cnNum(done);
+}
 
 // ================================================================
 // PAGES
@@ -4414,6 +4432,60 @@ function guanShowConfirm(){
   document.getElementById('gs1Detail').classList.remove('show');
 }
 
+// 输入框随内容自动长高——短短两三行时保持小巧，写多了再从 60px 长到最多 168px（约6行），
+// 再多就在框内滚动，避免把整张能量卡片越撑越高、破坏卡片本身的比例。
+function guanAutoGrowReason(){
+  const el=document.getElementById('gs1ReasonInput');
+  if(!el)return;
+  const min=60,max=168;
+  el.style.height='auto';
+  const full=el.scrollHeight;
+  const h=Math.min(Math.max(full,min),max);
+  el.style.height=h+'px';
+  el.style.overflowY=full>max?'auto':'hidden';
+}
+
+// 统一的"回到拖动选择"重置逻辑——所有自动收起/超时路径都走这里，
+// 确保「已封存」文案、AI建议区（比如"已经加进你的词库了…"）、输入框高度
+// 会被一起清空，不会有任何一块状态残留到下一次记录里。
+function guanResetPanel(){
+  const rec=document.getElementById('gs1Recorded');
+  if(rec)rec.classList.remove('show');
+  const preview=document.getElementById('gs1Preview');
+  if(preview)preview.style.display='inline';
+  const detail=document.getElementById('gs1Detail');
+  if(detail)detail.classList.remove('show');
+  const input=document.getElementById('gs1ReasonInput');
+  if(input){input.value='';input.classList.remove('show');input.style.height='';input.style.overflowY='';}
+  const sealBtn=document.getElementById('gs1SealBtn');
+  if(sealBtn)sealBtn.classList.remove('show');
+  const toggle=document.getElementById('gs1ReasonToggle');
+  if(toggle){
+    toggle.classList.remove('hidden');
+    toggle.textContent='+ 缘由';
+    toggle.style.color='';
+    toggle.style.fontSize='';
+    toggle.style.letterSpacing='';
+    toggle.onclick=guanToggleReason;
+    toggle.style.cursor='';
+  }
+  const aiRow=document.getElementById('guanAiRow');
+  if(aiRow){aiRow.style.display='none';aiRow.innerHTML='';}
+  gs1LastEntryTs=null;
+}
+
+// 只保存当前写的缘由文字（不动UI）——给 30 秒自动收起那条路径用，
+// 避免它借用 guanCommitReason() 时把 guanCommitReason 自己那套UI/计时器也一起带出来。
+function guanSaveCurrentReason(){
+  if(!gs1LastEntryTs)return false;
+  const input=document.getElementById('gs1ReasonInput');
+  const reason=(input&&input.value||'').trim();
+  if(!reason)return false;
+  const entry=energyLog.find(e=>e.ts===gs1LastEntryTs);
+  if(entry){entry.reason=reason;sv('energyLog',energyLog);}
+  return true;
+}
+
 function guanToggleReason(){
   const toggle=document.getElementById('gs1ReasonToggle');
   const input=document.getElementById('gs1ReasonInput');
@@ -4424,11 +4496,12 @@ function guanToggleReason(){
     clearTimeout(window._gs1ResetTimer);
     window._gs1ResetTimer=null;
   }
-  setTimeout(()=>input.focus(),50);
+  setTimeout(()=>{input.focus();guanAutoGrowReason();},50);
 }
 
 // Show seal button when user types
 function guanReasonOnInput(){
+  guanAutoGrowReason();
   const input=document.getElementById('gs1ReasonInput');
   const btn=document.getElementById('gs1SealBtn');
   const val=input.value.trim();
@@ -4453,14 +4526,8 @@ function guanReasonOnInput(){
 
 // Commit reason (called by 封存 button)
 function guanCommitReason(){
-  if(!gs1LastEntryTs)return;
+  if(!guanSaveCurrentReason())return;
   const reason=(document.getElementById('gs1ReasonInput').value||'').trim();
-  if(!reason)return;
-  const entry=energyLog.find(e=>e.ts===gs1LastEntryTs);
-  if(entry){
-    entry.reason=reason;
-    sv('energyLog',energyLog);
-  }
   // Hide input + seal, show "已封存"
   const toggle=document.getElementById('gs1ReasonToggle');
   toggle.innerHTML='✓ 已 封 存';
@@ -4468,6 +4535,10 @@ function guanCommitReason(){
   toggle.style.fontSize='9px';
   toggle.style.letterSpacing='.4em';
   toggle.classList.remove('hidden');
+  // 已封存后，这行字不应该再能点开输入框——点一下又跳出输入框是之前的 bug。
+  // 锁住点击，直到自动收起时（见下面的重置逻辑）才恢复。
+  toggle.onclick=null;
+  toggle.style.cursor='default';
   document.getElementById('gs1ReasonInput').classList.remove('show');
   document.getElementById('gs1SealBtn').classList.remove('show');
 
@@ -4486,46 +4557,23 @@ function guanCommitReason(){
     }
   }
   
-  // After 封存, set a short timer to reset — but ONLY when there's no AI offer waiting on
-  // a decision. If the offer is showing (or the AI call/suggestion is in flight), leave it
-  // open indefinitely; auto-collapsing here would yank the "问问AI"/建议卡片 away before the
-  // user even gets to read it, and silently drop the rename-on-accept fix below.
+  // After 封存, always set a fallback timer to auto-collapse — including when the
+  // "问问AI" 按钮 is just sitting there unclicked (offerAi===true). Previously this only
+  // fired when !offerAi, so any reason long enough to offer AI help (>=6字, the common case)
+  // would sit there "已封存" forever. Give it extra time so the user can still notice and
+  // tap "问问AI" first — but if they never do, guanScheduleCollapse (via 采纳/忽略) or
+  // guanAskAiState (which clears this timer the moment it's tapped) take over from there,
+  // so we never yank an in-progress AI 请求/建议 away mid-read. guanResetPanel() clears the
+  // AI row too, so a leftover "已经加进你的词库了…" message can no longer survive into the
+  // next entry and silently block the next "问问AI" button from showing.
   if(window._gs1ResetTimer)clearTimeout(window._gs1ResetTimer);
-  if(!offerAi){
-    window._gs1ResetTimer=setTimeout(()=>{
-      const rec=document.getElementById('gs1Recorded');
-      rec.classList.remove('show');
-      document.getElementById('gs1Preview').style.display='inline';
-      document.getElementById('gs1Detail').classList.remove('show');
-      document.getElementById('gs1ReasonInput').value='';
-      toggle.textContent='+ 缘由';
-      toggle.style.color='';
-      toggle.style.fontSize='';
-      toggle.style.letterSpacing='';
-      gs1LastEntryTs=null;
-    },4000);
-  }
+  window._gs1ResetTimer=setTimeout(guanResetPanel,7000);
 }
 
 // 安全的情况下（用户已经采纳/忽略了AI的建议，或者压根没触发AI这一步）才重新安排自动收起。
 function guanScheduleCollapse(){
   if(window._gs1ResetTimer)clearTimeout(window._gs1ResetTimer);
-  window._gs1ResetTimer=setTimeout(()=>{
-    const rec=document.getElementById('gs1Recorded');
-    if(!rec)return;
-    rec.classList.remove('show');
-    document.getElementById('gs1Preview').style.display='inline';
-    document.getElementById('gs1Detail').classList.remove('show');
-    document.getElementById('gs1ReasonInput').value='';
-    const toggle=document.getElementById('gs1ReasonToggle');
-    if(toggle){
-      toggle.textContent='+ 缘由';
-      toggle.style.color='';
-      toggle.style.fontSize='';
-      toggle.style.letterSpacing='';
-    }
-    gs1LastEntryTs=null;
-  },4000);
+  window._gs1ResetTimer=setTimeout(guanResetPanel,7000);
 }
 
 // Ask AI whether this reason describes an existing state well, or deserves its own new word.
@@ -4767,17 +4815,63 @@ function updSWDisplay(){
 }
 
 function guanConfirmRecord(){
-  // Dedup check
-  const now = new Date();
+  // Dedup check — 用 app 自己的磨砂小弹窗代替系统 confirm()。
+  // 原生 confirm() 在"添加到主屏幕"的独立 PWA 模式下，经常根本不弹出来（或者弹出了
+  // 但被系统吞掉、看不见），用户点了"记录"却什么反应都没有——这正是"点了记录没反应"
+  // 的真正原因：其实不是没反应，是卡在一个看不见的系统弹窗上，逻辑一直在等它的返回值。
   const nowMinute = Math.floor(Date.now() / 60000);
   const recent = energyLog.find(e=>{
     const eMinute = Math.floor((e.ts||0) / 60000);
     return e.state === guanAllStates()[gs1Idx].name && eMinute === nowMinute;
   });
   if(recent){
-    if(!confirm(`刚才已记录过「${guanAllStates()[gs1Idx].name}」,确认要再记一次吗?`))return;
+    showGuanDupConfirmPopover();
+    return;
   }
-  
+  guanDoRecord();
+}
+
+// 贴合 app 深色磨砂弹窗风格的"是否重复记录"确认，取代系统自带的 confirm()
+function showGuanDupConfirmPopover(){
+  document.querySelectorAll('.guan-dup-pop').forEach(p=>p.remove());
+  const anchor=document.getElementById('gs1Confirm');
+  if(!anchor)return;
+  const name=guanAllStates()[gs1Idx].name;
+  const pop=document.createElement('div');
+  pop.className='cat-edit-pop guan-dup-pop';
+  const hint=document.createElement('div');
+  hint.textContent=`刚才已记录过「${name}」`;
+  hint.style.cssText='padding:6px 14px 4px;font-size:10px;opacity:.5;letter-spacing:.06em;min-width:120px;white-space:nowrap';
+  pop.appendChild(hint);
+  const again=document.createElement('button');
+  again.textContent='再记一次';
+  again.onclick=()=>{pop.remove();guanDoRecord();};
+  pop.appendChild(again);
+  const cancel=document.createElement('button');
+  cancel.textContent='取消';
+  cancel.onclick=()=>pop.remove();
+  pop.appendChild(cancel);
+  document.body.appendChild(pop);
+  const rect=anchor.getBoundingClientRect();
+  const popW=140;
+  pop.style.left=Math.max(8,Math.min(window.innerWidth-popW-8,rect.left+rect.width/2-popW/2))+'px';
+  pop.style.top=(rect.bottom+8)+'px';
+  setTimeout(()=>{
+    const closeOnce=(e)=>{
+      if(pop.contains(e.target))return;
+      pop.remove();
+      document.removeEventListener('click',closeOnce);
+      document.removeEventListener('touchstart',closeOnce);
+    };
+    document.addEventListener('click',closeOnce);
+    document.addEventListener('touchstart',closeOnce);
+  },400);
+}
+
+// 真正写入这一条能量记录、切换到"已记录"状态——由 guanConfirmRecord() 直接调用，
+// 或者在用户于重复确认弹窗里点了"再记一次"后调用。
+function guanDoRecord(){
+  const now = new Date();
   const gz = getGanzhi(now);
   const entry = {
     ts: Date.now(),
@@ -4801,10 +4895,20 @@ function guanConfirmRecord(){
   const reasonToggle = document.getElementById('gs1ReasonToggle');
   reasonToggle.textContent = '+ 缘由';
   reasonToggle.style.color = '';
+  reasonToggle.style.fontSize = '';
+  reasonToggle.style.letterSpacing = '';
+  reasonToggle.onclick = guanToggleReason;
+  reasonToggle.style.cursor = '';
   reasonToggle.classList.remove('hidden');
   document.getElementById('gs1ReasonInput').classList.remove('show');
   document.getElementById('gs1ReasonInput').value = '';
+  document.getElementById('gs1ReasonInput').style.height = '';
+  document.getElementById('gs1ReasonInput').style.overflowY = '';
   document.getElementById('gs1Detail').classList.add('show');
+  // 新的一条记录开始了——上一条记录留下的AI建议（比如"已经加进你的词库了…"）
+  // 必须马上清掉，否则它会一直占着位置，还会挡住这一条新记录的"问问AI"按钮出现。
+  const aiRowFresh = document.getElementById('guanAiRow');
+  if(aiRowFresh){aiRowFresh.style.display='none';aiRowFresh.innerHTML='';}
   
   document.querySelectorAll('.gs1-emoji').forEach((e,j)=>{
     e.classList.remove('preview','confirmed');
@@ -4814,17 +4918,8 @@ function guanConfirmRecord(){
   // Auto-collapse after 30 seconds (gives time to write reason)
   if(window._gs1ResetTimer)clearTimeout(window._gs1ResetTimer);
   window._gs1ResetTimer = setTimeout(()=>{
-    guanCommitReason();
-    rec.classList.remove('show');
-    document.getElementById('gs1Preview').style.display='inline';
-    document.getElementById('gs1Detail').classList.remove('show');
-    document.getElementById('gs1ReasonInput').value = '';
-    document.getElementById('gs1ReasonInput').classList.remove('show');
-    document.getElementById('gs1SealBtn').classList.remove('show');
-    reasonToggle.classList.remove('hidden');
-    reasonToggle.textContent = '+ 缘由';
-    reasonToggle.style.color = '';
-    gs1LastEntryTs = null;
+    guanSaveCurrentReason();
+    guanResetPanel();
   }, 30000);
 }
 
@@ -6750,7 +6845,7 @@ function tbFinish(hardStop){
   const end=hardStop?tbEnd:Date.now();
   const dur=Math.max(0,Math.floor((end-tbStart)/1000));
   const isSub=!!tbParentId;
-  let parent=null,sub=null,parentDone=false,nextSub=null;
+  let parent=null,sub=null;
   if(isSub){
     parent=(memos.todo||[]).find(t=>t.id===tbParentId);
     sub=parent&&parent.subs&&parent.subs.find(s=>s.id===tbSelId);
@@ -6768,20 +6863,23 @@ function tbFinish(hardStop){
     sv('days',allDays);
     renderRecs();
   }
-  // 细目模式：计时结束 = 这条细目做完了，直接标记完成并累加它的精确计时时长；
-  // 不需要像单独任务那样手动点勾。
+  // 细目模式：计时结束只累加这条细目的精确计时时长——完不完成，跟普通任务一样，
+  // 交给用户自己点左上角的勾来决定，不再由计时器自动帮她标记完成。
   if(isSub&&sub){
-    sub.done=true;sub.doneAt=Date.now();
     sub.timeboxSec=(sub.timeboxSec||0)+dur;
-    const allDone=parent.subs.length>0&&parent.subs.every(s=>s.done);
-    if(allDone&&!parent.done){parent.done=true;parent.doneAt=Date.now();parentDone=true;}
-    nextSub=parent.subs.find(s=>!s.done)||null;
     sv('memos',memos);
     renderMemoList('todo');
+  }else if(!isSub&&tbSelId){
+    // 独立任务同理——把这次专注的时长记在待办本身上，这样归档页才能分清
+    // "这条是靠时间盒精确计时完成的" 还是 "只是手动点了个勾"。
+    const item=(memos.todo||[]).find(t=>t.id===tbSelId);
+    if(item){
+      item.timeboxSec=(item.timeboxSec||0)+dur;
+      sv('memos',memos);
+    }
   }
   tbClearState();
   const chk=document.getElementById('tbDoneCheck');
-  chk.classList.remove('checked');
   const doneParentEl=document.getElementById('tbDoneParent');
   const hintEl=document.getElementById('tbDoneHint');
   const doneActsEl=document.getElementById('tbDoneActs');
@@ -6790,28 +6888,27 @@ function tbFinish(hardStop){
   document.getElementById('tbDoneTime').textContent=pad(s.getHours())+':'+pad(s.getMinutes())+' — '+pad(e2.getHours())+':'+pad(e2.getMinutes());
   document.getElementById('tbDoneDur').textContent=(hardStop?'到点硬停 · ':'')+fmtD(dur);
   if(isSub){
-    chk.style.display='none';
+    chk.style.display='';
+    chk.classList.toggle('checked',!!sub&&!!sub.done);
     doneActsEl.style.display='none';
     subActsEl.style.display='flex';
     document.getElementById('tbDoneTask').textContent=tbSelText;
-    if(parentDone){
-      const total=parent.subs.reduce((sum,s2)=>sum+(s2.timeboxSec||0),0);
-      doneParentEl.style.display='block';
-      doneParentEl.textContent=`「${tbParentText}」全部完成 · 精确总时长 ${fmtD(total)}`;
-      hintEl.textContent='已同步进今日计时记录';
-      _tbPendingNext=null;
-      document.getElementById('tbNextBtn').textContent='好';
-      document.getElementById('tbNextBtn').onclick=()=>tbReset();
-    }else{
-      doneParentEl.style.display='block';
-      const doneCount=parent.subs.filter(s2=>s2.done).length;
-      doneParentEl.textContent=`「${tbParentText}」· ${doneCount}/${parent.subs.length}`;
-      hintEl.textContent='已同步进今日计时记录 · 这条细目已自动完成';
+    doneParentEl.style.display='block';
+    const doneCount=parent.subs.filter(s2=>s2.done).length;
+    doneParentEl.textContent=`「${tbParentText}」· ${doneCount}/${parent.subs.length}`;
+    hintEl.textContent='已同步进今日计时记录 · 点击左上勾选标记这条细目完成';
+    const nextSub=parent.subs.find(s2=>s2.id!==tbSelId&&!s2.done)||null;
+    if(nextSub){
       _tbPendingNext={parentId:tbParentId,parentText:tbParentText,subId:nextSub.id,subText:nextSub.text};
       document.getElementById('tbNextBtn').textContent='下一条：'+nextSub.text+' →';
       document.getElementById('tbNextBtn').onclick=()=>tbGoNextSub();
+    }else{
+      _tbPendingNext=null;
+      document.getElementById('tbNextBtn').textContent='好';
+      document.getElementById('tbNextBtn').onclick=()=>tbReset();
     }
   }else{
+    chk.classList.remove('checked');
     chk.style.display='';
     doneActsEl.style.display='flex';
     subActsEl.style.display='none';
@@ -6831,10 +6928,32 @@ function tbGoNextSub(){
 
 function tbStop(){tbFinish(false)}
 
-// Manual completion only — matches the app's existing todo-check behavior.
-// Only used in standalone (no-subtask) mode; sub-mode auto-completes on timer finish.
+// Manual completion — now used for both standalone tasks and 细目 (subtasks),
+// matching the app's existing todo-check behavior. 细目 no longer auto-completes
+// when the timer finishes; the user taps this same checkmark to mark it done.
 function tbToggleDone(){
-  if(!tbSelId||tbParentId)return;
+  if(!tbSelId)return;
+  if(tbParentId){
+    const parent=(memos.todo||[]).find(t=>t.id===tbParentId);
+    const sub=parent&&parent.subs&&parent.subs.find(s=>s.id===tbSelId);
+    if(!parent||!sub)return;
+    sub.done=!sub.done;
+    sub.doneAt=sub.done?Date.now():null;
+    const allDone=parent.subs.length>0&&parent.subs.every(s=>s.done);
+    if(allDone&&!parent.done){parent.done=true;parent.doneAt=Date.now();}
+    else if(!allDone&&parent.done){parent.done=false;parent.doneAt=null;}
+    sv('memos',memos);
+    renderMemoList('todo');
+    document.getElementById('tbDoneCheck').classList.toggle('checked',sub.done);
+    const doneParentEl=document.getElementById('tbDoneParent');
+    if(doneParentEl){
+      const doneCount=parent.subs.filter(s2=>s2.done).length;
+      doneParentEl.textContent=allDone
+        ?`「${tbParentText}」全部完成 · 精确总时长 ${fmtD(parent.subs.reduce((sum,s2)=>sum+(s2.timeboxSec||0),0))}`
+        :`「${tbParentText}」· ${doneCount}/${parent.subs.length}`;
+    }
+    return;
+  }
   const item=(memos.todo||[]).find(t=>t.id===tbSelId);
   if(!item)return;
   memoToggle('todo',tbSelId);
@@ -8006,13 +8125,24 @@ function renderTodoHistory(){
   completed.forEach(({t,partial})=>{
     const subsHtml=(t.subs&&t.subs.length)
       ?`<div class="th-subs">${t.subs.map(s=>
-          `<div class="th-sub${s.done?' done':''}">${s.done?'✓':'○'} ${escapeHtml(s.text)}</div>`
+          `<div class="th-sub${s.done?' done':''}">${s.done?'✓':'○'} ${escapeHtml(s.text)}${s.timeboxSec?`<span class="th-sub-time">· ${fmtD(s.timeboxSec)}</span>`:''}</div>`
         ).join('')}</div>`
       :'';
-    const doneCount=partial?t.subs.filter(s=>s.done).length:0;
-    const detailHtml=partial
-      ?`<div class="th-detail">今日推进 · 细目已完成 ${doneCount}/${t.subs.length}</div>`
-      :`<div class="th-detail">添加 ${fmt(t.createdAt)} → 完成 ${fmt(t.doneAt)}</div>`;
+    let detailHtml;
+    if(partial){
+      const doneCount=t.subs.filter(s=>s.done).length;
+      detailHtml=`<div class="th-detail">今日推进 · ${cnFraction(doneCount,t.subs.length)}</div>
+        <div class="th-dots">${t.subs.map(s=>`<span class="th-dot${s.done?' done':''}"></span>`).join('')}</div>`;
+    }else{
+      // 精确计时是"额外补充"，不是拿来替换"添加→完成"的——两者信息不冲突：
+      // 添加→完成是这条待办放了多久才被处理掉的日历跨度，精确计时是里面
+      // 真正专注投入的时长，两个都留着，才是完整的信息。
+      const subsTimeboxSec=(t.subs||[]).reduce((sum,s)=>sum+(s.timeboxSec||0),0);
+      const timeboxSec=(t.timeboxSec||0)+subsTimeboxSec;
+      detailHtml=timeboxSec>0
+        ?`<div class="th-detail">精确计时 ${fmtD(timeboxSec)} · 添加 ${fmt(t.createdAt)} → 完成 ${fmt(t.doneAt)}</div>`
+        :`<div class="th-detail">添加 ${fmt(t.createdAt)} → 完成 ${fmt(t.doneAt)}</div>`;
+    }
     html+=`<div class="th-item th-done${partial?' th-partial':''}">
       <span class="th-icon">${partial?'◐':'✅'}</span>
       <div class="th-body"><span class="th-text">${escapeHtml(t.text)}</span>
@@ -8496,24 +8626,21 @@ async function aiSortTodos(){
     }).map(it=>{
       const realTitle=byId[it.id].text;
       let reason=it.reason||'';
-      let rawMismatchReason=null;
       const m=reason.match(titleCheckRe);
       if(m){
         // 比对时去掉首尾标点/空格/常见符号差异，避免"AI复述时多打个标点"这种无害的
-        // 格式差异被误判成"串位"——只有内容本身真的对不上，才判定为串位。
+        // 格式差异被误判成"串位"——只有内容本身真的对不上，才算数。
         const norm=s=>s.trim().replace(/[「」『』"'\s、，。！？!?.:：\-—–]+$/g,'').replace(/^[「」『』"'\s]+/g,'');
         if(norm(m[1])===norm(realTitle)){
           reason=reason.slice(m[0].length); // 自检通过，去掉重复的标题前缀，只留理由本身
         }else{
+          // 自检没通过时，不再拿一句"可能串位了"的提醒替换掉理由——直接把AI写的原文
+          // 显示出来就好，用户自己读几次就知道是不是真的经常串位。
           console.warn('[AI待办整理] 标题自检未通过——真实标题：',realTitle,'AI复述的标题：',m[1],'完整reason：',it.reason);
-          // 手机上不方便看控制台——把AI原文直接存下来，UI上做成"点开看原文"，
-          // 方便直接截图反馈，不用去翻开发者工具。
-          rawMismatchReason=it.reason;
-          reason='这条AI给的理由跟标题对不上，可能生成时串位了，仅供参考顺序';
         }
       }
       return{
-        id:it.id,text:realTitle,reason,rawMismatchReason,
+        id:it.id,text:realTitle,reason,
         existingSubs:(byId[it.id].subs||[]).slice(),
         coarse:!!it.coarse,breakdown:Array.isArray(it.breakdown)?it.breakdown:[],
         acceptBreakdown:false
@@ -8585,8 +8712,7 @@ function renderAiSortList(){
       <div class="ai-sort-row-top">
         <div class="ai-sort-body" onclick="toggleAiDetail(${idx})">
           <div class="ai-sort-txt" style="font-size:${fontSize}px;opacity:${opacity}">${escapeHtml(it.text)}</div>
-          <div class="ai-sort-reason">${escapeHtml(it.reason)}${it.rawMismatchReason?` <a class="ai-sort-raw-link" onclick="event.stopPropagation();toggleAiRaw(${idx})">查看原文</a>`:''}</div>
-          ${it.rawMismatchReason&&it._rawOpen?`<div class="ai-sort-raw-box">${escapeHtml(it.rawMismatchReason)}</div>`:''}
+          <div class="ai-sort-reason">${escapeHtml(it.reason)}</div>
         </div>
         <div class="ai-sort-reorder">
           <button onclick="aiSortMove(${idx},-1)" ${idx===0?'disabled':''} title="往上移">▲</button>
@@ -8604,14 +8730,6 @@ function toggleAiDetail(idx){
   if(!it)return;
   if(!(it.existingSubs&&it.existingSubs.length)&&!(it.coarse&&it.breakdown.length))return; // nothing to show
   it._detailOpen=!it._detailOpen;
-  renderAiSortList();
-}
-
-// 点"查看原文"——展开AI原本写的完整理由（标题自检没通过时用，方便直接截图反馈）
-function toggleAiRaw(idx){
-  const it=aiSortResult&&aiSortResult.items[idx];
-  if(!it)return;
-  it._rawOpen=!it._rawOpen;
   renderAiSortList();
 }
 
