@@ -568,6 +568,14 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   opacity:.5;margin-bottom:6px}
 .guan-ai-card-word{font-family:'Noto Serif SC',serif;font-weight:300;font-size:13px;
   opacity:.92;line-height:1.6;margin-bottom:10px}
+.guan-ai-clarify{font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;
+  opacity:.55;line-height:1.5;margin:-2px 0 10px;padding:8px 10px;background:rgba(255,255,255,.04);
+  border-radius:8px}
+.guan-ai-clarify input{width:100%;margin-top:6px;background:transparent;border:none;
+  border-bottom:1px solid rgba(255,255,255,.15);color:inherit;opacity:.95;
+  font-family:'Noto Serif SC',serif;font-size:11px;padding:3px 0;outline:none}
+.guan-ai-clarify a{display:block;margin-top:6px;font-family:'Cormorant Garamond',serif;
+  font-style:italic;font-size:10px;opacity:.6;cursor:pointer;text-align:right}
 .guan-ai-card-acts{display:flex;gap:8px}
 .guan-ai-card-acts button{flex:1;padding:9px 0;border-radius:100px;cursor:pointer;color:inherit;
   font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px}
@@ -1043,7 +1051,14 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   color:var(--theme-text,rgba(255,250,244,.5));opacity:.14;font-size:14px;cursor:pointer;
   transition:opacity .3s;display:flex;align-items:center;justify-content:center;padding:0}
 .ai-sort-icon-btn:active{opacity:.8;transform:scale(.9)}
-.ai-sort-icon-btn.used{opacity:.24}
+/* AI thinking pulse — bigger, faster swing than the generic boot pulse (opacity .35→.75)
+   so "AI 正在整理" reads unmistakably as busy. Kept flat/2D on purpose — no drop-shadow
+   glow or rotation, which read as 3D/neon and clash with this app's flat ink-on-paper feel. */
+@keyframes aiThinking{
+  0%,100%{opacity:.4;transform:scale(1)}
+  50%{opacity:1;transform:scale(1.15)}
+}
+.ai-sort-icon-btn.busy{animation:aiThinking .75s ease-in-out infinite!important;pointer-events:none}
 /* Todo history (归档) view */
 .cat-tab-hist{opacity:.7;font-style:italic}
 .todo-hist-toggle{display:flex;gap:8px;justify-content:center;margin-bottom:16px}
@@ -1425,6 +1440,9 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   color:rgba(255,250,244,.92);line-height:1.5;letter-spacing:.02em}
 .ai-sort-reason{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10.5px;
   color:rgba(232,180,150,.6);margin-top:4px;line-height:1.5}
+.ai-sort-raw-link{color:rgba(232,180,150,.85);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.ai-sort-raw-box{margin-top:6px;padding:8px 10px;border-radius:8px;background:rgba(0,0,0,.15);
+  font-family:'Noto Serif SC',serif;font-style:normal;font-size:10.5px;color:rgba(255,250,244,.55);line-height:1.5}
 .ai-sort-reorder{display:flex;flex-direction:column;gap:2px;flex-shrink:0;margin-top:1px}
 .ai-sort-reorder button{width:22px;height:17px;border:none;background:rgba(255,255,255,.05);
   color:rgba(255,250,244,.4);border-radius:5px;font-size:9px;cursor:pointer;
@@ -1435,7 +1453,9 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .ai-sort-existing-subs-hint{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:9.5px;
   color:rgba(255,250,244,.35);margin-bottom:4px}
 .ai-sort-existing-sub{font-family:'Noto Serif SC',serif;font-weight:300;font-size:10.5px;
-  color:rgba(255,250,244,.5);line-height:1.6}
+  color:rgba(255,250,244,.5);line-height:1.6;display:flex;align-items:flex-start;justify-content:space-between;gap:6px}
+.ai-sort-existing-sub>span{flex:1;min-width:0}
+.ai-sort-existing-sub .todo-sub-ai{margin-top:1px}
 .ai-sort-existing-sub.done{text-decoration:line-through;opacity:.5}
 .ai-sort-breakdown{margin-top:10px;padding:10px;border-radius:10px;background:rgba(0,0,0,.15)}
 .ai-sort-bd-hint{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;
@@ -1535,7 +1555,7 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .hd-action-btn:hover{background:rgba(255,255,255,.14)}
 .habit-detail-box.hd-paused .hd-hero{filter:saturate(.5) brightness(.85)}
 .gal-card.paused{opacity:.5;filter:saturate(.6)}
-.gal-paused-tag{position:absolute;top:10px;left:12px;font-family:'Cormorant Garamond',serif;
+.gal-paused-tag{position:absolute;top:10px;right:12px;font-family:'Cormorant Garamond',serif;
   font-style:italic;font-size:9px;color:rgba(255,255,255,.85);
   background:rgba(0,0,0,.25);padding:2px 8px;border-radius:100px;backdrop-filter:blur(4px)}
 
@@ -1616,6 +1636,30 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .todo-sub-add{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;
   color:rgba(255,250,244,.28);cursor:pointer;padding:2px 0;letter-spacing:.05em;transition:color .2s}
 .todo-sub-add:active{color:rgba(255,250,244,.6)}
+
+/* Sub-level AI re-breakdown ("这条还能再拆吗") */
+.todo-sub-ai{width:16px;height:16px;border:none;background:none;font-size:10px;cursor:pointer;
+  opacity:.22;color:inherit;flex-shrink:0;margin-top:1px;transition:opacity .2s;padding:0}
+.todo-sub-ai:active{opacity:.7}
+.todo-sub-ai.busy{animation:aiThinking .75s ease-in-out infinite!important;opacity:.9}
+.sub-bd-card{margin:6px 0 2px 24px;padding:10px 12px;border-radius:12px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+.sub-bd-loading{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;
+  opacity:.5;text-align:center;padding:4px 0}
+.sub-bd-steps{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}
+.sub-bd-step{font-family:'Noto Serif SC',serif;font-weight:300;font-size:11.5px;
+  color:rgba(255,250,244,.7);line-height:1.5;display:flex;gap:6px}
+.sub-bd-step::before{content:'·';opacity:.4;flex-shrink:0}
+.sub-bd-ask{font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;
+  color:rgba(255,250,244,.55);background:rgba(255,255,255,.04);border-radius:8px;
+  padding:6px 8px;margin-bottom:8px}
+.sub-bd-ask input{width:100%;margin-top:5px;background:transparent;border:none;
+  border-bottom:1px solid rgba(255,250,244,.15);color:rgba(255,250,244,.85);
+  font-family:'Noto Serif SC',serif;font-size:11px;padding:3px 0;outline:none}
+.sub-bd-acts{display:flex;gap:14px;justify-content:flex-end}
+.sub-bd-acts a{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;
+  color:rgba(255,250,244,.4);cursor:pointer;letter-spacing:.05em}
+.sub-bd-acts a.primary{color:rgba(232,180,150,.85)}
 .todo-sub-input{font-family:'Noto Serif SC',serif;font-weight:300;font-size:12px;
   color:rgba(255,250,244,.85);background:rgba(255,255,255,.05);
   border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:4px 8px;outline:none;width:100%}
@@ -4387,10 +4431,23 @@ function guanToggleReason(){
 function guanReasonOnInput(){
   const input=document.getElementById('gs1ReasonInput');
   const btn=document.getElementById('gs1SealBtn');
-  if(input.value.trim()){
+  const val=input.value.trim();
+  if(val){
     btn.classList.add('show');
   }else{
     btn.classList.remove('show');
+  }
+  // 问问AI 不用等封存——写得够长（>=6字）就可以先问，封存只是把文字定下来，
+  // 这两件事互不阻挡。只在AI还没开始加载/给结果时才更新这一行，避免打断已经在跑的请求。
+  const aiRow=document.getElementById('guanAiRow');
+  if(aiRow&&!aiRow.querySelector('.guan-ai-loading')&&!aiRow.querySelector('.guan-ai-card')){
+    if(val.length>=6){
+      aiRow.style.display='block';
+      aiRow.innerHTML=`<button class="guan-ai-ask" onclick="guanAskAiState()">✨ 问问 AI 这算什么状态</button>`;
+    }else{
+      aiRow.style.display='none';
+      aiRow.innerHTML='';
+    }
   }
 }
 
@@ -4414,11 +4471,12 @@ function guanCommitReason(){
   document.getElementById('gs1ReasonInput').classList.remove('show');
   document.getElementById('gs1SealBtn').classList.remove('show');
 
-  // 情绪命名法：写得足够详细的缘由，值得问问 AI 这到底算什么状态——
-  // 可选，不打字就完全不会出现，纯粹是个安静的邀请。
+  // 情绪命名法：写得足够详细的缘由，值得问问 AI 这到底算什么状态。
+  // 这个入口在 guanReasonOnInput 里已经提前出现过了（不用等封存）；这里只是兜底——
+  // 万一AI这一行还是空的（比如没等输入触发就直接点了封存），封存时也补上。
   const aiRow=document.getElementById('guanAiRow');
   const offerAi = reason.length>=6;
-  if(aiRow){
+  if(aiRow&&!aiRow.querySelector('.guan-ai-loading')&&!aiRow.querySelector('.guan-ai-card')){
     if(offerAi){
       aiRow.style.display='block';
       aiRow.innerHTML=`<button class="guan-ai-ask" onclick="guanAskAiState()">✨ 问问 AI 这算什么状态</button>`;
@@ -4471,59 +4529,109 @@ function guanScheduleCollapse(){
 }
 
 // Ask AI whether this reason describes an existing state well, or deserves its own new word.
+// 无论写了什么，最后都会落到一个情绪/能量状态上——不再有"这不算情绪"这种死胡同分支了，
+// 情绪命名法本身的前提就是总能给它贴个标签。若AI真的拿不准，会另外送一个可选的澄清问题，
+// 但不等回答也会先给一个合理的命名，用户可以选择回答以得到更准确的版本。
 async function guanAskAiState(){
   const aiRow=document.getElementById('guanAiRow');
   if(!aiRow||!gs1LastEntryTs)return;
   const entry=energyLog.find(e=>e.ts===gs1LastEntryTs);
-  if(!entry||!entry.reason)return;
+  if(!entry)return;
+  // 问 AI 不用等封存——直接从输入框拿当前写的内容，并静静存下来，不等用户点封存。
+  const liveReason=(document.getElementById('gs1ReasonInput')?.value||'').trim();
+  const reason=liveReason||entry.reason||'';
+  if(!reason)return;
+  if(entry.reason!==reason){entry.reason=reason;sv('energyLog',energyLog);}
   if(!aiApiKey){openAiKeySettings();return;}
   // Writing here buys more time before the panel auto-resets
   if(window._gs1ResetTimer)clearTimeout(window._gs1ResetTimer);
   aiRow.innerHTML=`<div class="guan-ai-loading">✨ AI 正在想…</div>`;
   const all=guanAllStates();
-  // 第一步：只判断，不写字——这一步把关精准度（是否已被覆盖、是不是纯字面联想、
-  // 是不是生理需求），输出一个"内部方向"给第二步用，不直接生成用户会看到的文字。
+  // 第一步：只判断，不写字——这一步把关精准度（是否已被覆盖、是不是纯字面联想），
+  // 输出一个"内部方向"给第二步用，不直接生成用户会看到的文字。
   const judgePrompt=`你在帮用户判断她记录的一条"能量/情绪"状态描述，是否已经被她现有的词库精确覆盖，还是值得单独造一个新词。这一步只做判断，不用写最终呈现的文字。
 
 她现有的词库（每个词是一种能量/情绪状态，定义要严格按字面理解，不要泛化）：
 ${all.map(s=>`${s.icon} 「${s.name}」— ${s.feel||''}`).join('\n')}
 
-她刚才选的词是「${entry.state}」，并写了这样一段缘由："${entry.reason}"
+她刚才选的词是「${entry.state}」，并写了这样一段缘由："${reason}"
 
-判断标准（精准比省事更重要，宁可多造词也不要凑合）：
+判断标准（精准比省事重要，宁可多造词也不要凑合）：
 - 只有当这段描述的核心情绪，跟词库里某个词的定义几乎逐字对得上（不只是表面都出现"想很多"这种字眼，而是本质上是同一种体验）时，才判定 fits 为 true。
 - 千万不要因为字面/主题上的联想就归类——比如"发工资"这种跟钱有关的场景，不能因为字面沾到"盈余"就归到"盈"，得看这段话背后真正的情绪体验是什么，这两种完全不是一回事。
 - 只要这段描述里有词库任何一个词都没捕捉到的独特成分，就应该判定不 fits。不要因为"大致有点像"就偷懒选现有词。
-- 如果这段描述根本不是情绪/心理状态，而是纯生理需求或身体信号，且完全不带任何情绪色彩（比如单纯饿了、困了、想上厕所、单纯的身体疼痛），返回 {"notEmotion":true}。但注意：像"喝多了脸热晕乎乎""累到不想说话""冷得发抖"这种带着身体感受、但本身就是一种情绪/能量状态的描述（词库里"转""冷""空"本来也都是身体+心理混合的），不算纯生理需求，不要用这条排除掉。
+- 即使这段描述听起来很像纯粹的生理需求或身体信号（比如单纯饿了、困了、胃痛、想上厕所），也不要直接判定"不是情绪"——情绪命名法的前提就是任何体验都能找到它背后的能量色彩，哪怕很淡（比如胃痛背后可能是烦躁、抵抗、身体拖住了注意力这类感受，总能找到一个）。concept 字段要诚实地把这种"身体信号带出的淡淡的情绪色彩"写出来，不要强行把它说成很激烈的情绪。
+- 如果这段描述真的太短/太模糊，情绪色彩模糊到你自己也不确定，可以额外给一个 clarify 问题（一句话，问一个能帮你更准确的信息，比如"这种不舒服后面，是更像烦躁，还是更像无奈/抵抗？"），但即使不问也必须先给一个 concept，不能留空。
 
 只返回 JSON，不要有其他文字：
-{"fits":true} 或 {"fits":false,"concept":"一句话内部笔记，说清楚这段描述里最独特、最值得被命名的那个感觉核心是什么，不用讲究文采，给下一步写词用"} 或 {"notEmotion":true}`;
+{"fits":true} 或 {"fits":false,"concept":"一句话内部笔记，说清楚这段描述里最独特、最值得被命名的那个感觉核心是什么，不用讲究文采，给下一步写词用","clarify":null或"一句话问题，可选，只在真的不确定时才给"}`;
   try{
     const judge=await callClaudeJSON(judgePrompt,'请判断。');
     if(!judge)throw new Error('AI 没有返回结果');
-    if(judge.notEmotion){
-      aiRow.innerHTML=`<div class="guan-ai-card"><div class="guan-ai-card-word" style="text-align:center;margin-bottom:0">这更像是身体在说话，不是情绪状态——不用勉强给它造词</div></div>`;
-      guanScheduleCollapse();
-      return;
-    }
-    if(judge.fits||!judge.concept){
+    if(judge.fits){
       aiRow.innerHTML=`<div class="guan-ai-card"><div class="guan-ai-card-word" style="text-align:center;margin-bottom:0">AI 觉得「${entry.state}」这个词已经很贴切了</div></div>`;
       guanScheduleCollapse();
       return;
     }
+    const concept=judge.concept||'这次的感受，词库里没有一个词能完全对上';
     // 第二步：只负责写——给一个方向和参考例子，不再堆一堆规则，让文字回到词库本来的语感。
     aiRow.innerHTML=`<div class="guan-ai-loading">✨ AI 正在想怎么形容…</div>`;
     const writePrompt=`请给下面这个感觉核心取一个词，风格要跟这几个例子完全一样——都是1-2个字的词，配一个贴切的 emoji，feel 是几个用"、"连起来的短语，不是完整解释句：
 🌕「盈」— 充盈、满溢、感恩的满足
 🏔️「根」— 有根、落地、踏实、不慌
-🍷「醺」— 微醉、脸热、飘然、身体软
+🍷「酥」— 微醉、脸热、飘然、身体软
 
-这次要命名的感觉核心："${judge.concept}"
+这次要命名的感觉核心："${concept}"
 
 不能用这些已经存在的名字：${all.map(s=>s.name).join('、')}。emoji 要能传达这个感觉的全部面向，不能只画出其中欢快的一半。
 
 只返回 JSON，不要有其他文字：{"icon":"...","name":"...","feel":"..."}`;
     const written=await callClaudeJSON(writePrompt,'请命名。');
+    if(!written||!written.name)throw new Error('这次没能写出来，再试一次');
+    aiRow.dataset.pendingIcon=written.icon||'✨';
+    aiRow.dataset.pendingName=written.name;
+    aiRow.dataset.pendingFeel=written.feel||'';
+    const clarifyHtml=judge.clarify?`<div class="guan-ai-clarify">${escapeHtml(judge.clarify)}
+      <input id="guanClarifyInput" placeholder="回答会让词更准，不答也行">
+      <a onclick="guanRefineWithClarify()">回答后重新想</a>
+    </div>`:'';
+    aiRow.innerHTML=`<div class="guan-ai-card">
+      <div class="guan-ai-card-hint">AI 发现一个新状态</div>
+      <div class="guan-ai-card-word">${written.icon||'✨'} 「${escapeHtml(written.name)}」——${escapeHtml(written.feel||'')}</div>
+      ${clarifyHtml}
+      <div class="guan-ai-card-acts">
+        <button class="guan-ai-dismiss" onclick="guanDismissAiSuggestion()">忽略</button>
+        <button class="guan-ai-accept" onclick="guanAcceptAiSuggestion()">采纳</button>
+      </div>
+    </div>`;
+  }catch(err){
+    aiRow.innerHTML=`<div class="guan-ai-loading">${escapeHtml(err.message||'这一次没看清，再试试')}</div>`;
+    setTimeout(()=>{
+      if(aiRow)aiRow.innerHTML=`<button class="guan-ai-ask" onclick="guanAskAiState()">✨ 问问 AI 这算什么状态</button>`;
+    },2200);
+  }
+}
+
+// 用户回答了 clarify 问题后，把答案并进 concept 重新写一次词。
+async function guanRefineWithClarify(){
+  const aiRow=document.getElementById('guanAiRow');
+  const input=document.getElementById('guanClarifyInput');
+  if(!aiRow||!input)return;
+  const answer=input.value.trim();
+  if(!answer)return;
+  const entry=energyLog.find(e=>e.ts===gs1LastEntryTs);
+  if(!entry)return;
+  const all=guanAllStates();
+  aiRow.innerHTML=`<div class="guan-ai-loading">✨ AI 正在重新想…</div>`;
+  try{
+    const writePrompt=`用户写了："${entry.reason||''}"，补充了一句："${answer}"。请结合这两句，重新给这个感觉核心取一个词，风格要跟这几个例子完全一样：
+🌕「盈」— 充盈、满溢、感恩的满足
+🏔️「根」— 有根、落地、踏实、不慌
+
+不能用这些已经存在的名字：${all.map(s=>s.name).join('、')}。
+
+只返回 JSON，不要有其他文字：{"icon":"...","name":"...","feel":"..."}`;
+    const written=await callClaudeJSON(writePrompt,'请重新命名。');
     if(!written||!written.name)throw new Error('这次没能写出来，再试一次');
     aiRow.dataset.pendingIcon=written.icon||'✨';
     aiRow.dataset.pendingName=written.name;
@@ -6500,7 +6608,14 @@ function tbShowStep(step){
 
 function tbRenderTasks(){
   const el=document.getElementById('tbTaskList');if(!el)return;
-  const open=(memos.todo||[]).filter(t=>!t.done);
+  // 跟待办列表用同一套排序规则（renderMemoList 里的逻辑）：有手动 order（拖拽/AI排序）的
+  // 按 order 排在前面，没有的按最新创建排在后面——否则时间盒看到的顺序会跟待办页对不上。
+  const open=(memos.todo||[]).filter(t=>!t.done).slice().sort((a,b)=>{
+    const ao=typeof a.order==='number',bo=typeof b.order==='number';
+    if(ao&&bo)return a.order-b.order;
+    if(ao!==bo)return ao?-1:1;
+    return b.createdAt-a.createdAt;
+  });
   if(!open.length){
     el.innerHTML='<div class="tb-task-empty">待办里还没有事 · 先去添一件</div>';
     document.getElementById('tbConfig').style.display='none';
@@ -8166,10 +8281,13 @@ function todoAdd(){
 // ================================================================
 const AI_TODO_SYSTEM_PROMPT=`你在帮用户整理她的待办清单，判断标准来自以下几条认知负荷管理的原理，请严格按这套框架思考，不要用"紧急/重要"这种通用四象限。
 
-一、排序判断标准（不是按感觉排"重要"，而是看因果链条）：
-- 杠杆类（leverage）：做完这件事，后面别的事会变得更容易推进，即使耗时也该优先启动。
-- 清空类（clear）：不产生杠杆效应，但占用背景注意力带宽，处理成本很低，应该顺手尽快清掉。
-- 不要考虑"这条放了多久了"，这个不重要。
+一、排序判断标准——不是"杠杆类整体排在清空类前面"这种粗暴分组，而是看"杠杆高低 × 处理成本高低"这两个维度组合出的四档优先级：
+1. 高杠杆 + 低成本 → 最优先（做完影响大，而且几分钟/很快能启动或完成）
+2. 高杠杆 + 高成本 → 第二优先（哪怕这件事本身要拆很多步、耗时长，也要尽早启动第一步，不能因为"麻烦"就被排到后面）
+3. 低杠杆 + 低成本 → 第三优先（清空类，顺手几分钟清掉，不占后续带宽）
+4. 低杠杆 + 高成本 → 最后（既不产生杠杆效应，处理成本又高，甚至该被质疑是否值得做）
+判断"处理成本"时要参考这条待办有没有已经拆出的细目（subs）——细目多、且没做完的多，说明处理成本高；细目已经做完大半的，说明处理成本已经降低了，不要还按"标题听起来复杂"就判定成本高。
+不要考虑"这条放了多久了"，这个不重要。
 
 二、颗粒度判断（任务粒度错觉 / Planning Fallacy）：
 人预估没做过的任务时，习惯性低估所需步骤，规划时用的是简化的"外部视角"。看到一条待办，先判断它是"一个动作"（单一步骤，5-15分钟内可完成）还是"一个项目"（名字听起来简单，展开后有多个决策点，比如涉及比价、查资料、多方权衡）。
@@ -8181,10 +8299,135 @@ const AI_TODO_SYSTEM_PROMPT=`你在帮用户整理她的待办清单，判断标
 三、用户的决策风格是"最大化型"（maximizer）——她倾向寻找最优解而不是差不多就行，这不是缺点，不需要建议她"随便选一个/降低标准"。如果某条待办需要她做出选择性决策，可以在 reason 里提示"这条建议给自己设一个时间上限去决定，而不是无限展开搜索"，但不要建议她降低判断标准。
 
 请只返回 JSON，不要有任何其他文字，格式如下：
-{"items":[{"id":"...","reason":"一句话，为什么排在这个位置，用杠杆/清空的逻辑说明","coarse":false,"breakdown":[]}]}
-items 数组的顺序就是你建议的新顺序。coarse 为 true 时，breakdown 给出3-6条具体步骤；否则 breakdown 给空数组。reason 控制在30字以内。`;
+{"items":[{"id":"...","reason":"「原样复述这条待办的标题」——判断理由，用杠杆/成本的逻辑说明","coarse":false,"breakdown":[]}]}
+items 数组的顺序就是你建议的新顺序。coarse 为 true 时，breakdown 给出3-6条具体步骤；否则 breakdown 给空数组。
+reason 必须以「」括起来的原标题开头，一字不差地照抄这条待办的标题，再接判断理由——这是为了在你批量处理多条待办时，把每条的判断和它对应的标题牢牢绑在一起，避免生成时把不同任务的理由串位/挪行。理由部分控制在30字以内。
+字符串内部（reason、breakdown里的每一步）绝对不能出现未转义的英文或中文双引号——需要强调某个词就用「」或『』代替，不要用引号，否则会破坏JSON格式。
+重要：输入里每个 id 只会出现一次，你返回的 items 数组里，每个 id 也必须只出现一次——不要重复处理同一条待办，也不要遗漏任何一条。`;
 
 let aiSortResult=null; // {items:[{id,text,reason,coarse,breakdown,acceptBreakdown}]}
+
+// ================================================================
+// 细目再拆解 ("这条还能再拆吗") — 只针对已有细目里剩下没做完的某一条,
+// 判断它本身够不够细，不够的话再往下拆一层。
+// 经过多轮实测定下来的规则见下方注释。
+// ================================================================
+
+// 归档：最初那版（没有"一步一个决策点"、没有具体性规则、没有needsInput机制）。
+// 如果正式版用起来效果不好，可以把 SUB_BREAKDOWN_PROMPT 换回这个。
+const SUB_BREAKDOWN_PROMPT_V1_ARCHIVE_naive = `你在帮用户判断一条待办剩下没做完的"细目"（subs）本身够不够细。
+
+这条待办已经有一些细目，其中一部分已完成（done:true），剩下没做完的（done:false）需要你逐条判断：这一条细目本身是"一个动作"（单一步骤，几分钟到十几分钟能做完，不涉及多方比较或多个决策点）还是其实还是"一个小项目"（名字听起来简单，但展开后还有多个步骤/决策，比如要找人比价、要多方沟通、要收集信息再决定）。
+
+只对"一个小项目"级别的细目，给出2-4条更具体的下一步动作，帮它再往下拆一层。已经是"一个动作"的细目，不要碰它，不要画蛇添足。
+
+请只返回 JSON，不要有任何其他文字：
+{"subJudgments":[{"subText":"原细目文字","stillCoarse":true或false,"breakdown":["更细的步骤1","更细的步骤2"]}]}
+只需要给"没做完"的细目下判断；stillCoarse为false时breakdown给空数组。`;
+
+// 正式版（当前使用）——在 naive 版基础上加了三条经测试证明有效的规则：
+// 1. 一步一个决策点（判断词+执行动作不能叠加）
+// 2. 具体性规则（底层步骤用真实名称，不用抽象类别词，但不代表AI验证过是最优选择）
+// 3. needsInput（只有缺了信息会导致具体实体名称错误才问，其余给默认拆解）
+// 外加拆解深度控制在4-6步左右，不要把整条链路都摊开。
+const SUB_BREAKDOWN_PROMPT=`你在帮用户把一条待办剩下没做完的"细目"（subs）拆解成具体、真实、能立刻执行的下一组动作。
+
+先判断这一条本身是"一个动作"还是"一个小项目"（展开后还有多个步骤/决策）。只对"小项目"级别继续处理，"一个动作"不用碰。
+
+拆解深度——只拆到"用户当下最需要知道的下一组动作"为止，通常3-5步。这是"细目的细目"，拆解深度要比给父任务本身拆解时更浅一层：如果某一步本身还能再展开成多步，只在step里简写这一步是什么，不要展开到底，把更深的细节留给用户以后主动要求再展开。不要因为想显得全面就把整条链路的所有环节都摊开。
+
+needsInput触发条件——很严格：只有当"缺少这条信息，会导致生成的steps里出现无法验证的具体名称（比如具体地名、具体机构名、具体人名，这类信息因人而异、AI没法用常识替代）"时才触发。如果只是"问了会让步骤更贴合，但不问也能给出合理默认路径"的情况，一律不触发，needsInput给null，直接在step里用最常见、最保险的默认选项。判断线是"这条信息是否真的会改变具体实体名称"，不是"问了会不会更好"。
+
+拆解规则：
+- 每一条步骤只能包含一个决策点，或者一个纯执行动作，不能叠加。
+- 如果一步里出现"选/挑/比较/决定"这类判断词，后面又跟着具体执行动作，必须拆成两条。
+- 最底层步骤禁止使用抽象类别词，必须是真实具体的名称——但这些名称只是"帮你起步的具体选项"，不代表AI验证过它是最优选择，用户可以直接替换成自己更熟悉的。
+- 相邻步骤动作不能重复。
+
+请只返回 JSON，不要有任何其他文字（字符串内部不要出现未转义的双引号，需要强调的词用「」代替）：
+{"stillCoarse":true或false,"steps":["步骤1","步骤2","..."],"needsInput":null或"一句话，问一个AI真的没法替你决定的问题"}`;
+
+let subBdState={}; // subId -> {parentId, needsInput, steps, answer}
+
+async function todoSubBreakdown(itemId,subId){
+  const item=memos.todo.find(i=>i.id===itemId);
+  if(!item)return;
+  const sub=(item.subs||[]).find(s=>s.id===subId);
+  if(!sub)return;
+  if(!aiApiKey){openAiKeySettings();return;}
+  const btn=document.getElementById('subAiBtn_'+subId);
+  const slot=document.getElementById('subBd_'+subId);
+  if(!slot)return;
+  if(btn)btn.classList.add('busy');
+  slot.innerHTML=`<div class="sub-bd-card"><div class="sub-bd-loading">✨ AI 正在想怎么拆</div></div>`;
+  try{
+    const userPrompt=`细目：${sub.text}\n所属待办：${item.text}`;
+    const result=await callClaudeJSON(SUB_BREAKDOWN_PROMPT,userPrompt,false,2048);
+    if(!result)throw new Error('这次没能理出头绪，再试一次');
+    if(btn)btn.classList.remove('busy');
+    if(!result.stillCoarse||!Array.isArray(result.steps)||!result.steps.length){
+      slot.innerHTML=`<div class="sub-bd-card"><div class="sub-bd-loading" style="animation:none">这条已经够具体了，不用再拆</div></div>`;
+      setTimeout(()=>{if(slot)slot.innerHTML='';},2200);
+      return;
+    }
+    subBdState[subId]={parentId:itemId,needsInput:result.needsInput||null,steps:result.steps,answer:''};
+    renderSubBdCard(subId);
+  }catch(err){
+    if(btn)btn.classList.remove('busy');
+    slot.innerHTML=`<div class="sub-bd-card"><div class="sub-bd-loading" style="animation:none">${escapeHtml(err.message||'这一次没看清，再试试')}</div></div>`;
+    setTimeout(()=>{if(slot)slot.innerHTML='';},2400);
+  }
+}
+
+function renderSubBdCard(subId){
+  const st=subBdState[subId];
+  const slot=document.getElementById('subBd_'+subId);
+  if(!st||!slot)return;
+  const askHtml=st.needsInput?`<div class="sub-bd-ask">${escapeHtml(st.needsInput)}
+    <input placeholder="回答后步骤会更准，也可以不填" value="${escapeHtml(st.answer)}" oninput="subBdState['${subId}'].answer=this.value">
+  </div>`:'';
+  slot.innerHTML=`<div class="sub-bd-card">
+    ${askHtml}
+    <div class="sub-bd-steps">${st.steps.map(s=>`<div class="sub-bd-step">${escapeHtml(s)}</div>`).join('')}</div>
+    <div class="sub-bd-acts">
+      <a onclick="todoSubBdDismiss('${subId}')">算了</a>
+      <a class="primary" onclick="todoSubBdAccept('${subId}')">采纳，拆成这几条</a>
+    </div>
+  </div>`;
+  setTimeout(()=>applyUITheme(),50);
+}
+
+function todoSubBdDismiss(subId){
+  delete subBdState[subId];
+  const slot=document.getElementById('subBd_'+subId);
+  if(slot)slot.innerHTML='';
+}
+
+function todoSubBdAccept(subId){
+  const st=subBdState[subId];
+  if(!st)return;
+  const item=memos.todo.find(i=>i.id===st.parentId);
+  if(!item||!item.subs)return;
+  const idx=item.subs.findIndex(s=>s.id===subId);
+  if(idx<0)return;
+  const now=Date.now();
+  const newSubs=st.steps.map((step,i)=>({id:'st'+now+'_'+i+'_'+Math.random().toString(36).slice(2,5),text:step,done:false,createdAt:now}));
+  // 用拆出来的这几条，替换掉原本那条粗的——不是追加，是把它变细。
+  item.subs.splice(idx,1,...newSubs);
+  sv('memos',memos);
+  delete subBdState[subId];
+  // 如果是在"AI整理"审阅界面里触发的，那个界面的 existingSubs 是打开时的快照，
+  // 要手动同步一下，再刷新那个列表；不然只刷新主待办列表的话，审阅弹窗里看着还是旧的。
+  if(aiSortResult){
+    const sortItem=aiSortResult.items.find(it=>it.id===st.parentId);
+    if(sortItem)sortItem.existingSubs=item.subs.slice();
+  }
+  if(document.getElementById('aiSortBg')){
+    renderAiSortList();
+  }else{
+    renderMemoList('todo');
+  }
+}
 
 // AI 相关的错误提示——用这个内置弹窗，不用系统自带的 alert()
 function showAiError(msg){
@@ -8201,14 +8444,17 @@ function showAiError(msg){
   document.body.appendChild(ov);
 }
 
+let aiSortInFlight=false;
 async function aiSortTodos(){
+  if(aiSortInFlight)return; // 正在跑的时候再点一下，直接忽略——不重复请求，不多花 token
   const open=(memos.todo||[]).filter(t=>!t.done);
   if(open.length<2){toast('待办太少，不用整理啦');return;}
   if(!aiApiKey){openAiKeySettings();return;}
   const icon=document.getElementById('aiSortIconBtn');
   // 用过一次之后，这枚角标就常驻亮一点点——从"几乎看不见"变成"看得见但很安静"。
   sv('aiSortUsed',true);
-  if(icon){icon.classList.add('used');icon.style.animation='bootPulse 1.4s ease-in-out infinite';}
+  if(icon){icon.classList.add('used','busy');}
+  aiSortInFlight=true;
   try{
     // 把每条待办已有的"细目"（subs）也带给 AI，让它知道这件事已经拆到哪一步了，
     // 不要对已经拆过的事再重复建议拆解。
@@ -8216,24 +8462,71 @@ async function aiSortTodos(){
       id:t.id,text:t.text,
       subs:(t.subs||[]).map(s=>({text:s.text,done:!!s.done}))
     }));
-    const userPrompt='这是我现在的待办清单（JSON数组，包含 id、text，以及已有的细目 subs）：\n'+
-      JSON.stringify(payload,null,2);
-    const result=await callClaudeJSON(AI_TODO_SYSTEM_PROMPT,userPrompt,false,8192);
-    if(!result||!Array.isArray(result.items))throw new Error('这次的整理不太完整，再试一次');
-    // Map back to full todo objects, keep only ones that still exist
+    const payloadStr=JSON.stringify(payload);
+    // 待办如果跟上次问 AI 时一模一样（同样的条目、同样的文字、同样的细目完成状态），
+    // 就不用再花一次 token——直接复用上次 AI 给的整理结果。
+    // 缓存key里带上 prompt 版本号——prompt逻辑改过之后，旧缓存不能再直接拿来用，
+    // 不然待办明明没变，却会用旧逻辑算出的（可能已经过时/有bug的）结果。
+    const PROMPT_VERSION='v5-lenient-title-check';
+    const cache=ld('aiSortCache',null);
+    let result;
+    if(cache&&cache.promptVersion===PROMPT_VERSION&&cache.payloadStr===payloadStr&&cache.result){
+      result=cache.result;
+      toast('待办没有变化，用了上次的整理');
+    }else{
+      const userPrompt='这是我现在的待办清单（JSON数组，包含 id、text，以及已有的细目 subs）：\n'+
+        JSON.stringify(payload,null,2);
+      result=await callClaudeJSON(AI_TODO_SYSTEM_PROMPT,userPrompt,false,8192);
+      if(!result||!Array.isArray(result.items))throw new Error('这次的整理不太完整，再试一次');
+      sv('aiSortCache',{promptVersion:PROMPT_VERSION,payloadStr,result});
+    }
+    // Map back to full todo objects, keep only ones that still exist.
+    // 保险起见：哪怕 prompt 已经要求"每个id只出现一次"，AI偶尔还是会重复处理同一条——
+    // 这里用 seenIds 强制去重，只保留第一次出现的那条，避免同一条待办在列表里出现两次。
     const byId={};open.forEach(t=>byId[t.id]=t);
-    aiSortResult={items:result.items.filter(it=>byId[it.id]).map(it=>({
-      id:it.id,text:byId[it.id].text,reason:it.reason||'',
-      existingSubs:(byId[it.id].subs||[]).slice(),
-      coarse:!!it.coarse,breakdown:Array.isArray(it.breakdown)?it.breakdown:[],
-      acceptBreakdown:false
-    }))};
+    const seenIds=new Set();
+    // 校验"标题自检"：reason必须以「原标题」开头。如果复述的标题跟这条真实标题对不上，
+    // 说明生成时理由串位到了别的任务上——这种情况不展示错的理由，只保留顺序，
+    // 免得用户看到一条跟标题完全无关的"判断理由"。
+    const titleCheckRe=/^「(.*?)」[—\-–:：]*\s*/;
+    aiSortResult={items:result.items.filter(it=>{
+      if(!byId[it.id]||seenIds.has(it.id))return false;
+      seenIds.add(it.id);
+      return true;
+    }).map(it=>{
+      const realTitle=byId[it.id].text;
+      let reason=it.reason||'';
+      let rawMismatchReason=null;
+      const m=reason.match(titleCheckRe);
+      if(m){
+        // 比对时去掉首尾标点/空格/常见符号差异，避免"AI复述时多打个标点"这种无害的
+        // 格式差异被误判成"串位"——只有内容本身真的对不上，才判定为串位。
+        const norm=s=>s.trim().replace(/[「」『』"'\s、，。！？!?.:：\-—–]+$/g,'').replace(/^[「」『』"'\s]+/g,'');
+        if(norm(m[1])===norm(realTitle)){
+          reason=reason.slice(m[0].length); // 自检通过，去掉重复的标题前缀，只留理由本身
+        }else{
+          console.warn('[AI待办整理] 标题自检未通过——真实标题：',realTitle,'AI复述的标题：',m[1],'完整reason：',it.reason);
+          // 手机上不方便看控制台——把AI原文直接存下来，UI上做成"点开看原文"，
+          // 方便直接截图反馈，不用去翻开发者工具。
+          rawMismatchReason=it.reason;
+          reason='这条AI给的理由跟标题对不上，可能生成时串位了，仅供参考顺序';
+        }
+      }
+      return{
+        id:it.id,text:realTitle,reason,rawMismatchReason,
+        existingSubs:(byId[it.id].subs||[]).slice(),
+        coarse:!!it.coarse,breakdown:Array.isArray(it.breakdown)?it.breakdown:[],
+        acceptBreakdown:false
+      };
+    })};
     if(!aiSortResult.items.length)throw new Error('这次没能理出头绪，再试一次');
-    if(icon)icon.style.animation='';
+    if(icon)icon.classList.remove('busy');
     openAiSortReview();
   }catch(err){
     showAiError(err.message);
-    if(icon)icon.style.animation='';
+    if(icon)icon.classList.remove('busy');
+  }finally{
+    aiSortInFlight=false;
   }
 }
 
@@ -8267,9 +8560,14 @@ function renderAiSortList(){
     const hasSubs=it.existingSubs&&it.existingSubs.length;
     let detailHtml='';
     if(hasSubs){
+      const undone=it.existingSubs.filter(s=>!s.done);
       detailHtml=`<div class="ai-sort-existing-subs">
         <div class="ai-sort-existing-subs-hint">已经拆过的细目：</div>
-        ${it.existingSubs.map(s=>`<div class="ai-sort-existing-sub${s.done?' done':''}">· ${escapeHtml(s.text)}</div>`).join('')}
+        ${it.existingSubs.map(s=>`<div class="ai-sort-existing-sub${s.done?' done':''}">
+          <span>· ${escapeHtml(s.text)}</span>
+          ${!s.done?`<button class="todo-sub-ai" id="subAiBtn_${s.id}" onclick="event.stopPropagation();todoSubBreakdown('${it.id}','${s.id}')" title="这条还能再拆吗">✨</button>`:''}
+        </div>
+        <div class="sub-bd-slot" id="subBd_${s.id}"></div>`).join('')}
       </div>`;
     }else if(it.coarse&&it.breakdown.length){
       detailHtml=`<div class="ai-sort-breakdown">
@@ -8287,7 +8585,8 @@ function renderAiSortList(){
       <div class="ai-sort-row-top">
         <div class="ai-sort-body" onclick="toggleAiDetail(${idx})">
           <div class="ai-sort-txt" style="font-size:${fontSize}px;opacity:${opacity}">${escapeHtml(it.text)}</div>
-          <div class="ai-sort-reason">${escapeHtml(it.reason)}</div>
+          <div class="ai-sort-reason">${escapeHtml(it.reason)}${it.rawMismatchReason?` <a class="ai-sort-raw-link" onclick="event.stopPropagation();toggleAiRaw(${idx})">查看原文</a>`:''}</div>
+          ${it.rawMismatchReason&&it._rawOpen?`<div class="ai-sort-raw-box">${escapeHtml(it.rawMismatchReason)}</div>`:''}
         </div>
         <div class="ai-sort-reorder">
           <button onclick="aiSortMove(${idx},-1)" ${idx===0?'disabled':''} title="往上移">▲</button>
@@ -8305,6 +8604,14 @@ function toggleAiDetail(idx){
   if(!it)return;
   if(!(it.existingSubs&&it.existingSubs.length)&&!(it.coarse&&it.breakdown.length))return; // nothing to show
   it._detailOpen=!it._detailOpen;
+  renderAiSortList();
+}
+
+// 点"查看原文"——展开AI原本写的完整理由（标题自检没通过时用，方便直接截图反馈）
+function toggleAiRaw(idx){
+  const it=aiSortResult&&aiSortResult.items[idx];
+  if(!it)return;
+  it._rawOpen=!it._rawOpen;
   renderAiSortList();
 }
 
