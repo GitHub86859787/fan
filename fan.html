@@ -4873,10 +4873,12 @@ function showGuanDupConfirmPopover(){
 function guanDoRecord(){
   const now = new Date();
   const gz = getGanzhi(now);
+  const chosen = guanAllStates()[gs1Idx];
   const entry = {
     ts: Date.now(),
     idx: gs1Idx,
-    state: guanAllStates()[gs1Idx].name,
+    state: chosen.name,
+    icon: chosen.icon||'', // 存下当时选中的图标本身，不要只存名字——见下方showDayD里的说明
     solar: fmtSolar(now),
     ganzhi: gz.full,
     gzYear: gz.year, gzMonth: gz.month, gzDay: gz.day, gzHour: gz.hour
@@ -7330,8 +7332,16 @@ function showDayD(dk){
   enLogs.forEach((en,i)=>{
     const t=new Date(en.ts);
     const tm=pad(t.getHours())+':'+pad(t.getMinutes());
-    const stateObj=guanAllStates().find(s=>s.name===en.state);
-    const icon=stateObj?stateObj.icon:(en.emoji||'');
+    // 优先用记录当时存下来的icon——如果这是条老数据（还没存icon字段），
+    // 才退回用名字去当前的guanCustomStates里现查。现查这条路径有个隐患：
+    // iOS上"添加到主屏幕"的PWA和Safari浏览器标签页，本地存储是完全隔离的两份，
+    // 在浏览器里新造的自定义状态（比如「涌」），PWA那边压根不知道存在，现查就会
+    // 查不到图标，看起来像是"图标丢了"——其实数据没丢，只是两边本地存储不共享。
+    // 直接把icon存进记录本身，就不再依赖这次查询，不管在哪边打开都稳定显示。
+    const icon=en.icon!==undefined?en.icon:(()=>{
+      const stateObj=guanAllStates().find(s=>s.name===en.state);
+      return stateObj?stateObj.icon:(en.emoji||'');
+    })();
     html+=`<div class="day-en-card" style="padding-left:4px">
       <div style="flex:1"><div class="day-en-info"><em>${tm} · ${en.state||''}${icon?' '+icon:''}</em></div>
       ${en.reason?`<div class="day-en-reason">${en.reason}</div>`:''}</div></div>`;
