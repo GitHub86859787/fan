@@ -4152,6 +4152,18 @@ const GUAN_STATES=[
 // 用户自己长出来的词——AI 发现某种反复出现、但 9 个词都不太贴切的状态时会建议加一个，
 // 用户点头才会真正加进来，长按可以删掉。始终追加在固定 9 个后面。
 let guanCustomStates = ld('guanCustomStates', []);
+// 独立的"情绪词库"存档——跟上面 guanCustomStates 不是一回事：guanCustomStates 是
+// "选择器里现在有哪些自造词"，删了就没了；这份 guanWordArchive 是"AI 生成过的每一个
+// 词，连带图标和解释，永久留底"，就算之后把某个词从选择器里删掉，这里的记录也不会消失
+// ——留着以后导出、看看攒了多少种情绪、或者做成一套情绪卡牌之类的东西用。
+// 按名字去重（同一个词多次被AI生成，只留第一次的解释+首次生成时间，不重复堆叠）。
+let guanWordArchive = ld('guanWordArchive', []);
+function guanArchiveWord(icon,name,feel){
+  if(!name)return;
+  if(guanWordArchive.some(w=>w.name===name))return; // 已经存过这个词，不重复记录
+  guanWordArchive.push({icon:icon||'✨',name,feel:feel||'',createdAt:Date.now()});
+  sv('guanWordArchive',guanWordArchive);
+}
 // 固定的 9 个词也可以删——被删掉的记在这里（按名字），guanAllStates() 里会跳过它们。
 let guanHiddenFixed = ld('guanHiddenFixed', []);
 // "悟" — 跟其它状态用法完全一样（选它、记录、写缘由、封存、问问 AI），
@@ -4721,12 +4733,21 @@ function guanAcceptAiSuggestion(){
     color:'#C05B45'
   });
   sv('guanCustomStates',guanCustomStates);
-  // 把刚才记录时用的占位状态"照"，改写成真正生成的新词——不然日历/历史里
-  // 看到的还是"照"，新词等于白造了。
+  // 永久归档这个词（图标+解释）到独立的情绪词库里，跟"选择器里现在有没有这个词"脱钩——
+  // 就算以后从选择器里删掉了，这份词库也留着。
+  guanArchiveWord(aiRow.dataset.pendingIcon,name,aiRow.dataset.pendingFeel);
+  // 把这次触发"问问AI"的这条记录，改写成真正生成的新词——不然日历/历史里
+  // 看到的还是原来那个不太贴切的词，新词等于白造了。这里不限定"原来必须是照"：
+  // 不管你一开始随手选的是"照"还是任何一个现成的词，只要你后来问了AI、AI建议了
+  // 一个更贴切的新词、你也采纳了，这条记录就该跟着更新——这本来就是你点"问问AI"
+  // 的原因。名字、图标、解释三者必须一起改，漏了任何一个都会导致这条记录"图标/
+  // 解释和名字对不上"。
   if(gs1LastEntryTs){
     const entry=energyLog.find(e=>e.ts===gs1LastEntryTs);
-    if(entry&&entry.state==='照'){
+    if(entry){
       entry.state=name;
+      entry.icon=aiRow.dataset.pendingIcon||'✨';
+      entry.feel=aiRow.dataset.pendingFeel||'';
       sv('energyLog',energyLog);
     }
   }
@@ -4882,6 +4903,7 @@ function guanDoRecord(){
     idx: gs1Idx,
     state: chosen.name,
     icon: chosen.icon||'', // 存下当时选中的图标本身，不要只存名字——见下方showDayD里的说明
+    feel: chosen.feel||'', // 同理，这个词当下的解释也直接存进记录里，不依赖之后现查
     solar: fmtSolar(now),
     ganzhi: gz.full,
     gzYear: gz.year, gzMonth: gz.month, gzDay: gz.day, gzHour: gz.hour
@@ -4934,10 +4956,10 @@ function guanShowMeaning(state, anchor){
   pop.className = 'meaning-pop';
   pop.innerHTML = `
     <div class="meaning-head">
-      <span class="meaning-icon">${state.icon}</span>
-      <span class="meaning-name">${state.name}</span>
+      <span class="meaning-icon">${state.icon||''}</span>
+      <span class="meaning-name">${escapeHtml(state.name||'')}</span>
     </div>
-    <div class="meaning-feel">${state.feel}</div>
+    <div class="meaning-feel">${escapeHtml(state.feel||'')}</div>
   `;
   document.body.appendChild(pop);
   gs1ActivePop = pop;
@@ -7346,8 +7368,8 @@ function showDayD(dk){
       return stateObj?stateObj.icon:(en.emoji||'');
     })();
     html+=`<div class="day-en-card" style="padding-left:4px">
-      <div style="flex:1"><div class="day-en-info"><em>${tm} · ${en.state||''}${icon?' '+icon:''}</em></div>
-      ${en.reason?`<div class="day-en-reason">${en.reason}</div>`:''}</div></div>`;
+      <div style="flex:1"><div class="day-en-info"><em>${tm} · ${escapeHtml(en.state||'')}${icon?' '+icon:''}</em></div>
+      ${en.reason?`<div class="day-en-reason">${escapeHtml(en.reason)}</div>`:''}</div></div>`;
   });
   // 5. Actions
   if(recs.length)html+=`<div class="export-row" style="margin-top:12px">
