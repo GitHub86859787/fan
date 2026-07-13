@@ -4402,16 +4402,19 @@ function guanInit(){
   // Build 5 intensity dots
   guanBuildDots();
   
-  setTimeout(()=>guanSetSlider(4), 50);
+  setTimeout(()=>guanSetSlider(Math.min(4,guanAllStates().length-1)), 50);
 }
 
 function guanSetSlider(i){
+  const n = guanAllStates().length;
+  // 防御性夹住范围——如果传进来的 i 超出了当前实际的状态数量（比如状态被删掉了几个，
+  // 或者别处还留着一个没更新的旧索引），就把它拉回合法范围内，不要让滑块算到轨道外面去。
+  i = Math.max(0, Math.min(n-1, i));
   gs1Idx = i;
   const track = document.getElementById('gs1Track');
   const thumb = document.getElementById('gs1thumb');
   if(!track || !thumb) return;
   // Each emoji is flex:1 across N columns (N = fixed 9 + any personal words); center of emoji i is at (i+0.5)*W/N
-  const n = guanAllStates().length;
   const trackW = track.getBoundingClientRect().width;
   const center = (i + 0.5) * (trackW / n);
   // Thumb is 22px wide, center it
