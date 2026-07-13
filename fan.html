@@ -4272,6 +4272,29 @@ function fmtSolar(date){
 }
 
 let energyLog = ld('energyLog', []);
+// 一次性回填——只跑一次，跑完标记掉。之前"改名逻辑只在原来是'照'时才同步图标"
+// 那个漏洞修好之前记的历史数据，很可能是"名字已经是新词了，图标却还停在照的图标
+// 上"这种对不上的状态；这里用现在的 guanCustomStates / guanWordArchive 数据，
+// 尽力把这些历史记录的图标、解释补回来。补不了的情况只有一种：entry.state 本身
+// 还停留在"照"（没有任何线索知道它当时到底被改成了什么词），这种没法回填，跳过。
+(function guanBackfillIconFeel(){
+  if(ld('guanIconBackfillDone',false))return;
+  let changed=false;
+  energyLog.forEach(en=>{
+    if(!en.state||en.state==='照')return;
+    const needsIcon = en.icon===undefined||en.icon===''||en.icon==='🧘';
+    const needsFeel = en.feel===undefined;
+    if(!needsIcon&&!needsFeel)return;
+    const stateObj=guanAllStates().find(s=>s.name===en.state);
+    const archived=(guanWordArchive||[]).find(w=>w.name===en.state);
+    const icon=(stateObj&&stateObj.icon)||(archived&&archived.icon);
+    const feel=(stateObj&&stateObj.feel!==undefined)?stateObj.feel:(archived?archived.feel:undefined);
+    if(needsIcon&&icon){en.icon=icon;changed=true;}
+    if(needsFeel&&feel!==undefined){en.feel=feel;changed=true;}
+  });
+  if(changed)sv('energyLog',energyLog);
+  sv('guanIconBackfillDone',true);
+})();
 let gs1Idx = 4;
 let gs1Inited = false;
 let gs1ActivePop = null;
