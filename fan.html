@@ -8479,9 +8479,11 @@ const AI_TODO_SYSTEM_PROMPT=`你在帮用户整理她的待办清单，判断标
 
 二、颗粒度判断（任务粒度错觉 / Planning Fallacy）：
 人预估没做过的任务时，习惯性低估所需步骤，规划时用的是简化的"外部视角"。看到一条待办，先判断它是"一个动作"（单一步骤，5-15分钟内可完成）还是"一个项目"（名字听起来简单，展开后有多个决策点，比如涉及比价、查资料、多方权衡）。
-每条待办可能附带她已经拆好的"细目"（subs 字段，数组，每项有 text 和 done）——这是她自己写下的下一步动作。判断颗粒度粗细时必须参考这个：
-- 如果 subs 已经覆盖了这件事剩下要做的步骤，就不算颗粒度粗，coarse 填 false，不要重复建议拆解。
-- 只有当这件事听起来仍是"项目"级别、而 subs 为空或明显没覆盖完，才把 coarse 标为 true，并在 breakdown 里给出具体的下一步动作清单（3-6步），只给"第一步要做什么"这类具体可执行的动作，不要和已有的 subs 重复。
+每条待办可能附带她已经拆好的"细目"（subs 字段，数组，每项有 text 和 done，done:true 表示已经做完）——这是她自己写下的下一步动作。判断颗粒度粗细、要不要给 breakdown 时，必须按下面这套逻辑走，不能因为 subs 不是空的就直接跳过判断：
+- 先看这件事本身还是不是"项目"级别（哪怕已经拆过细目，只要整体还没做完，就要继续判断）。如果只是"一个动作"，或者虽是项目但已经全部做完，coarse 填 false，breakdown 给空数组。
+- 是"项目"级别、且还没做完的，接着判断：把 subs 里所有条目（不管 done 是 true 还是 false）当成"已经规划出来的路径"，评估这条路径走到底、加上 subs 里还没做完的那些，是否已经足够覆盖到这件事做完为止。
+  - 如果已经覆盖（哪怕还剩几条没做完，但路径本身是完整的，不缺后续环节），coarse 填 false——待办没做完不代表颗粒度不够细，只是还没做而已，不要因为"还有事没做完"就建议拆解。
+  - 如果 subs 明显不够覆盖到做完为止（比如只写了开头几步，后面还有明显缺失的环节，或者 subs 为空），coarse 填 true，在 breakdown 里只给"接下来还缺的、subs 里完全没提到过的"新步骤（3-6步）——这些新步骤是接着已有的 subs 继续往下写、补全后面缺的路径，不是重新规划整件事，绝对不能和 subs 里任何一条（不管 done 是true还是false）重复或者意思重叠。
 - 判断这件事还剩多少工作量时，把 subs 里未完成（done:false）的条数也算进去，而不是只看标题本身。
 
 三、用户的决策风格是"最大化型"（maximizer）——她倾向寻找最优解而不是差不多就行，这不是缺点，不需要建议她"随便选一个/降低标准"。如果某条待办需要她做出选择性决策，可以在 reason 里提示"这条建议给自己设一个时间上限去决定，而不是无限展开搜索"，但不要建议她降低判断标准。
@@ -8655,7 +8657,7 @@ async function aiSortTodos(){
     // 就不用再花一次 token——直接复用上次 AI 给的整理结果。
     // 缓存key里带上 prompt 版本号——prompt逻辑改过之后，旧缓存不能再直接拿来用，
     // 不然待办明明没变，却会用旧逻辑算出的（可能已经过时/有bug的）结果。
-    const PROMPT_VERSION='v5-lenient-title-check';
+    const PROMPT_VERSION='v6-continue-existing-subs';
     const cache=ld('aiSortCache',null);
     let result;
     if(cache&&cache.promptVersion===PROMPT_VERSION&&cache.payloadStr===payloadStr&&cache.result){
@@ -8745,8 +8747,7 @@ function renderAiSortList(){
     const hasSubs=it.existingSubs&&it.existingSubs.length;
     let detailHtml='';
     if(hasSubs){
-      const undone=it.existingSubs.filter(s=>!s.done);
-      detailHtml=`<div class="ai-sort-existing-subs">
+      detailHtml+=`<div class="ai-sort-existing-subs">
         <div class="ai-sort-existing-subs-hint">已经拆过的细目：</div>
         ${it.existingSubs.map(s=>`<div class="ai-sort-existing-sub${s.done?' done':''}">
           <span>· ${escapeHtml(s.text)}</span>
@@ -8754,13 +8755,18 @@ function renderAiSortList(){
         </div>
         <div class="sub-bd-slot" id="subBd_${s.id}"></div>`).join('')}
       </div>`;
-    }else if(it.coarse&&it.breakdown.length){
-      detailHtml=`<div class="ai-sort-breakdown">
-        <div class="ai-sort-bd-hint">这条看起来颗粒度有点粗，建议拆解：</div>
+    }
+    if(it.coarse&&it.breakdown.length){
+      // 有细目时，措辞改成"接着补"而不是"拆解"——这是在已有细目基础上续写剩下缺的步骤，
+      // 不是要重新规划整件事；没有细目时才是真正意义上的"从零拆解"。
+      const bdHint=hasSubs?'AI 觉得已有的细目还没覆盖到做完，建议接着补这几步：':'这条看起来颗粒度有点粗，建议拆解：';
+      const acceptLabel=hasSubs?'采纳，追加进细目':'采纳，拆成细目';
+      detailHtml+=`<div class="ai-sort-breakdown">
+        <div class="ai-sort-bd-hint">${bdHint}</div>
         <div class="ai-sort-bd-steps">${it.breakdown.map(s=>`<div class="ai-sort-bd-step">· ${escapeHtml(s)}</div>`).join('')}</div>
         <label class="ai-sort-bd-accept">
           <input type="checkbox" ${it.acceptBreakdown?'checked':''} onchange="toggleAiBreakdown(${idx},this.checked)">
-          <span>采纳，拆成细目</span>
+          <span>${acceptLabel}</span>
         </label>
       </div>`;
     }
