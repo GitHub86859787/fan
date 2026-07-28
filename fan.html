@@ -850,10 +850,6 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .cal-d.has-mk::after{display:none}
 .cal-emoji-mark{position:absolute;bottom:1px;left:50%;transform:translateX(-50%);
   font-size:8px;line-height:1;white-space:nowrap;pointer-events:none}
-.cal-ev-badge{position:absolute;top:3px;right:4px;width:4px;height:4px;
-  border-radius:50%;background:rgba(196,142,92,.65);pointer-events:none}
-.cal-ev-badge.cal-ev-emoji{width:auto;height:auto;background:none;border-radius:0;
-  font-size:9px;line-height:1;top:2px;right:2px}
 /* Trip range — day number sits inside a small low-opacity badge whose tint is
    the theme's own text color (already contrast-safe against the current
    background at any time of day/night) rather than a saturated accent hue.
@@ -861,7 +857,7 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
    tidy ring rather than recoloring the entire square. */
 .cal-d-num{display:inline-flex;align-items:center;justify-content:center;
   width:19px;height:19px;border-radius:50%;transition:background .3s,color .3s}
-.cal-d.trip-range .cal-d-num{font-weight:600}
+.cal-d.has-ev .cal-d-num{font-weight:600}
 
 /* Day detail — event card */
 .day-ev-card{padding:10px 14px;border-radius:10px;
@@ -1233,52 +1229,6 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   margin-top:12px;display:flex;align-items:center;gap:4px;
   text-shadow:0 1px 3px rgba(0,0,0,.3)}
 .gal-moon-empty{min-height:16px}
-.habit-card{display:flex;align-items:center;gap:12px;padding:13px 2px;
-  border-bottom:1px solid rgba(255,250,244,.05);
-  animation:recIn .4s cubic-bezier(.16,1,.3,1)}
-.habit-circle{width:26px;height:26px;border-radius:50%;flex-shrink:0;
-  border:1.5px solid rgba(255,250,244,.15);
-  display:flex;align-items:center;justify-content:center;
-  font-size:13px;color:rgba(255,250,244,.2);cursor:pointer;
-  transition:all .25s}
-.habit-circle.done{border-color:rgba(232,228,220,.55);color:rgba(245,242,236,.95);
-  background:rgba(232,228,220,.1)}
-.habit-circle:active{transform:scale(.88)}
-.habit-circle.small{width:22px;height:22px;font-size:11px}
-.habit-circles{display:flex;gap:5px;flex-shrink:0}
-.habit-info{flex:1;min-width:0}
-.habit-name{font-family:'Noto Serif SC',serif;font-weight:300;font-size:13px;
-  color:rgba(255,250,244,.88);letter-spacing:.05em;cursor:pointer}
-.habit-sub{font-family:'Cormorant Garamond',serif;font-style:italic;
-  font-size:10px;color:rgba(255,250,244,.32);margin-top:2px;letter-spacing:.03em}
-.habit-streak{font-family:'EB Garamond',serif;font-size:12px;
-  color:rgba(255,250,244,.55);flex-shrink:0;letter-spacing:.02em;
-  display:flex;align-items:center;gap:3px}
-.habit-moon{font-size:11px}
-.habit-emoji{margin-right:7px;font-size:14px}
-.habit-mini{display:flex;gap:3px;margin-top:5px}
-.habit-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,250,244,.1)}
-.habit-dot.on{background:rgba(232,228,220,.55)}
-.habit-note{font-family:'Noto Serif SC',serif;font-weight:300;font-size:10px;
-  color:rgba(255,250,244,.4);margin-top:6px;line-height:1.6;letter-spacing:.02em;
-  padding-left:1px}
-/* Slot circles for multi-time habits */
-.habit-slot-circles{display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap;max-width:120px}
-.habit-slot-circle{display:flex;flex-direction:column;align-items:center;justify-content:center;
-  min-width:30px;padding:4px 3px;border-radius:9px;cursor:pointer;
-  border:1px solid rgba(255,250,244,.1);transition:all .25s}
-.habit-slot-circle.done{border-color:rgba(232,228,220,.5);background:rgba(232,228,220,.12)}
-.habit-slot-circle:active{transform:scale(.92)}
-.habit-slot-lbl{font-family:'Noto Serif SC',serif;font-weight:300;font-size:8px;
-  color:rgba(255,250,244,.4);letter-spacing:.02em;line-height:1.2}
-.habit-slot-circle.done .habit-slot-lbl{color:rgba(232,228,220,.85)}
-.habit-slot-check{font-size:9px;color:rgba(245,242,236,.9);height:11px;line-height:11px}
-.habit-del{background:none;border:none;color:rgba(255,250,244,.15);
-  font-size:11px;cursor:pointer;flex-shrink:0;padding:4px;transition:color .2s}
-.habit-del:active{color:rgba(255,120,100,.6)}
-.habit-name-edit{background:rgba(255,250,244,.06);border:none;border-radius:6px;
-  color:rgba(255,250,244,.9);font-family:'Noto Serif SC',serif;font-weight:300;
-  font-size:13px;padding:3px 8px;outline:none;width:100%;letter-spacing:.05em}
 .habit-add-row{margin-top:30px;text-align:center}
 .habit-add-btn{background:transparent;border:1px solid rgba(255,250,244,.12);
   border-radius:100px;color:rgba(255,250,244,.5);
@@ -1452,9 +1402,6 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   color:rgba(255,250,244,.92);line-height:1.5;letter-spacing:.02em}
 .ai-sort-reason{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10.5px;
   color:rgba(232,180,150,.6);margin-top:4px;line-height:1.5}
-.ai-sort-raw-link{color:rgba(232,180,150,.85);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
-.ai-sort-raw-box{margin-top:6px;padding:8px 10px;border-radius:8px;background:rgba(0,0,0,.15);
-  font-family:'Noto Serif SC',serif;font-style:normal;font-size:10.5px;color:rgba(255,250,244,.55);line-height:1.5}
 .ai-sort-reorder{display:flex;flex-direction:column;gap:2px;flex-shrink:0;margin-top:1px}
 .ai-sort-reorder button{width:22px;height:17px;border:none;background:rgba(255,255,255,.05);
   color:rgba(255,250,244,.4);border-radius:5px;font-size:9px;cursor:pointer;
@@ -1523,9 +1470,6 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   white-space:pre-wrap;cursor:text;padding:2px 2px}
 .hd-note-empty{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:12px;
   color:rgba(255,255,255,.3);cursor:text;padding:2px 2px}
-.hd-note-saved{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;
-  color:rgba(232,228,220,.7);text-align:right;margin-top:5px;opacity:0;transition:opacity .3s}
-.hd-note-saved.show{opacity:1}
 .hd-items-section{margin-bottom:20px}
 .hd-items-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .hd-items-lbl{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;
@@ -3547,8 +3491,9 @@ function applyUITheme(){
     periodName=`${cs.period.name} · ${cs.period.element}`;
     const d=new Date();
     timeStr=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-    // 行程用的暖赭橙色系——背景浅（奶油色）时用深赭色，背景深（夜晚紫/绿）时用浅杏色，
+    // 日历事件用的暖赭橙色系——背景浅（奶油色）时用深赭色，背景深（夜晚紫/绿）时用浅杏色，
     // 同一个色相，明暗跟着背景反过来调，保证任何时段都看得清、都不撞色。
+    // （这个色现在给"任何日历事件"用，不只是行程——见下面 .has-ev 相关选择器）
     const bgHex=(cs.bg||'#EEE').replace('#','');
     const r=parseInt(bgHex.slice(0,2),16)||200,g=parseInt(bgHex.slice(2,4),16)||200,b=parseInt(bgHex.slice(4,6),16)||200;
     const bgLum=(0.299*r+0.587*g+0.114*b)/255;
@@ -3573,10 +3518,10 @@ function applyUITheme(){
     .forEach(e=>e.style.color=textCol);
   document.querySelectorAll('.slbl,.t-meta,.t-paused,.r-tm,.cal-w,.tg-add,.tg-manage,.r-x,.empty-msg,.export-btn,.pm-rlbl')
     .forEach(e=>e.style.color=tlCol);
-  document.querySelectorAll('.cal-d:not(.trip-range)').forEach(e=>e.style.color=textCol);
-  document.querySelectorAll('.cal-d.trip-range').forEach(e=>e.style.color=tripCol);
-  document.querySelectorAll('.cal-d:not(.trip-range) .cal-d-num').forEach(e=>{e.style.color=textCol;e.style.background='';});
-  document.querySelectorAll('.cal-d.trip-range .cal-d-num').forEach(e=>{
+  document.querySelectorAll('.cal-d:not(.has-ev)').forEach(e=>e.style.color=textCol);
+  document.querySelectorAll('.cal-d.has-ev').forEach(e=>e.style.color=tripCol);
+  document.querySelectorAll('.cal-d:not(.has-ev) .cal-d-num').forEach(e=>{e.style.color=textCol;e.style.background='';});
+  document.querySelectorAll('.cal-d.has-ev .cal-d-num').forEach(e=>{
     // 用主题当前的文字色本身做徽标底色，只是加了透明度——不用固定的"深灰"，
     // 因为固定灰色配夜间深色背景会糊在一起看不清；textCol本来就是跟当前
     // 背景保证对比度算出来的颜色，所以不管什么时段，这样做出来的圆圈永远
@@ -3590,7 +3535,7 @@ function applyUITheme(){
   });
   document.querySelectorAll('.end-btn').forEach(e=>e.style.color=tlCol);
   document.querySelectorAll('.r-dur').forEach(e=>e.style.color=textCol);
-  document.querySelectorAll('.cal-d.has:not(.trip-range),.cal-d.today:not(.trip-range)').forEach(e=>e.style.color=textCol);
+  document.querySelectorAll('.cal-d.has:not(.has-ev),.cal-d.today:not(.has-ev)').forEach(e=>e.style.color=textCol);
   document.querySelectorAll('.cal-n button').forEach(e=>e.style.color=tlCol);
   document.querySelectorAll('.t-pulse').forEach(e=>e.style.background=textCol);
   document.querySelectorAll('.tomato-lbl').forEach(e=>e.style.color=tlCol);
@@ -4845,10 +4790,8 @@ let gs1LastEntryTs = null;
 
 // Backwards-compat stubs (no-op since intensity removed)
 function guanBuildDots(){}
-function guanRenderDots(){}
 function guanInitVbar(){}
 function guanUpdateIntensityColor(){}
-function guanSetIntensity(){}
 
 // ===== Sleep/Wake recording =====
 let sleepWake=ld('sleepWake',{});
@@ -5432,12 +5375,6 @@ function delRecOnDate(dk,idx){
   if(dk===todayK())todayRecs=allDays[dk]||[];
   showDayD(dk);
 }
-function saveRecs(){
-  // Ensure today's bucket reflects current todayRecs
-  allDays[todayK()]=todayRecs;
-  sv('days',allDays);
-}
-
 // ================================================================
 // 记录编辑 / 补记
 // ================================================================
@@ -5793,42 +5730,6 @@ function setupWheelDrag(colId,listId,total){
     list.querySelectorAll('.wheel-item').forEach(it=>{
       it.classList.toggle('on',parseInt(it.dataset.val)===val);
     });
-  });
-}
-
-function setWheelDate(q){
-  if(q==='today')wheelDateOffset=0;
-  else if(q==='yesterday')wheelDateOffset=-1;
-  else if(q==='custom'){
-    // Open native date picker as fallback
-    const inp=document.createElement('input');
-    inp.type='date';
-    const today=new Date();
-    const cur=new Date(today.getTime()+wheelDateOffset*86400000);
-    inp.value=`${cur.getFullYear()}-${pad(cur.getMonth()+1)}-${pad(cur.getDate())}`;
-    inp.style.position='fixed';inp.style.opacity='0';inp.style.pointerEvents='none';
-    document.body.appendChild(inp);
-    inp.onchange=()=>{
-      const picked=new Date(inp.value);
-      const diff=Math.round((today.setHours(0,0,0,0)-picked.setHours(0,0,0,0))/86400000);
-      wheelDateOffset=-diff;
-      updateWheelDateButtons();
-      document.body.removeChild(inp);
-    };
-    inp.click();
-    setTimeout(()=>{if(document.body.contains(inp))document.body.removeChild(inp);},10000);
-    return;
-  }
-  updateWheelDateButtons();
-}
-
-function updateWheelDateButtons(){
-  document.querySelectorAll('.wheel-date-quick').forEach(b=>{
-    let active=false;
-    if(b.dataset.q==='today'&&wheelDateOffset===0)active=true;
-    if(b.dataset.q==='yesterday'&&wheelDateOffset===-1)active=true;
-    if(b.dataset.q==='custom'&&wheelDateOffset!==0&&wheelDateOffset!==-1)active=true;
-    b.classList.toggle('on',active);
   });
 }
 
@@ -7137,10 +7038,6 @@ function getCurrentBox(){
 }
 
 // For 森 mode: count of tomatoes in current open tree
-function getCurrentTreeCount(){
-  return getCurrentBox().length;
-}
-
 function renderTomatoes(){
   todayTomatoes=allTomatoes[todayK()]||[];
   const row=document.getElementById('tomatoRow');
@@ -7347,20 +7244,17 @@ function renderCal(){
     const marks=getMarksForDate(k);
     const hasEv=evs.length>0;
     const hasMk=marks.length>0;
-    const isTrip=evs.some(e=>e.type==='trip');
+    // 之前只有"行程"类型才有数字后面那个浅色圆圈，日程/生日/节日各自用不同的emoji
+    // 图标堆在格子最下面——一个格子里同时出现圆圈+好几个emoji，看着挺乱。
+    // 现在统一成：不管是行程/日程/生日/节日，只要这天有事件，就用同一种浅色圆圈，
+    // 不再单独画emoji图标去区分类型（具体是哪种事件，点进这天的详情自然看得到）。
     let cls='cal-d'+(isT?' today':'')+(has?' has':'');
-    if(isTrip)cls+=' trip-range';
+    if(hasEv)cls+=' has-ev';
     d.className=cls;
     let inner=`<span class="cal-d-num">${day}</span>`;
-    // 用户自己贴的emoji + 事件的emoji，共用格子最下面同一行——生日🎂、节日🎉、
-    // 日程🕰️，各自有自己的图标，不用小灰点了。
-    const scheduleEv=evs.find(e=>e.type==='schedule');
-    const birthdayEv=evs.find(e=>e.type==='birthday');
-    const holidayEv=evs.find(e=>e.type==='holiday');
+    // 这一行现在只用来放"用户自己贴的标签"（比如🩸🏃这种个人标记），
+    // 跟日历事件是两回事，继续保留成单独一行emoji。
     const rowEmoji=marks.map(m=>m.emoji);
-    if(scheduleEv)rowEmoji.push('🗓️');
-    if(birthdayEv)rowEmoji.push('🎂');
-    if(holidayEv)rowEmoji.push('🎉');
     if(rowEmoji.length){
       inner+=`<div class="cal-emoji-mark">${rowEmoji.join('')}</div>`;
       cls+=' has-mk';
@@ -7748,15 +7642,6 @@ function deleteMarkById(id){
   renderCal();
 }
 
-// Get history for an emoji type (e.g. all 🦷 marks)
-function getEmojiHistory(emoji){
-  return calMarks.filter(m=>m.emoji===emoji).sort((a,b)=>a.date.localeCompare(b.date));
-}
-
-function daysSince(dk1,dk2){
-  const d1=new Date(dk1+'T00:00:00'),d2=new Date(dk2+'T00:00:00');
-  return Math.round((d2-d1)/(86400000));
-}
 function saveEvent(){
   const title=document.getElementById('evInpTitle').value.trim();
   if(!title){closeEvModal();return}
@@ -8903,45 +8788,6 @@ function setupAiSortEntry(){
   if(ld('aiSortUsed',false))icon.classList.add('used');
 }
 
-// ----------- SHOPPING -----------
-function shopAdd(){
-  const inp=document.getElementById('shopInp');
-  const text=inp.value.trim();if(!text)return;
-  memos.shopping.unshift({id:'s'+Date.now(),text,done:false,createdAt:Date.now()});
-  playMemoAdd();
-  sv('memos',memos);inp.value='';renderMemoList('shopping');
-}
-
-// ----------- INGREDIENT -----------
-function ingAdd(){
-  const inp=document.getElementById('ingInp');
-  const text=inp.value.trim();if(!text)return;
-  memos.ingredient.unshift({id:'i'+Date.now(),text,done:false,createdAt:Date.now()});
-  playMemoAdd();
-  sv('memos',memos);inp.value='';renderMemoList('ingredient');
-  ingDetectBulk();
-}
-function ingBulk(){
-  const inp=document.getElementById('ingInp');
-  const text=inp.value.trim();if(!text)return;
-  // Split by commas (both English ',' and Chinese '，'), semicolons (';' '；'), Chinese '、', and newlines
-  const parts=text.split(/[,，;;；、\n\r]+/).map(s=>s.trim()).filter(s=>s.length>0);
-  if(!parts.length)return;
-  const now=Date.now();
-  parts.reverse().forEach((p,i)=>{
-    memos.ingredient.unshift({id:'i'+(now+i),text:p,done:false,createdAt:now+i});
-  });
-  playMemoAdd();
-  sv('memos',memos);inp.value='';renderMemoList('ingredient');
-  ingDetectBulk();
-}
-function ingSmartAdd(){
-  // If the text contains splitter chars, use bulk; otherwise add one
-  const inp=document.getElementById('ingInp');
-  const text=inp.value;
-  if(/[,，;；、\n\r]/.test(text))ingBulk();
-  else ingAdd();
-}
 function ingDetectBulk(){
   const inp=document.getElementById('shopInp');
   const btn=document.getElementById('shopAddBtn');
@@ -9538,22 +9384,6 @@ function habitMoon(streak){
   return '🌕';
 }
 
-function habitMini7(h){
-  // Last 7 days dots
-  const log=h.log||{};
-  const dots=[];
-  const today=new Date();
-  for(let i=6;i>=0;i--){
-    const d=new Date(today);d.setDate(d.getDate()-i);
-    const dk=dkFromDate(d);
-    let on=false;
-    if(h.freq==='multi')on=(log[dk]||0)>=(h.times||2);
-    else on=(log[dk]||0)>=1;
-    dots.push(`<span class="habit-dot${on?' on':''}"></span>`);
-  }
-  return `<div class="habit-mini">${dots.join('')}</div>`;
-}
-
 function renderHabitCard(h,tk){
   const log=h.log||{};
   const todayCount=log[tk]||0;
@@ -9694,27 +9524,6 @@ function calcWeeklyStreak(h){
   return streak;
 }
 
-function calcWeekCount(h){
-  const log=h.log||{};
-  let count=0;
-  const weekStart=getWeekStart(new Date());
-  for(let day=0;day<7;day++){
-    const d=new Date(weekStart);d.setDate(d.getDate()+day);
-    if(log[dkFromDate(d)])count++;
-  }
-  return count;
-}
-
-function calcMonthDone(h){
-  const log=h.log||{};
-  const now=new Date();
-  for(const dk in log){
-    const d=new Date(dk+'T00:00:00');
-    if(d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth())return true;
-  }
-  return false;
-}
-
 function getWeekStart(date){
   const d=new Date(date);
   const day=d.getDay();
@@ -9724,28 +9533,6 @@ function getWeekStart(date){
 }
 function dkFromDate(d){
   return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
-}
-
-function habitStartEdit(id){
-  const h=habits.find(x=>x.id===id);if(!h)return;
-  const el=document.querySelector(`[data-hid="${id}"] .habit-name`);
-  if(!el)return;
-  const cur=h.name;
-  const inp=document.createElement('input');
-  inp.className='habit-name-edit';
-  inp.value=cur;
-  el.replaceWith(inp);
-  inp.focus();inp.select();
-  const finish=()=>{
-    const nv=inp.value.trim();
-    if(nv&&nv!==cur){h.name=nv;sv('habits',habits);}
-    renderHabits();
-  };
-  inp.addEventListener('blur',finish);
-  inp.addEventListener('keydown',e=>{
-    if(e.key==='Enter'){e.preventDefault();inp.blur();}
-    if(e.key==='Escape'){inp.value=cur;inp.blur();}
-  });
 }
 
 // ----- Habit creation modal -----
@@ -10001,7 +9788,6 @@ function hcToggleSlot(s){
   else habitDraft.slots.push(s);
   hcRenderDetail();
 }
-function hcSetTimes(n){habitDraft.times=n;hcRenderDetail();}
 function hcSetWeeklyTarget(n){habitDraft.weeklyTarget=n;habitDraft.weekdays=[];hcRenderDetail();}
 function hcToggleWeekday(i){
   if(habitDraft.weekdays.includes(i))habitDraft.weekdays=habitDraft.weekdays.filter(x=>x!==i);
