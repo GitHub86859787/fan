@@ -854,10 +854,14 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   border-radius:50%;background:rgba(196,142,92,.65);pointer-events:none}
 .cal-ev-badge.cal-ev-emoji{width:auto;height:auto;background:none;border-radius:0;
   font-size:9px;line-height:1;top:2px;right:2px}
-/* Trip range — day number recolored with a warm terracotta accent whose lightness
-   flips with the current background (see applyUITheme/tripCol) so it always has
-   real contrast, never a fixed hue fighting whatever period is showing. */
-.cal-d.trip-range{font-weight:600}
+/* Trip range — day number sits inside a small low-opacity badge whose tint is
+   the theme's own text color (already contrast-safe against the current
+   background at any time of day/night) rather than a saturated accent hue.
+   Kept on the number itself (.cal-d-num), not the whole cell, so it stays a
+   tidy ring rather than recoloring the entire square. */
+.cal-d-num{display:inline-flex;align-items:center;justify-content:center;
+  width:19px;height:19px;border-radius:50%;transition:background .3s,color .3s}
+.cal-d.trip-range .cal-d-num{font-weight:600}
 
 /* Day detail — event card */
 .day-ev-card{padding:10px 14px;border-radius:10px;
@@ -914,7 +918,7 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .ev-reveal{
   width:100%;max-height:0;opacity:0;overflow:hidden;
   transition:max-height .5s cubic-bezier(.16,1,.3,1),opacity .4s ease .15s}
-.ev-reveal.show{max-height:280px;opacity:1;margin-top:30px}
+.ev-reveal.show{max-height:520px;opacity:1;margin-top:30px}
 .ev-dr{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px}
 .ev-dl{font-family:'Cormorant Garamond',serif;font-style:italic;
   font-size:10px;color:rgba(255,250,244,.2);min-width:14px;text-align:right}
@@ -940,6 +944,9 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .ev-pick-nav button{background:none;border:none;color:rgba(255,250,244,.3);font-size:10px;
   cursor:pointer;padding:0 2px;font-family:'Cormorant Garamond',serif}
 .ev-pick-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px}
+.ev-pick-wk{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;margin-bottom:3px}
+.ev-pick-wk span{text-align:center;font-size:7.5px;font-family:'Cormorant Garamond',serif;
+  font-style:italic;color:rgba(255,250,244,.25);letter-spacing:.02em}
 .ev-pick-d{aspect-ratio:1;display:flex;align-items:center;justify-content:center;
   font-size:9px;color:rgba(255,250,244,.4);font-family:'Noto Serif SC',serif;font-weight:300;
   cursor:pointer;border-radius:3px}
@@ -1441,10 +1448,6 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .ai-sort-dot{position:absolute;left:-15px;top:6px;width:7px;height:7px;border-radius:50%;background:rgba(232,180,150,.85)}
 .ai-sort-row-top{display:flex;align-items:flex-start;gap:8px}
 .ai-sort-body{flex:1;min-width:0;cursor:pointer}
-.ai-sort-parent-ai{width:24px;height:24px;border:none;background:none;font-size:13px;cursor:pointer;
-  opacity:.32;color:inherit;flex-shrink:0;padding:0;transition:opacity .2s,transform .2s}
-.ai-sort-parent-ai:active{opacity:.85;transform:scale(.9)}
-.ai-sort-parent-ai.busy{animation:aiThinking .75s ease-in-out infinite!important;opacity:.95;pointer-events:none}
 .ai-sort-txt{font-family:'Noto Serif SC',serif;font-weight:300;
   color:rgba(255,250,244,.92);line-height:1.5;letter-spacing:.02em}
 .ai-sort-reason{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10.5px;
@@ -1523,6 +1526,44 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .hd-note-saved{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;
   color:rgba(232,228,220,.7);text-align:right;margin-top:5px;opacity:0;transition:opacity .3s}
 .hd-note-saved.show{opacity:1}
+.hd-items-section{margin-bottom:20px}
+.hd-items-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.hd-items-lbl{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;
+  color:rgba(255,255,255,.35);letter-spacing:.06em}
+.hd-item-add{background:none;border:none;color:rgba(255,255,255,.4);font-size:16px;
+  cursor:pointer;line-height:1;padding:0 4px}
+.hd-items-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}
+.hd-item-tile{position:relative;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);
+  border-radius:14px;padding:12px 4px 9px;text-align:center;cursor:pointer;
+  transition:background .25s,border-color .25s;user-select:none;-webkit-user-select:none}
+.hd-item-tile.checked{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.16)}
+.hd-item-tile-badge{position:absolute;top:6px;right:6px;width:15px;height:15px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:#1a1613;transition:all .2s}
+.hd-item-tile.checked .hd-item-tile-badge{background:var(--hgrad,rgba(255,255,255,.6));border-color:transparent}
+.hd-item-tile-emoji{font-size:22px;margin-bottom:6px;opacity:.65;transition:opacity .25s}
+.hd-item-tile.checked .hd-item-tile-emoji{opacity:.55}
+.hd-item-tile-name{font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;
+  color:rgba(255,255,255,.85);letter-spacing:.01em}
+.hd-item-tile.checked .hd-item-tile-name{color:rgba(255,255,255,.55)}
+.hd-items-hint{text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:10px;color:rgba(255,255,255,.3);margin-bottom:14px}
+.hd-item-form{padding:14px 10px 10px;border-radius:10px;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.08);margin-bottom:10px}
+.hd-item-emoji-pick{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;
+  font-size:19px;cursor:pointer;margin:0 auto 10px}
+.hd-item-form input{width:100%;background:none;border:none;border-bottom:1px solid rgba(255,255,255,.12);
+  color:rgba(255,255,255,.9);font-family:'Noto Serif SC',serif;font-size:12px;
+  padding:4px 2px;outline:none;margin-bottom:8px;box-sizing:border-box;text-align:center}
+.hd-item-form input::placeholder,.hd-item-form textarea::placeholder{color:rgba(255,255,255,.3);font-style:italic;font-family:'Cormorant Garamond',serif}
+.hd-item-form textarea{width:100%;min-height:44px;background:none;border:none;
+  color:rgba(255,255,255,.75);font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;
+  line-height:1.6;outline:none;resize:vertical;padding:2px;box-sizing:border-box}
+.hd-item-form-acts{display:flex;justify-content:flex-end;gap:14px;margin-top:6px}
+.hd-item-form-acts a{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;
+  color:rgba(255,255,255,.5);cursor:pointer}
+.hd-item-form-acts a.primary{color:rgba(255,255,255,.85)}
 /* Inline delete confirmation — translucent gradient tint */
 .hd-del-confirm{position:absolute;inset:0;z-index:10;
   border-radius:20px;overflow:hidden;
@@ -3534,6 +3575,15 @@ function applyUITheme(){
     .forEach(e=>e.style.color=tlCol);
   document.querySelectorAll('.cal-d:not(.trip-range)').forEach(e=>e.style.color=textCol);
   document.querySelectorAll('.cal-d.trip-range').forEach(e=>e.style.color=tripCol);
+  document.querySelectorAll('.cal-d:not(.trip-range) .cal-d-num').forEach(e=>{e.style.color=textCol;e.style.background='';});
+  document.querySelectorAll('.cal-d.trip-range .cal-d-num').forEach(e=>{
+    // 用主题当前的文字色本身做徽标底色，只是加了透明度——不用固定的"深灰"，
+    // 因为固定灰色配夜间深色背景会糊在一起看不清；textCol本来就是跟当前
+    // 背景保证对比度算出来的颜色，所以不管什么时段，这样做出来的圆圈永远
+    // 是"跟这一刻的主题同色系、但很淡"，而不是突兀的一块高饱和色。
+    e.style.background=textCol+'26'; // ~15% 不透明度
+    e.style.color=textCol;
+  });
   document.querySelectorAll('.tg').forEach(e=>e.style.color=textCol);
   document.querySelectorAll('.btn').forEach(e=>{
     if(!e.closest('.add-box')&&!e.closest('.sum-box'))e.style.color=textCol;
@@ -7301,7 +7351,7 @@ function renderCal(){
     let cls='cal-d'+(isT?' today':'')+(has?' has':'');
     if(isTrip)cls+=' trip-range';
     d.className=cls;
-    let inner=String(day);
+    let inner=`<span class="cal-d-num">${day}</span>`;
     // 用户自己贴的emoji + 事件的emoji，共用格子最下面同一行——生日🎂、节日🎉、
     // 日程🕰️，各自有自己的图标，不用小灰点了。
     const scheduleEv=evs.find(e=>e.type==='schedule');
@@ -7454,7 +7504,10 @@ function openEvModal(dateStr,editId){
     document.getElementById('evInpTime').value='';
     document.getElementById('evInpNote').value='';
     evSelType='schedule';
-    reveal.classList.remove('show');
+    // 类型按钮(行程/日程/生日/节日)和两个小日历，现在一开始就显示出来，不用等
+    // 打完标题才冒出来——之前那样，很多人以为"点了日期怎么没让我选类型"，
+    // 其实是没打字。"记"这个保存按钮还是等打了字才出现，避免存一条没标题的事件。
+    reveal.classList.add('show');
     saveWrap.classList.remove('show');
     delRow.style.display='none';
   }
@@ -7497,6 +7550,7 @@ function renderEvPickCal(which){
     <span class="ev-pick-mon">${which==='start'?'起':'止'} · ${ym.y}/${ym.m+1}</span>
     <span class="ev-pick-nav"><button onclick="evPickMon('${which}',1)">›</button></span>
   </div>
+  <div class="ev-pick-wk"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
   <div class="ev-pick-grid">${cells}</div>`;
 }
 function evPickMon(which,d){
@@ -7540,14 +7594,10 @@ function evTimeClear(){
 }
 
 function evOnType(el){
-  const reveal=document.getElementById('evReveal');
   const saveWrap=document.getElementById('evSaveWrap');
-  if(el.value.trim()&&!reveal.classList.contains('show')){
-    reveal.classList.add('show');
-    setTimeout(()=>saveWrap.classList.add('show'),250);
-  }
-  if(!el.value.trim()){
-    reveal.classList.remove('show');
+  if(el.value.trim()){
+    saveWrap.classList.add('show');
+  }else{
     saveWrap.classList.remove('show');
   }
 }
@@ -7746,6 +7796,12 @@ function evApplyTypeUI(){
   if(!isTrip){
     const s=document.getElementById('evInpStart'),e=document.getElementById('evInpEnd');
     if(e&&s)e.value=s.value;
+  }else if(evPickEndYM){
+    // 切到"行程"类型、止日期日历刚从 display:none 变回可见的这一刻，强制重新渲染一次。
+    // 它的内容是在隐藏状态下画好的，单纯把 display 改回来，有时候不会正确重新铺开
+    // 网格布局——表现出来就是"点了行程这个类型，但日历没跟着切换过来，得再点一下
+    // 某个日期，触发一次重绘，才会恢复正常"。这里主动补一次渲染，不用等用户点date。
+    renderEvPickCal('end');
   }
   if(!isSchedule){
     const t=document.getElementById('evInpTime');
@@ -8483,9 +8539,11 @@ const AI_TODO_SYSTEM_PROMPT=`你在帮用户整理她的待办清单，判断标
 
 二、颗粒度判断（任务粒度错觉 / Planning Fallacy）：
 人预估没做过的任务时，习惯性低估所需步骤，规划时用的是简化的"外部视角"。看到一条待办，先判断它是"一个动作"（单一步骤，5-15分钟内可完成）还是"一个项目"（名字听起来简单，展开后有多个决策点，比如涉及比价、查资料、多方权衡）。
-每条待办可能附带她已经拆好的"细目"（subs 字段，数组，每项有 text 和 done）——这是她自己写下的下一步动作。判断颗粒度粗细时必须参考这个：
-- 如果 subs 已经覆盖了这件事剩下要做的步骤，就不算颗粒度粗，coarse 填 false，不要重复建议拆解。
-- 只有当这件事听起来仍是"项目"级别、而 subs 为空或明显没覆盖完，才把 coarse 标为 true，并在 breakdown 里给出具体的下一步动作清单（3-6步），只给"第一步要做什么"这类具体可执行的动作，不要和已有的 subs 重复。
+每条待办可能附带她已经拆好的"细目"（subs 字段，数组，每项有 text 和 done，done:true 表示已经做完）——这是她自己写下的下一步动作。判断颗粒度粗细、要不要给 breakdown 时，必须按下面这套逻辑走，不能因为 subs 不是空的就直接跳过判断：
+- 先看这件事本身还是不是"项目"级别（哪怕已经拆过细目，只要整体还没做完，就要继续判断）。如果只是"一个动作"，或者虽是项目但已经全部做完，coarse 填 false，breakdown 给空数组。
+- 是"项目"级别、且还没做完的，接着判断：把 subs 里所有条目（不管 done 是 true 还是 false）当成"已经规划出来的路径"，评估这条路径走到底、加上 subs 里还没做完的那些，是否已经足够覆盖到这件事做完为止。
+  - 如果已经覆盖（哪怕还剩几条没做完，但路径本身是完整的，不缺后续环节），coarse 填 false——待办没做完不代表颗粒度不够细，只是还没做而已，不要因为"还有事没做完"就建议拆解。
+  - 如果 subs 明显不够覆盖到做完为止（比如只写了开头几步，后面还有明显缺失的环节，或者 subs 为空），coarse 填 true，在 breakdown 里只给"接下来还缺的、subs 里完全没提到过的"新步骤（3-6步）——这些新步骤是接着已有的 subs 继续往下写、补全后面缺的路径，不是重新规划整件事，绝对不能和 subs 里任何一条（不管 done 是true还是false）重复或者意思重叠。
 - 判断这件事还剩多少工作量时，把 subs 里未完成（done:false）的条数也算进去，而不是只看标题本身。
 
 三、用户的决策风格是"最大化型"（maximizer）——她倾向寻找最优解而不是差不多就行，这不是缺点，不需要建议她"随便选一个/降低标准"。如果某条待办需要她做出选择性决策，可以在 reason 里提示"这条建议给自己设一个时间上限去决定，而不是无限展开搜索"，但不要建议她降低判断标准。
@@ -8538,23 +8596,6 @@ needsInput触发条件——很严格：只有当"缺少这条信息，会导致
 
 请只返回 JSON，不要有任何其他文字（字符串内部不要出现未转义的双引号，需要强调的词用「」代替）：
 {"stillCoarse":true或false,"steps":["步骤1","步骤2","..."],"needsInput":null或"一句话，问一个AI真的没法替你决定的问题"}`;
-
-// 父任务续写：与“把某一条细目继续拆细”不同。这里读取父任务及其全部已有细目，
-// 沿着已经规划的路径，只补上从当前进度到父任务完成之间仍缺失的后续步骤。
-const PARENT_CONTINUE_PROMPT=`你在帮用户续写一个父任务的细目清单。输入会包含父任务标题，以及全部已有细目和完成状态。
-
-你的目标不是重新拆解已有细目，也不是改写整份计划，而是根据父任务的最终目标，沿着已有细目继续思考：现有路径走完以后，到父任务真正完成之间是否还缺少必要步骤。
-
-规则：
-- 必须同时阅读已完成和未完成的细目；done:true 代表已经走过的路径，done:false 代表已经规划但尚未执行的路径。
-- 不要重复、改写或换一种说法重述任何已有细目，不管它是否完成。
-- 如果现有细目已经足够覆盖到父任务完成，返回空 steps。
-- 如果路径尚未覆盖完整，只返回后面仍缺少的新步骤，通常2-6条，按自然执行顺序排列。
-- 每一步必须具体、可执行，并属于父任务主题；不要把某一条已有细目向下拆成更小动作。
-- 字符串里不要使用未转义的双引号，需要强调时使用「」。
-
-只返回 JSON，不要有其他文字：
-{"steps":["接下来缺少的步骤1","接下来缺少的步骤2"]}`;
 
 let subBdState={}; // subId -> {parentId, needsInput, steps, answer}
 
@@ -8676,7 +8717,7 @@ async function aiSortTodos(){
     // 就不用再花一次 token——直接复用上次 AI 给的整理结果。
     // 缓存key里带上 prompt 版本号——prompt逻辑改过之后，旧缓存不能再直接拿来用，
     // 不然待办明明没变，却会用旧逻辑算出的（可能已经过时/有bug的）结果。
-    const PROMPT_VERSION='v7-priority-unchanged-parent-separate';
+    const PROMPT_VERSION='v6-continue-existing-subs';
     const cache=ld('aiSortCache',null);
     let result;
     if(cache&&cache.promptVersion===PROMPT_VERSION&&cache.payloadStr===payloadStr&&cache.result){
@@ -8775,11 +8816,6 @@ function renderAiSortList(){
         <div class="sub-bd-slot" id="subBd_${s.id}"></div>`).join('')}
       </div>`;
     }
-    if(it.parentContinueBusy){
-      detailHtml+=`<div class="ai-sort-breakdown"><div class="ai-sort-bd-hint">✨ 正在沿着已有细目思考后续步骤…</div></div>`;
-    }else if(it.parentContinueMsg){
-      detailHtml+=`<div class="ai-sort-breakdown"><div class="ai-sort-bd-hint">${escapeHtml(it.parentContinueMsg)}</div></div>`;
-    }
     if(it.coarse&&it.breakdown.length){
       // 有细目时，措辞改成"接着补"而不是"拆解"——这是在已有细目基础上续写剩下缺的步骤，
       // 不是要重新规划整件事；没有细目时才是真正意义上的"从零拆解"。
@@ -8802,7 +8838,6 @@ function renderAiSortList(){
           <div class="ai-sort-txt" style="font-size:${fontSize}px;opacity:${opacity}">${escapeHtml(it.text)}</div>
           <div class="ai-sort-reason">${escapeHtml(it.reason)}</div>
         </div>
-        ${hasSubs?`<button class="ai-sort-parent-ai${it.parentContinueBusy?' busy':''}" onclick="event.stopPropagation();aiContinueParent(${idx})" title="根据已有细目继续补充父任务">✨</button>`:''}
         <div class="ai-sort-reorder">
           <button onclick="aiSortMove(${idx},-1)" ${idx===0?'disabled':''} title="往上移">▲</button>
           <button onclick="aiSortMove(${idx},1)" ${idx===n-1?'disabled':''} title="往下移">▼</button>
@@ -8812,40 +8847,6 @@ function renderAiSortList(){
     </div>`;
   }).join('');
   setTimeout(()=>applyUITheme(),50);
-}
-
-async function aiContinueParent(idx){
-  const it=aiSortResult&&aiSortResult.items[idx];
-  if(!it||it.parentContinueBusy)return;
-  const todo=memos.todo.find(t=>t.id===it.id);
-  if(!todo)return;
-  const subs=(todo.subs||[]).map(s=>({text:s.text,done:!!s.done}));
-  if(!subs.length)return;
-  it.parentContinueBusy=true;
-  it.parentContinueMsg='';
-  it._detailOpen=true;
-  renderAiSortList();
-  try{
-    const userPrompt='父任务：'+todo.text+'\n已有细目：\n'+JSON.stringify(subs,null,2);
-    const result=await callClaudeJSON(PARENT_CONTINUE_PROMPT,userPrompt,false,4096);
-    const steps=result&&Array.isArray(result.steps)?result.steps.filter(Boolean):[];
-    if(steps.length){
-      it.coarse=true;
-      it.breakdown=steps;
-      it.acceptBreakdown=false;
-      it.parentContinueMsg='';
-    }else{
-      it.coarse=false;
-      it.breakdown=[];
-      it.acceptBreakdown=false;
-      it.parentContinueMsg='已有细目已经覆盖到父任务完成，不需要再补。';
-    }
-  }catch(err){
-    it.parentContinueMsg=err.message||'这次没能想出后续步骤，再试一次';
-  }finally{
-    it.parentContinueBusy=false;
-    renderAiSortList();
-  }
 }
 
 function toggleAiDetail(idx){
@@ -10149,6 +10150,8 @@ function renderHabitDetail(){
             :`<div class="hd-note-empty" onclick="hdNoteEdit()">写下心之所向</div>`}
         </div>
         
+        <div class="hd-items-section" id="hdItemsSection"></div>
+        
         <div class="hd-stats">
           <div class="hd-stat"><div class="hd-stat-num">${countTotalDone(h)}</div><div class="hd-stat-lbl">总打卡</div></div>
           <div class="hd-stat"><div class="hd-stat-num">${countMonthDone(h)}</div><div class="hd-stat-lbl">本月</div></div>
@@ -10165,6 +10168,143 @@ function renderHabitDetail(){
     </div>
   </div>`;
   document.body.insertAdjacentHTML('beforeend',html);
+  hdItemsRender();
+}
+
+// ----- 习惯里的"清单"（比如"吃药"这个习惯下面，每种药各自的名字+功效） -----
+// 跟打卡本身是两回事：打卡还是针对整个习惯一次性完成，这里纯粹是挂在习惯上的
+// 参考信息，不单独追踪每一项有没有做——除了下面这个"今天勾没勾"的当天小标记。
+function hdItemsRender(){
+  const h=habits.find(x=>x.id===habitDetailId);if(!h)return;
+  const wrap=document.getElementById('hdItemsSection');
+  if(!wrap)return;
+  const items=h.items||[];
+  const tk=todayK();
+  const doneCount=items.filter(it=>it.log&&it.log[tk]).length;
+  wrap.innerHTML=`<div class="hd-items-hd">
+      <span class="hd-items-lbl">清单${items.length?` · 今天 ${doneCount}/${items.length}`:''}</span>
+      <button class="hd-item-add" onclick="hdItemAddStart()">+</button>
+    </div>
+    <div id="hdItemFormSlot"></div>
+    <div class="hd-items-grid" id="hdItemsGrid">${items.map(it=>{
+      const checked=!!(it.log&&it.log[tk]);
+      return `<div class="hd-item-tile${checked?' checked':''}" data-hiid="${it.id}">
+        <span class="hd-item-tile-badge">${checked?'✓':''}</span>
+        <div class="hd-item-tile-emoji">${it.emoji||'💊'}</div>
+        <div class="hd-item-tile-name">${escapeHtml(it.name)}</div>
+      </div>`;
+    }).join('')}</div>
+    ${items.length?'<div class="hd-items-hint">点格子勾选今天 · 长按看功效</div>':''}`;
+  attachHdItemTileEvents();
+}
+function attachHdItemTileEvents(){
+  document.querySelectorAll('.hd-item-tile').forEach(el=>{
+    const id=el.dataset.hiid;
+    let timer=null,longPressed=false;
+    const start=()=>{longPressed=false;timer=setTimeout(()=>{
+      longPressed=true;
+      if(navigator.vibrate)navigator.vibrate(30);
+      hdItemEditStart(id);
+    },480);};
+    const cancel=()=>{if(timer)clearTimeout(timer);};
+    el.addEventListener('touchstart',start,{passive:true});
+    el.addEventListener('touchend',cancel);
+    el.addEventListener('touchmove',cancel,{passive:true});
+    el.addEventListener('mousedown',start);
+    el.addEventListener('mouseup',cancel);
+    el.addEventListener('mouseleave',cancel);
+    el.addEventListener('click',()=>{
+      if(longPressed){longPressed=false;return;}
+      hdItemToggleToday(id);
+    });
+  });
+}
+function hdItemToggleToday(itemId){
+  const h=habits.find(x=>x.id===habitDetailId);if(!h)return;
+  const it=(h.items||[]).find(i=>i.id===itemId);if(!it)return;
+  const tk=todayK();
+  if(!it.log)it.log={};
+  // 纯当天参考——只记今天勾没勾，不影响这个习惯本身的连续打卡记录，
+  // 也不会反过来把整个习惯自动标记完成。
+  it.log[tk]=!it.log[tk];
+  sv('habits',habits);
+  hdItemsRender();
+}
+function hdItemAddStart(){hdItemFormShow(null);}
+function hdItemEditStart(itemId){hdItemFormShow(itemId);}
+function hdItemFormShow(itemId){
+  const h=habits.find(x=>x.id===habitDetailId);if(!h)return;
+  const item=itemId?(h.items||[]).find(i=>i.id===itemId):null;
+  const slot=document.getElementById('hdItemFormSlot');
+  if(!slot)return;
+  const curEmoji=item?(item.emoji||'💊'):'💊';
+  slot.innerHTML=`<div class="hd-item-form" id="hdItemForm" data-emoji="${curEmoji}">
+    <div class="hd-item-emoji-pick" id="hdItemEmojiPick" onclick="hdItemOpenEmojiKb()">${curEmoji}</div>
+    <input id="hdItemNameInput" placeholder="名字，比如「钙片」" value="${item?escapeHtml(item.name):''}" maxlength="30">
+    <textarea id="hdItemNoteInput" placeholder="功效、用法之类，随手写">${item?escapeHtml(item.note||''):''}</textarea>
+    <div class="hd-item-form-acts">
+      ${item?`<a onclick="hdItemDelete('${itemId}')">删除</a>`:'<a onclick="hdItemFormCancel()">取消</a>'}
+      <a class="primary" onclick="hdItemSave(${item?`'${itemId}'`:'null'})">保存</a>
+    </div>
+  </div>`;
+  setTimeout(()=>document.getElementById('hdItemNameInput')?.focus(),50);
+}
+function hdItemFormCancel(){
+  const slot=document.getElementById('hdItemFormSlot');
+  if(slot)slot.innerHTML='';
+}
+// 呼出手机自带的 emoji 键盘——跟习惯本身选图标用的是同一套办法（一个几乎看不见的
+// 输入框，捕捉你在系统键盘上选的最后一个字符），不用自己另外维护一套emoji列表。
+function hdItemOpenEmojiKb(){
+  toast('从键盘选一个 emoji');
+  let inp=document.getElementById('hdItemEmojiKbInput');
+  if(!inp){
+    inp=document.createElement('input');
+    inp.id='hdItemEmojiKbInput';
+    inp.type='text';
+    inp.className='hc-emoji-kb-input';
+    inp.autocomplete='off';
+    inp.autocapitalize='off';
+    inp.setAttribute('inputmode','text');
+    document.body.appendChild(inp);
+    inp.addEventListener('input',()=>{
+      const v=inp.value.trim();
+      if(v){
+        const chars=Array.from(v);
+        const picked=chars[chars.length-1];
+        const form=document.getElementById('hdItemForm');
+        const pick=document.getElementById('hdItemEmojiPick');
+        if(form)form.dataset.emoji=picked;
+        if(pick)pick.textContent=picked;
+        inp.value='';
+        inp.blur();
+      }
+    });
+  }
+  inp.focus();
+}
+function hdItemSave(itemId){
+  const h=habits.find(x=>x.id===habitDetailId);if(!h)return;
+  const name=(document.getElementById('hdItemNameInput').value||'').trim();
+  const note=(document.getElementById('hdItemNoteInput').value||'').trim();
+  const form=document.getElementById('hdItemForm');
+  const emoji=(form&&form.dataset.emoji)||'💊';
+  if(!name){hdItemsRender();return;}
+  if(!h.items)h.items=[];
+  if(itemId){
+    const it=h.items.find(i=>i.id===itemId);
+    if(it){it.name=name;it.note=note;it.emoji=emoji;}
+  }else{
+    h.items.push({id:'hi'+Date.now()+Math.random().toString(36).slice(2,5),name,note,emoji});
+  }
+  sv('habits',habits);
+  hdItemsRender();
+}
+function hdItemDelete(itemId){
+  const h=habits.find(x=>x.id===habitDetailId);if(!h)return;
+  h.items=(h.items||[]).filter(i=>i.id!==itemId);
+  sv('habits',habits);
+  hdItemsRender();
 }
 
 function habitTogglePause(id){
