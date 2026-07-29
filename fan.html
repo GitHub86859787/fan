@@ -856,8 +856,7 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
    Kept on the number itself (.cal-d-num), not the whole cell, so it stays a
    tidy ring rather than recoloring the entire square. */
 .cal-d-num{display:inline-flex;align-items:center;justify-content:center;
-  width:19px;height:19px;border-radius:50%;transition:background .3s,color .3s}
-.cal-d.has-ev .cal-d-num{font-weight:600}
+  width:16px;height:16px;border-radius:50%;transition:background .3s,color .3s}
 
 /* Day detail — event card */
 .day-ev-card{padding:10px 14px;border-radius:10px;
@@ -3474,14 +3473,13 @@ function applyGradient(){
 // UI THEME UPDATE
 // ================================================================
 function applyUITheme(){
-  let textCol,tlCol,tripCol,periodName,timeStr;
+  let textCol,tlCol,periodName,timeStr;
   if(currentMode==='tomato'){
     // Tomato page UI uses warm tomato text colors
     const h=hourFloat();
     const isDark=(h>=22||h<7);
     textCol=isDark?'#F0DDD0':'#3A1410';
     tlCol=isDark?'#C8A090':'#7C2820';
-    tripCol=isDark?'#E8A87A':'#A85A2E';
     periodName='番茄 · Pomodoro';
     const d=new Date();
     timeStr=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
@@ -3491,13 +3489,6 @@ function applyUITheme(){
     periodName=`${cs.period.name} · ${cs.period.element}`;
     const d=new Date();
     timeStr=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-    // 日历事件用的暖赭橙色系——背景浅（奶油色）时用深赭色，背景深（夜晚紫/绿）时用浅杏色，
-    // 同一个色相，明暗跟着背景反过来调，保证任何时段都看得清、都不撞色。
-    // （这个色现在给"任何日历事件"用，不只是行程——见下面 .has-ev 相关选择器）
-    const bgHex=(cs.bg||'#EEE').replace('#','');
-    const r=parseInt(bgHex.slice(0,2),16)||200,g=parseInt(bgHex.slice(2,4),16)||200,b=parseInt(bgHex.slice(4,6),16)||200;
-    const bgLum=(0.299*r+0.587*g+0.114*b)/255;
-    tripCol=bgLum>0.5?'#A85A2E':'#E8A87A';
   }
   _lastThemeTextCol=textCol;_lastThemeTlCol=tlCol;
   
@@ -3519,14 +3510,18 @@ function applyUITheme(){
   document.querySelectorAll('.slbl,.t-meta,.t-paused,.r-tm,.cal-w,.tg-add,.tg-manage,.r-x,.empty-msg,.export-btn,.pm-rlbl')
     .forEach(e=>e.style.color=tlCol);
   document.querySelectorAll('.cal-d:not(.has-ev)').forEach(e=>e.style.color=textCol);
-  document.querySelectorAll('.cal-d.has-ev').forEach(e=>e.style.color=tripCol);
+  // 底部那个小点用的是格子自身的 currentColor——以前这里赋的是 tripCol（一种更鲜艳的
+  // 暖色），跟数字后面那个刻意调淡的圆圈不是同一套颜色逻辑，看起来像两种不同的点。
+  // 现在统一用 textCol，"这天有没有事件"完全交给数字后面的圆圈来表达，点的颜色不再
+  // 承担这个区分功能，两者不会再撞出两种色调。
+  document.querySelectorAll('.cal-d.has-ev').forEach(e=>e.style.color=textCol);
   document.querySelectorAll('.cal-d:not(.has-ev) .cal-d-num').forEach(e=>{e.style.color=textCol;e.style.background='';});
   document.querySelectorAll('.cal-d.has-ev .cal-d-num').forEach(e=>{
     // 用主题当前的文字色本身做徽标底色，只是加了透明度——不用固定的"深灰"，
     // 因为固定灰色配夜间深色背景会糊在一起看不清；textCol本来就是跟当前
     // 背景保证对比度算出来的颜色，所以不管什么时段，这样做出来的圆圈永远
     // 是"跟这一刻的主题同色系、但很淡"，而不是突兀的一块高饱和色。
-    e.style.background=textCol+'26'; // ~15% 不透明度
+    e.style.background=textCol+'14'; // ~8% 不透明度，比之前更淡
     e.style.color=textCol;
   });
   document.querySelectorAll('.tg').forEach(e=>e.style.color=textCol);
