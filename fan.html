@@ -827,11 +827,7 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
 .cal-w{text-align:center;padding:6px 0;font-size:8px;letter-spacing:.1em;transition:color 2s;opacity:.5}
 .cal-d{text-align:center;padding:11px 0;border-radius:8px;font-size:11px;cursor:pointer;
-  transition:all .25s,color 2s,background 2s;position:relative;opacity:.6}
-.cal-d.has{opacity:1}
-.cal-d.has::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);
-  width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.7}
-.cal-d.today{font-weight:500}
+  transition:all .25s,color 2s,background 2s;position:relative}
 .cal-d:not(.empty):active{transform:scale(.9)}
 .day-det{margin-top:10px;padding:18px;border-radius:14px;
   background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);backdrop-filter:blur(10px);display:none}
@@ -846,15 +842,12 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   background:rgba(255,255,255,.04);font-family:'EB Garamond',serif;font-size:10px;
   letter-spacing:.1em;cursor:pointer;transition:all .3s,color 2s}
 
-/* Calendar event marks */
-.cal-d.has-mk::after{display:none}
-.cal-emoji-mark{position:absolute;bottom:1px;left:50%;transform:translateX(-50%);
-  font-size:8px;line-height:1;white-space:nowrap;pointer-events:none}
-/* Trip range — day number sits inside a small low-opacity badge whose tint is
-   the theme's own text color (already contrast-safe against the current
-   background at any time of day/night) rather than a saturated accent hue.
-   Kept on the number itself (.cal-d-num), not the whole cell, so it stays a
-   tidy ring rather than recoloring the entire square. */
+/* 日历格子只剩两种视觉标记：
+   1. 今天——数字外面一圈细边框，不填色、不加粗
+   2. 有日历事件（行程/日程/生日/节日）——数字后面一个浅色实心圆
+   有没有记录、有没有个人标签，不再单独画点或emoji，格子更干净；
+   两条信息还在参与"点这天该跳转到哪"的判断，只是不再画出来。 */
+.cal-d.today .cal-d-num{border:1px solid currentColor;opacity:.7}
 .cal-d-num{display:inline-flex;align-items:center;justify-content:center;
   width:16px;height:16px;border-radius:50%;transition:background .3s,color .3s}
 
@@ -3530,7 +3523,6 @@ function applyUITheme(){
   });
   document.querySelectorAll('.end-btn').forEach(e=>e.style.color=tlCol);
   document.querySelectorAll('.r-dur').forEach(e=>e.style.color=textCol);
-  document.querySelectorAll('.cal-d.has:not(.has-ev),.cal-d.today:not(.has-ev)').forEach(e=>e.style.color=textCol);
   document.querySelectorAll('.cal-n button').forEach(e=>e.style.color=tlCol);
   document.querySelectorAll('.t-pulse').forEach(e=>e.style.background=textCol);
   document.querySelectorAll('.tomato-lbl').forEach(e=>e.style.color=tlCol);
@@ -7239,23 +7231,11 @@ function renderCal(){
     const marks=getMarksForDate(k);
     const hasEv=evs.length>0;
     const hasMk=marks.length>0;
-    // 之前只有"行程"类型才有数字后面那个浅色圆圈，日程/生日/节日各自用不同的emoji
-    // 图标堆在格子最下面——一个格子里同时出现圆圈+好几个emoji，看着挺乱。
-    // 现在统一成：不管是行程/日程/生日/节日，只要这天有事件，就用同一种浅色圆圈，
-    // 不再单独画emoji图标去区分类型（具体是哪种事件，点进这天的详情自然看得到）。
-    let cls='cal-d'+(isT?' today':'')+(has?' has':'');
-    if(hasEv)cls+=' has-ev';
-    d.className=cls;
-    let inner=`<span class="cal-d-num">${day}</span>`;
-    // 这一行现在只用来放"用户自己贴的标签"（比如🩸🏃这种个人标记），
-    // 跟日历事件是两回事，继续保留成单独一行emoji。
-    const rowEmoji=marks.map(m=>m.emoji);
-    if(rowEmoji.length){
-      inner+=`<div class="cal-emoji-mark">${rowEmoji.join('')}</div>`;
-      cls+=' has-mk';
-    }
-    d.className=cls;
-    d.innerHTML=inner;
+    // 按要求简化成只剩两种视觉标记：今天(细圈) + 有事件(浅色圆)，不再另外画点或emoji。
+    // 有没有记录、有没有个人标签，这两件事还是照常参与"点这天该跳去哪"的判断
+    // （下面的 onclick），只是不再单独画出来，格子更干净。
+    d.className='cal-d'+(isT?' today':'')+(hasEv?' has-ev':'');
+    d.innerHTML=`<span class="cal-d-num">${day}</span>`;
     // All dates clickable
     if(has||hasEv||hasMk){
       d.onclick=()=>showDayD(k);
