@@ -850,6 +850,8 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .cal-d.today .cal-d-num{border:1px solid currentColor;opacity:.7}
 .cal-d-num{display:inline-flex;align-items:center;justify-content:center;
   width:16px;height:16px;border-radius:50%;transition:background .3s,color .3s}
+.cal-emoji-mark{position:absolute;bottom:1px;left:50%;transform:translateX(-50%);
+  font-size:8px;line-height:1;white-space:nowrap;pointer-events:none}
 
 /* Day detail — event card */
 .day-ev-card{padding:10px 14px;border-radius:10px;
@@ -7231,11 +7233,16 @@ function renderCal(){
     const marks=getMarksForDate(k);
     const hasEv=evs.length>0;
     const hasMk=marks.length>0;
-    // 按要求简化成只剩两种视觉标记：今天(细圈) + 有事件(浅色圆)，不再另外画点或emoji。
-    // 有没有记录、有没有个人标签，这两件事还是照常参与"点这天该跳去哪"的判断
-    // （下面的 onclick），只是不再单独画出来，格子更干净。
+    // 日历格子上的标记：今天(细圈) + 有事件(浅色圆) + 个人标签(emoji)。
+    // 记录（计时/情绪/睡眠）不再单独画点——但还是照常参与"点这天该跳去哪"的判断
+    // （下面的 onclick），只是不再单独画出来。
     d.className='cal-d'+(isT?' today':'')+(hasEv?' has-ev':'');
-    d.innerHTML=`<span class="cal-d-num">${day}</span>`;
+    let inner=`<span class="cal-d-num">${day}</span>`;
+    const rowEmoji=marks.map(m=>m.emoji);
+    if(rowEmoji.length){
+      inner+=`<div class="cal-emoji-mark">${rowEmoji.join('')}</div>`;
+    }
+    d.innerHTML=inner;
     // All dates clickable
     if(has||hasEv||hasMk){
       d.onclick=()=>showDayD(k);
