@@ -4077,7 +4077,7 @@ const DEF_TAGS=[
   {id:'t1',name:'梵App开发',color:'#5C3326'},   // Hermès Ebene 乌木色
 ];
 
-let tags=ld('tags',DEF_TAGS),allDays=ld('days',{}),todayRecs=[],selTagId=null,editing=false;
+let tags=ld('tags',DEF_TAGS),allDays=ld('days',{}),todayRecs=[],selTagIds=[],editing=false;
 let allTomatoes=ld('tomatoes',{}),todayTomatoes=[];
 let tState='idle',tStart=null,tPauseStart=null,tPausedTotal=0,tInterval=null;
 let pmW=25,pmR=5,pmState='idle',pmEnd=null,pmInt=null,pmTotal=0;
@@ -5156,9 +5156,18 @@ function renderTags(){
   const row=document.getElementById('tagsRow');row.innerHTML='';
   tags.forEach(t=>{
     const el=document.createElement('div');
-    el.className='tg'+(selTagId===t.id?' sel':'')+(editing?' editing':'');
+    el.className='tg'+(selTagIds.includes(t.id)?' sel':'')+(editing?' editing':'');
     el.innerHTML=`<span class="tg-dot" style="background:${t.color}"></span>${t.name}<span class="tg-x" onclick="event.stopPropagation();delTag('${t.id}')">✕</span>`;
-    el.onclick=()=>{if(editing)return;selTagId=t.id;document.getElementById('startBtn').disabled=false;renderTags()};
+    // 点一下 = 加入这次要挂的标签集合；再点一下 = 移出。可以同时选好几个——
+    // 比如"等AI回复的时候顺便看书"，就把"写代码"和"看书"都选上，一起开始计时。
+    el.onclick=()=>{
+      if(editing)return;
+      const i=selTagIds.indexOf(t.id);
+      if(i>-1)selTagIds.splice(i,1);
+      else selTagIds.push(t.id);
+      document.getElementById('startBtn').disabled=selTagIds.length===0;
+      renderTags();
+    };
     row.appendChild(el);
   });
   const add=document.createElement('button');add.className='tg-add';add.textContent='+';add.onclick=openAdd;row.appendChild(add);
@@ -5170,7 +5179,8 @@ function delTag(id){
   if(tags.length<=1)return;
   tags=tags.filter(t=>t.id!==id);
   sv('tags',tags);
-  if(selTagId===id){selTagId=null;document.getElementById('startBtn').disabled=true;}
+  const i=selTagIds.indexOf(id);
+  if(i>-1){selTagIds.splice(i,1);document.getElementById('startBtn').disabled=selTagIds.length===0;}
   renderTags();
 }
 
@@ -5205,8 +5215,9 @@ function saveTag(){
 // TIMER
 // ================================================================
 function startTimer(){
-  if(!selTagId||tState!=='idle')return;
-  const tag=tags.find(t=>t.id===selTagId);if(!tag)return;
+  if(!selTagIds.length||tState!=='idle')return;
+  const selTags=selTagIds.map(id=>tags.find(t=>t.id===id)).filter(Boolean);
+  if(!selTags.length)return;
   singingBowl(220,2.5);
   tState='running';tStart=Date.now();tPausedTotal=0;
   // Persist timer state so we can recover after PWA reload
@@ -5214,7 +5225,7 @@ function startTimer(){
   document.getElementById('tIdle').style.display='none';
   document.getElementById('tRun').style.display='block';
   document.getElementById('tPaused').style.display='none';
-  document.getElementById('tTag').textContent=tag.name;
+  document.getElementById('tTag').textContent=selTags.length>1?selTags.map(t=>t.name).join('、')+'（同时进行）':selTags[0].name;
   const now=new Date();
   document.getElementById('tMeta').textContent=pad(now.getHours())+':'+pad(now.getMinutes())+' 开始';
   document.getElementById('actI').style.display='none';
@@ -5229,7 +5240,7 @@ function saveTimerState(){
   }
   try{
     localStorage.setItem('fan_timerActive',JSON.stringify({
-      tagId:selTagId,tState,tStart,tPauseStart,tPausedTotal
+      tagIds:selTagIds,tState,tStart,tPauseStart,tPausedTotal
     }));
   }catch{}
 }
@@ -5238,13 +5249,14 @@ function recoverTimer(){
   let saved;
   try{saved=JSON.parse(localStorage.getItem('fan_timerActive')||'null')}catch{return;}
   if(!saved||!saved.tStart)return;
-  // Verify the tag still exists
-  const tag=tags.find(t=>t.id===saved.tagId);
-  if(!tag){
+  // 兼容升级前存的旧格式（单个 tagId，不是数组）
+  const savedIds=saved.tagIds||(saved.tagId?[saved.tagId]:[]);
+  const savedTags=savedIds.map(id=>tags.find(t=>t.id===id)).filter(Boolean);
+  if(!savedTags.length){
     try{localStorage.removeItem('fan_timerActive')}catch{}
     return;
   }
-  selTagId=saved.tagId;
+  selTagIds=savedTags.map(t=>t.id);
   tState=saved.tState;
   tStart=saved.tStart;
   tPauseStart=saved.tPauseStart;
@@ -5252,7 +5264,7 @@ function recoverTimer(){
   // Update UI to show running state
   document.getElementById('tIdle').style.display='none';
   document.getElementById('tRun').style.display='block';
-  document.getElementById('tTag').textContent=tag.name;
+  document.getElementById('tTag').textContent=savedTags.length>1?savedTags.map(t=>t.name).join('、')+'（同时进行）':savedTags[0].name;
   const now=new Date(tStart);
   document.getElementById('tMeta').textContent=pad(now.getHours())+':'+pad(now.getMinutes())+' 开始';
   if(tState==='paused'){
@@ -5292,9 +5304,20 @@ function stopTimer(){
   if(tState==='paused')tPausedTotal+=Date.now()-tPauseStart;
   clearInterval(tInterval);
   const end=Date.now(),dur=Math.floor((end-tStart-tPausedTotal)/1000);
-  const tag=tags.find(t=>t.id===selTagId);
-  if(dur>0&&tag){
-    const newRec={tagId:selTagId,tagName:tag.name,tagColor:tag.color,start:tStart,end,duration:dur};
+  const selTags=selTagIds.map(id=>tags.find(t=>t.id===id)).filter(Boolean);
+  if(dur>0&&selTags.length){
+    const first=selTags[0];
+    const newRec={tagId:first.id,tagName:first.name,tagColor:first.color,start:tStart,end,duration:dur};
+    // 挂了不止一个标签——额外存一份完整列表，供统计/导出时把这段时长记进
+    // 每一个标签名下（但 duration 只有这一份，不会被算成好几倍）。
+    // tagId/tagName/tagColor 还是照常存"第一个"，这样所有原本只认单个标签的
+    // 旧显示逻辑（列表、日详情等）不用改也能正常工作，只是统计和导出这些
+    // 需要"按标签分别看"的地方，会用到下面这个完整列表。
+    if(selTags.length>1){
+      newRec.tagIds=selTags.map(t=>t.id);
+      newRec.tagNames=selTags.map(t=>t.name);
+      newRec.tagColors=selTags.map(t=>t.color);
+    }
     // Save to the date the timer STARTED (handles cross-midnight correctly)
     const recDk=dkOf(tStart);
     if(!allDays[recDk])allDays[recDk]=[];
@@ -5331,7 +5354,7 @@ function renderRecs(){
       openRecEditor(ri);
     };
     d.innerHTML=`<div class="r-dot" style="background:${r.tagColor}"></div>
-      <div class="r-info"><div class="r-nm">${r.tagName}</div>
+      <div class="r-info"><div class="r-nm">${tagLabelFor(r)}</div>
       <div class="r-tm">${pad(s.getHours())}:${pad(s.getMinutes())} — ${pad(e.getHours())}:${pad(e.getMinutes())}</div></div>
       <div class="r-dur">${fmtD(r.duration)}</div>
       <button class="r-x" onclick="event.stopPropagation();delRec(${ri})">✕</button>`;
@@ -5367,7 +5390,7 @@ function delRecOnDate(dk,idx){
 // ================================================================
 // 记录编辑 / 补记
 // ================================================================
-let recEditState={mode:'add',index:-1,tagId:null};
+let recEditState={mode:'add',index:-1,tagIds:[]};
 
 function openRecEditor(index){
   const bg=document.getElementById('recEditBg');
@@ -5386,15 +5409,13 @@ function openRecEditor(index){
     b.style.background=`${t.color}22`;
     b.style.borderColor=`${t.color}55`;
     b.onclick=()=>{
-      recEditState.tagId=t.id;
-      tagsEl.querySelectorAll('.rec-edit-tag').forEach(x=>{
-        x.classList.remove('on');
-        const tt=tags.find(z=>z.id===x.dataset.tid);
-        if(tt){x.style.background=`${tt.color}22`;x.style.borderColor=`${tt.color}55`;}
-      });
-      b.classList.add('on');
-      b.style.background=`${t.color}99`;
-      b.style.borderColor=t.color;
+      const i=recEditState.tagIds.indexOf(t.id);
+      if(i>-1)recEditState.tagIds.splice(i,1);
+      else recEditState.tagIds.push(t.id);
+      const on=recEditState.tagIds.includes(t.id);
+      b.classList.toggle('on',on);
+      b.style.background=on?`${t.color}99`:`${t.color}22`;
+      b.style.borderColor=on?t.color:`${t.color}55`;
     };
     b.dataset.tid=t.id;
     tagsEl.appendChild(b);
@@ -5406,7 +5427,7 @@ function openRecEditor(index){
   if(typeof index==='number'&&index>=0&&todayRecs[index]){
     // Edit mode
     const r=todayRecs[index];
-    recEditState={mode:'edit',index,tagId:r.tagId};
+    recEditState={mode:'edit',index,tagIds:(r.tagIds||[r.tagId]).slice()};
     title.textContent='编 辑 记 录';
     const s=new Date(r.start),e=new Date(r.end);
     dateEl.value=fmtDate(s);
@@ -5416,17 +5437,19 @@ function openRecEditor(index){
     document.getElementById('recEditStartBtn').textContent=fmtTime(s);
     document.getElementById('recEditEndBtn').textContent=fmtTime(e);
     updateDurationDisplay();
-    // Highlight current tag
+    // Highlight all of this record's tags (could be more than one)
     setTimeout(()=>{
-      const b=tagsEl.querySelector(`[data-tid="${r.tagId}"]`);
-      if(b){
-        const t=tags.find(x=>x.id===r.tagId);
-        if(t){
-          b.classList.add('on');
-          b.style.background=`${t.color}99`;
-          b.style.borderColor=t.color;
+      recEditState.tagIds.forEach(tid=>{
+        const b=tagsEl.querySelector(`[data-tid="${tid}"]`);
+        if(b){
+          const t=tags.find(x=>x.id===tid);
+          if(t){
+            b.classList.add('on');
+            b.style.background=`${t.color}99`;
+            b.style.borderColor=t.color;
+          }
         }
-      }
+      });
     },10);
     // Add delete button
     const acts=bg.querySelector('.rec-edit-acts');
@@ -5443,7 +5466,7 @@ function openRecEditor(index){
     }
   }else{
     // Add mode — default start = last record's end + 1 min, end = now
-    recEditState={mode:'add',index:-1,tagId:null};
+    recEditState={mode:'add',index:-1,tagIds:[]};
     title.textContent='补 记';
     const now=new Date();
     let startTime;
@@ -5499,14 +5522,13 @@ function updateDurationDisplay(){
 function recContinueTimer(){
   const startText=document.getElementById('recEditStartBtn').textContent;
   const [sh,sm]=startText.split(':').map(Number);
-  const tagEl=document.querySelector('.rec-edit-tag.on');
-  if(!tagEl)return;
-  const tagId=tagEl.dataset.tid;
-  const tag=tags.find(t=>t.id===tagId);
-  if(!tag)return;
+  const tagEls=document.querySelectorAll('.rec-edit-tag.on');
+  if(!tagEls.length)return;
+  const tagIds=Array.from(tagEls).map(el=>el.dataset.tid).filter(id=>tags.find(t=>t.id===id));
+  if(!tagIds.length)return;
   closeRecEditor();
-  // Set tag
-  selTagId=tagId;
+  // Set tags
+  selTagIds=tagIds;
   renderTags();
   // Calculate start time
   const now=new Date();
@@ -5540,7 +5562,7 @@ function saveRecEdit(){
   const startEl=document.getElementById('recEditStart');
   const endEl=document.getElementById('recEditEnd');
   
-  if(!recEditState.tagId){
+  if(!recEditState.tagIds.length){
     alert('请选择标签');
     return;
   }
@@ -5558,17 +5580,23 @@ function saveRecEdit(){
   if(endTs<startTs)endTs+=24*60*60*1000;
   if(endTs===startTs){alert('结束时间需要晚于开始时间');return;}
   
-  const tag=tags.find(t=>t.id===recEditState.tagId);
-  if(!tag){alert('标签不存在');return;}
+  const selTags=recEditState.tagIds.map(id=>tags.find(t=>t.id===id)).filter(Boolean);
+  if(!selTags.length){alert('标签不存在');return;}
+  const first=selTags[0];
   
   const newRec={
     start:startTs,
     end:endTs,
     duration:Math.floor((endTs-startTs)/1000),
-    tagId:tag.id,
-    tagName:tag.name,
-    tagColor:tag.color
+    tagId:first.id,
+    tagName:first.name,
+    tagColor:first.color
   };
+  if(selTags.length>1){
+    newRec.tagIds=selTags.map(t=>t.id);
+    newRec.tagNames=selTags.map(t=>t.name);
+    newRec.tagColors=selTags.map(t=>t.color);
+  }
   
   if(recEditState.mode==='edit'){
     const oldRec=todayRecs[recEditState.index];
@@ -5728,7 +5756,16 @@ function setupWheelDrag(colId,listId,total){
 function endDay(){if(tState!=='idle')stopTimer();if(!todayRecs.length)return;showSum(todayRecs,todayK())}
 function showSum(recs,dk){
   const groups={};let tot=0;
-  recs.forEach(r=>{if(!groups[r.tagName])groups[r.tagName]={c:r.tagColor,d:0};groups[r.tagName].d+=r.duration;tot+=r.duration;});
+  recs.forEach(r=>{
+    // 一条记录如果挂了多个标签，每个标签各自的统计里都要算上这段时长；
+    // 但"总计"只按这条记录本身累加一次，不会因为挂了几个标签就被重复计入。
+    (r.tagNames||[r.tagName]).forEach((nm,idx)=>{
+      const color=(r.tagColors||[r.tagColor])[idx]||r.tagColor;
+      if(!groups[nm])groups[nm]={c:color,d:0};
+      groups[nm].d+=r.duration;
+    });
+    tot+=r.duration;
+  });
   const sorted=Object.entries(groups).sort((a,b)=>b[1].d-a[1].d);const mx=sorted[0][1].d;
   const ds=dk.replace(/(\d{4})-(\d{2})-(\d{2})/,'$1年$2月$3日');
   document.getElementById('sumBox').innerHTML=`<h2>${ds}</h2>`+
@@ -5747,7 +5784,7 @@ function expDayTXT(dk){
   if(!recs.length&&!evs.length)return;
   let txt=`梵 · ${dk}\n${'─'.repeat(28)}\n\n`;let tot=0;
   recs.forEach(r=>{const s=new Date(r.start),e=new Date(r.end);
-    txt+=`${pad(s.getHours())}:${pad(s.getMinutes())}—${pad(e.getHours())}:${pad(e.getMinutes())} ${r.tagName} (${fmtD(r.duration)})\n`;tot+=r.duration;});
+    txt+=`${pad(s.getHours())}:${pad(s.getMinutes())}—${pad(e.getHours())}:${pad(e.getMinutes())} ${tagLabelFor(r)} (${fmtD(r.duration)})\n`;tot+=r.duration;});
   if(tot)txt+=`\n总计: ${fmtD(tot)}\n`;
   if(evs.length){
     txt+=`\n${'─'.repeat(28)}\n日程事件:\n`;
@@ -5766,7 +5803,7 @@ function expDayCSV(dk){
   const recs=allDays[dk]||[];if(!recs.length)return;
   let csv='date,tag,start_time,end_time,duration_seconds,duration_readable\n';
   recs.forEach(r=>{const s=new Date(r.start),e=new Date(r.end);
-    csv+=`${dk},${r.tagName},${pad(s.getHours())}:${pad(s.getMinutes())}:${pad(s.getSeconds())},${pad(e.getHours())}:${pad(e.getMinutes())}:${pad(e.getSeconds())},${r.duration},${fmtD(r.duration)}\n`;});
+    csv+=`${dk},${tagLabelFor(r)},${pad(s.getHours())}:${pad(s.getMinutes())}:${pad(s.getSeconds())},${pad(e.getHours())}:${pad(e.getMinutes())}:${pad(e.getSeconds())},${r.duration},${fmtD(r.duration)}\n`;});
   download(csv,`梵_${dk}.csv`,'text/csv');
 }
 function exportAllCSV(){
@@ -5783,7 +5820,7 @@ function exportAllCSV(){
         type:'time',
         solar:fmtSolar(s)+' → '+fmtSolar(e),
         ganzhi:sGz.full,
-        detail:`${r.tagName} (${fmtD(r.duration)})`
+        detail:`${tagLabelFor(r)} (${fmtD(r.duration)})`
       });
     });
   });
@@ -5983,7 +6020,7 @@ function exportAllJSON(rangeStart,rangeEnd){
       const endPre=crossDay?'次日':'';
       timeline.push({
         ts:r.start,
-        text:`${pad(s.getHours())}:${pad(s.getMinutes())}-${endPre}${pad(e.getHours())}:${pad(e.getMinutes())} ${sGz.hour}时→${eGz.hour}时 ${r.tagName} ${durStr}`
+        text:`${pad(s.getHours())}:${pad(s.getMinutes())}-${endPre}${pad(e.getHours())}:${pad(e.getMinutes())} ${sGz.hour}时→${eGz.hour}时 ${tagLabelFor(r)} ${durStr}`
       });
     });
     
@@ -7301,7 +7338,7 @@ function showDayD(dk){
   // 3. Time records
   recs.forEach((r,ri)=>{const s=new Date(r.start),e=new Date(r.end);tot+=r.duration;
     html+=`<div class="rec"><div class="r-dot" style="background:${r.tagColor}"></div>
-    <div class="r-info"><div class="r-nm">${r.tagName}</div>
+    <div class="r-info"><div class="r-nm">${tagLabelFor(r)}</div>
     <div class="r-tm">${pad(s.getHours())}:${pad(s.getMinutes())}—${pad(e.getHours())}:${pad(e.getMinutes())}</div></div>
     <div class="r-dur">${fmtD(r.duration)}</div>
     <span onclick="delRecOnDate('${dk}',${ri})" style="font-size:9px;opacity:.3;cursor:pointer;padding:4px 6px">✕</span></div>`;});
@@ -7624,6 +7661,13 @@ function deleteMarkById(id){
   renderCal();
 }
 
+// 把一条记录的标签列表，拼成给人/给AI看都不会有歧义的文字——只有一个标签就直接显示；
+// 挂了不止一个标签，明确写"同时进行"这四个字，而不是只靠一个分隔符隐晦地暗示，
+// 避免以后这段文字被AI（或者人）误读成"一个叫『写代码·看书』的单一活动"。
+function tagLabelFor(r){
+  const names=r.tagNames||[r.tagName];
+  return names.length>1?names.join('、')+'（同时进行）':names[0];
+}
 function saveEvent(){
   const title=document.getElementById('evInpTitle').value.trim();
   if(!title){closeEvModal();return}
