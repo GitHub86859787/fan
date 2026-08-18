@@ -1224,7 +1224,7 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   margin-top:12px;display:flex;align-items:center;gap:4px;
   text-shadow:0 1px 3px rgba(0,0,0,.3)}
 .gal-moon-empty{min-height:16px}
-.habit-add-row{margin-top:30px;text-align:center}
+.habit-add-row{margin:26px 0 4px;text-align:center}
 .habit-add-btn{background:transparent;border:1px solid rgba(255,250,244,.12);
   border-radius:100px;color:rgba(255,250,244,.5);
   font-family:'Noto Serif SC',serif;font-weight:300;
@@ -1250,20 +1250,6 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .hc-title{font-family:'Noto Serif SC',serif;font-weight:200;font-size:11px;
   letter-spacing:.4em;color:rgba(255,250,244,.55);margin-bottom:20px;text-indent:.4em}
 .hc-emoji-row{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-bottom:10px}
-.hc-emoji{font-size:20px;padding:5px;border-radius:9px;cursor:pointer;
-  border:1px solid transparent;transition:all .2s;line-height:1;overflow:hidden;white-space:nowrap;
-  display:inline-flex;align-items:center;justify-content:center}
-.hc-emoji.sel{border-color:rgba(255,250,244,.3);background:rgba(255,250,244,.08)}
-.hc-emoji-more{font-size:16px;font-weight:300;color:rgba(255,250,244,.45);
-  border:1px dashed rgba(255,250,244,.22)!important;
-  display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px}
-.hc-emoji-kb-input{position:fixed;bottom:0;left:50%;width:1px;height:1px;
-  opacity:0;border:none;background:none;padding:0;pointer-events:none;font-size:16px}
-.hc-emoji-custom{width:60%;margin:0 auto 22px;display:block;padding:5px 0;
-  background:transparent;border:none;border-bottom:1px solid rgba(255,250,244,.06);
-  color:rgba(255,250,244,.8);font-size:14px;text-align:center;outline:none}
-.hc-emoji-custom::placeholder{color:rgba(255,250,244,.2);font-size:11px;
-  font-family:'Cormorant Garamond',serif;font-style:italic}
 .hc-gradients{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px;margin-bottom:20px}
 .hc-grad{width:32px;height:32px;border-radius:50%;cursor:pointer;
   border:2px solid transparent;transition:all .2s}
@@ -1715,10 +1701,10 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   min-width:80px;transition:background .2s}
 .cat-edit-pop button:hover{background:rgba(255,255,255,.06)}
 .cat-edit-pop button.danger{color:#C8636A}
-.hd-item-info-pop{position:absolute;background:rgba(20,24,22,.97);
+.hd-item-info-pop{position:fixed;background:rgba(20,24,22,.97);
   border:1px solid rgba(255,255,255,.12);border-radius:12px;
   padding:12px 14px;width:180px;
-  backdrop-filter:blur(15px);z-index:100;
+  backdrop-filter:blur(15px);z-index:350;
   box-shadow:0 8px 24px rgba(0,0,0,.4)}
 .hd-item-info-head{font-family:'Noto Serif SC',serif;font-weight:400;font-size:12.5px;
   color:rgba(255,255,255,.92);margin-bottom:6px}
@@ -3064,9 +3050,6 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
       <!-- ===== Habit tab content ===== -->
       <div id="memoSecHabit" style="display:none">
         <div class="habit-list" id="habitList"></div>
-        <div class="habit-add-row">
-          <button class="habit-add-btn" onclick="openHabitCreate()">一 个 新 习 惯</button>
-        </div>
       </div>
     </div>
     
@@ -7628,6 +7611,7 @@ function getMarksForDate(dk){
 let markEmojiList=ld('markEmojiList',['🦷','🩸','💊','🏃','🧘','✈️','🎂','💤','🍷','📖','🏥','💉','🤒','☀️','🌧️']);
 
 function openMarkModal(dk){
+  document.getElementById('markPickerBg')?.remove();
   let html=`<div style="position:fixed;inset:0;z-index:210;background:rgba(10,8,6,.8);
     backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);
     display:flex;align-items:center;justify-content:center" id="markPickerBg"
@@ -9465,7 +9449,8 @@ function renderHabits(){
   const el=document.getElementById('habitList');
   if(!el)return;
   if(!habits.length){
-    el.innerHTML='<div class="insp-empty habit-empty">还 没 有 习 惯<br><span class="habit-empty-sub">新建一个想养成的习惯</span></div>';
+    el.innerHTML='<div class="insp-empty habit-empty">还 没 有 习 惯<br><span class="habit-empty-sub">新建一个想养成的习惯</span></div>'+
+      `<div class="habit-add-row"><button class="habit-add-btn" onclick="openHabitCreate()">一 个 新 习 惯</button></div>`;
     setTimeout(()=>applyUITheme(),50);return;
   }
   const tk=todayK();
@@ -9478,10 +9463,14 @@ function renderHabits(){
   const activeGrid=active.length
     ? `<div class="habit-gallery">${active.map(h=>renderHabitCard(h,tk)).join('')}</div>`
     : '<div class="habit-empty-sub" style="text-align:center;padding:20px 0">活跃的习惯都在下面的休眠区</div>';
+  // "新习惯"放在"今日打卡"和"休眠中"之间——比起挤在最顶上跟"打卡"这个每天最
+  // 常用的动作抢视觉重量，也比起沉到最底下、要划过所有休眠的习惯才找得到，
+  // 这个位置刚好卡在"活跃内容"和"不常看的内容"的分界线上，顺理成章。
+  const addRow=`<div class="habit-add-row"><button class="habit-add-btn" onclick="openHabitCreate()">一 个 新 习 惯</button></div>`;
   const pausedSection=paused.length
     ? `<div class="habit-paused-hd">休 眠 中</div><div class="habit-gallery">${paused.map(h=>renderHabitCard(h,tk)).join('')}</div>`
     : '';
-  el.innerHTML=summary+activeGrid+pausedSection;
+  el.innerHTML=summary+activeGrid+addRow+pausedSection;
   setTimeout(()=>applyUITheme(),50);
 }
 
@@ -9653,10 +9642,9 @@ function dkFromDate(d){
 
 // ----- Habit creation modal -----
 let habitDraft={emoji:'',freq:'daily',times:2,slots:[],weekdays:[],monthday:1,weeklyTarget:2,gradient:0};
-const HABIT_QUICK_EMOJI_DEFAULT=['💊','💧','🏃','🧘','📖','🥗','🌙','☀️','💪','🧴','🦷','💉','🍵','✍️'];
-let HABIT_QUICK_EMOJI=ld('habitQuickEmoji',HABIT_QUICK_EMOJI_DEFAULT.slice());
 
 function openHabitCreate(){
+  document.getElementById('habitCreateBg')?.remove();
   habitDraft={emoji:'💊',freq:'daily',times:2,slots:['早','晚'],weekdays:[],monthday:1,weeklyTarget:2,gradient:0,customGrad:null};
   let html=`<div class="habit-create-bg" id="habitCreateBg" onclick="if(event.target===this)closeHabitCreate()">
     <div class="habit-create-box">
@@ -9692,84 +9680,7 @@ function openHabitCreate(){
 function hcRenderEmoji(){
   const row=document.getElementById('hcEmojiRow');
   if(!row)return;
-  // If current emoji is a custom one (not in quick list), show it first as selected
-  const inQuick=HABIT_QUICK_EMOJI.includes(habitDraft.emoji);
-  let html=HABIT_QUICK_EMOJI.map((e,i)=>
-    `<span class="hc-emoji${habitDraft.emoji===e?' sel':''}" data-qi="${i}" onclick="hcPickEmoji('${e}')">${e}</span>`
-  ).join('');
-  // Show custom-picked emoji (not yet in quick list) as an extra selected swatch
-  if(!inQuick&&habitDraft.emoji){
-    html=`<span class="hc-emoji sel" onclick="hcPickEmoji('${habitDraft.emoji}')">${habitDraft.emoji}</span>`+html;
-  }
-  // "+" opens the system emoji keyboard
-  html+=`<span class="hc-emoji hc-emoji-more" onclick="hcOpenEmojiKeyboard()" title="更多">+</span>`;
-  row.innerHTML=html;
-  // Long-press a quick emoji to remove it from the quick list
-  row.querySelectorAll('.hc-emoji[data-qi]').forEach(el=>{
-    let timer=null,longPressed=false;
-    const start=()=>{longPressed=false;timer=setTimeout(()=>{
-      longPressed=true;
-      if(navigator.vibrate)navigator.vibrate(30);
-      hcDeleteQuickEmoji(parseInt(el.dataset.qi));
-    },500);};
-    const cancel=()=>{if(timer)clearTimeout(timer);};
-    el.addEventListener('touchstart',start,{passive:true});
-    el.addEventListener('touchend',cancel);
-    el.addEventListener('touchmove',cancel,{passive:true});
-    el.addEventListener('mousedown',start);
-    el.addEventListener('mouseup',cancel);
-    el.addEventListener('mouseleave',cancel);
-    el.addEventListener('click',(e)=>{if(longPressed){e.stopPropagation();longPressed=false;}},true);
-  });
-}
-function hcDeleteQuickEmoji(i){
-  if(HABIT_QUICK_EMOJI.length<=1)return; // keep at least one
-  HABIT_QUICK_EMOJI.splice(i,1);
-  sv('habitQuickEmoji',HABIT_QUICK_EMOJI);
-  hcRenderEmoji();
-}
-// 判断一个字符是不是"看起来像 emoji"——emoji 的 Unicode 码位普遍远高于拉丁字母、
-// 常见拼音搜索用的字符，用这个粗略但可靠的阈值可以分清"用户还在打字搜索"和
-// "已经从系统 emoji 键盘上点了一个"。之前是不管三七二十一，只要输入框里有内容
-// 变化就当成"选中了"，直接把当时那个字符（哪怕只是搜索用的字母）抓走、清空、
-// 关闭输入框——这就是搜索 emoji 时一打字就卡死、变成字母的原因。
-function isLikelyEmojiChar(ch){
-  if(!ch)return false;
-  const cp=ch.codePointAt(0);
-  return cp>=0x203C;
-}
-// Open the phone's native emoji keyboard via a barely-there input (no visible textbox chrome)
-function hcOpenEmojiKeyboard(){
-  toast('从键盘选一个 emoji');
-  let inp=document.getElementById('hcEmojiKbInput');
-  if(!inp){
-    inp=document.createElement('input');
-    inp.id='hcEmojiKbInput';
-    inp.type='text';
-    inp.className='hc-emoji-kb-input';
-    inp.autocomplete='off';
-    inp.autocapitalize='off';
-    inp.setAttribute('inputmode','text');
-    document.body.appendChild(inp);
-    inp.addEventListener('input',()=>{
-      const v=inp.value;
-      if(!v)return;
-      const chars=Array.from(v);
-      const picked=chars[chars.length-1];
-      // 还在打字搜索（比如打"mao"找猫的emoji）——先别关，让用户继续搜，
-      // 只有真的选中了一个emoji本体才往下走。
-      if(!isLikelyEmojiChar(picked))return;
-      habitDraft.emoji=picked;
-      if(!HABIT_QUICK_EMOJI.includes(picked)){
-        HABIT_QUICK_EMOJI.push(picked);
-        sv('habitQuickEmoji',HABIT_QUICK_EMOJI);
-      }
-      inp.value='';
-      inp.blur();
-      hcRenderEmoji();
-    });
-  }
-  inp.focus();
+  row.innerHTML=`<div class="hd-item-emoji-pick" onclick="openEmojiPickerPanel(hcPickEmoji)">${habitDraft.emoji||'💊'}</div>`;
 }
 function hcPickEmoji(e){
   habitDraft.emoji=e;
@@ -9955,6 +9866,7 @@ function closeHabitCreate(){
 // ----- Habit EDIT modal (reuses create UI, edits existing) -----
 let habitEditId=null;
 function openHabitEdit(id){
+  document.getElementById('habitCreateBg')?.remove();
   const h=habits.find(x=>x.id===id);if(!h)return;
   habitEditId=id;
   // Ensure the habit's own gradient is present in the palette so it shows selected
