@@ -548,10 +548,19 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   font-size:12px;letter-spacing:.06em;color:rgba(255,250,244,.35);position:relative;z-index:1;line-height:1.8}
 /* --- 细目分组：父任务只是标题，真正可选的是它底下未完成的细目 --- */
 .tb-task-group{display:flex;flex-direction:column;gap:5px;margin-bottom:3px}
-.tb-task-parent-lbl{display:flex;align-items:baseline;gap:7px;padding:2px 4px 0;
+.tb-task-parent-lbl{display:flex;align-items:center;gap:8px;padding:8px 10px;
+  border-radius:12px;cursor:pointer;transition:all .3s cubic-bezier(.16,1,.3,1);
   font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10.5px;
-  color:rgba(255,250,244,.4);letter-spacing:.03em}
-.tb-parent-progress{font-family:'EB Garamond',serif;font-style:normal;color:rgba(232,180,150,.65)}
+  color:rgba(255,250,244,.4);letter-spacing:.03em;
+  background:rgba(255,255,255,.02);border:1px solid transparent}
+.tb-task-parent-lbl .tb-task-txt{font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:11px;font-weight:400;color:inherit}
+.tb-task-parent-lbl:active{transform:scale(.985)}
+.tb-task-parent-lbl.sel{background:rgba(232,130,110,.09);border-color:rgba(232,130,110,.45)}
+.tb-task-parent-lbl.sel .tb-task-txt{color:rgba(255,250,244,.97)}
+.tb-task-parent-lbl.sel .tb-task-num{background:#C05B45;border-color:#C05B45;color:#fff}
+.tb-parent-progress{font-family:'EB Garamond',serif;font-style:normal;color:rgba(232,180,150,.65);
+  margin-left:auto;flex-shrink:0}
 .tb-task-item.tb-sub{margin-left:18px;padding:9px 12px}
 .tb-done-parent{text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;
   font-size:11px;color:rgba(255,250,244,.4);margin-bottom:2px}
@@ -6811,9 +6820,16 @@ function tbShowStep(step){
 
 function tbRenderTasks(){
   const el=document.getElementById('tbTaskList');if(!el)return;
-  // 跟待办列表用同一套排序规则（renderMemoList 里的逻辑）：有手动 order（拖拽/AI排序）的
-  // 按 order 排在前面，没有的按最新创建排在后面——否则时间盒看到的顺序会跟待办页对不上。
+  // 排序：先按分类顺序（紧急/重要/普通——具体跟着 todoCats 当前的实际排列走，
+  // 不写死具体是哪几个分类，你要是改过分类名字或顺序，这里也跟着变）排在前面；
+  // 同一个分类内部，再按原来那套规则（有手动排序的按手动排序，其余按最新创建）。
+  const catIndex=id=>{
+    const i=todoCats.findIndex(c=>c.id===(id||'normal'));
+    return i<0?todoCats.length:i;
+  };
   const open=(memos.todo||[]).filter(t=>!t.done).slice().sort((a,b)=>{
+    const ci=catIndex(a.priority)-catIndex(b.priority);
+    if(ci!==0)return ci;
     const ao=typeof a.order==='number',bo=typeof b.order==='number';
     if(ao&&bo)return a.order-b.order;
     if(ao!==bo)return ao?-1:1;
@@ -6827,7 +6843,9 @@ function tbRenderTasks(){
     let anyRendered=false;
     open.forEach((t)=>{
       const cat=todoCats.find(c=>c.id===(t.priority||'normal'));
-      // 有细目的任务：父任务本身不计时——只有细目可以选，父任务全部做完会自动打勾。
+      // 有细目的任务：父任务标题本身现在也能直接点选，整个任务当一次计时——
+      // 有时候几个细目是一起做完的，不需要非要拆开分别计时；细目还是照样可以
+      // 单独选，两种都留着，看当下想怎么记。
       if(t.subs&&t.subs.length){
         const undone=t.subs.filter(s=>!s.done);
         if(!undone.length)return; // 理论上不会出现：全部完成时父任务已自动完成、被上面的过滤器排除
@@ -6835,7 +6853,12 @@ function tbRenderTasks(){
         const group=document.createElement('div');
         group.className='tb-task-group';
         const doneCount=t.subs.length-undone.length;
-        group.innerHTML=`<div class="tb-task-parent-lbl">${escapeHtml(t.text)} <span class="tb-parent-progress">${doneCount}/${t.subs.length}</span></div>`;
+        const parentSel=tbSelId===t.id&&!tbParentId;
+        const lbl=document.createElement('div');
+        lbl.className='tb-task-parent-lbl'+(parentSel?' sel':'');
+        lbl.innerHTML=`<span class="tb-task-num">${parentSel?'✓':'·'}</span><span class="tb-task-txt">${escapeHtml(t.text)}</span><span class="tb-parent-progress">${doneCount}/${t.subs.length}</span>`;
+        lbl.onclick=()=>tbSelectTask(t.id,t.text);
+        group.appendChild(lbl);
         undone.forEach((s,i)=>{
           const sel=tbSelId===s.id&&tbParentId===t.id;
           const d=document.createElement('div');
@@ -8518,6 +8541,36 @@ function todoAdd(){
 // AI 只给"建议"，原始待办数据在你点"确认"之前不会被改动一个字；
 // 理由和拆解说明只出现在这个审阅界面里，写回去的时候不会进正文。
 // ================================================================
+// 归档：加"同档内部怎么排"这条规则之前的版本。如果新逻辑用起来效果不好，
+// 可以把下面 AI_TODO_SYSTEM_PROMPT 的内容直接换回这份，一字不差地退回去。
+const AI_TODO_SYSTEM_PROMPT_V1_ARCHIVE_no_tiebreak = `你在帮用户整理她的待办清单，判断标准来自以下几条认知负荷管理的原理，请严格按这套框架思考，不要用"紧急/重要"这种通用四象限。
+
+一、排序判断标准——不是"杠杆类整体排在清空类前面"这种粗暴分组，而是看"杠杆高低 × 处理成本高低"这两个维度组合出的四档优先级：
+1. 高杠杆 + 低成本 → 最优先（做完影响大，而且几分钟/很快能启动或完成）
+2. 高杠杆 + 高成本 → 第二优先（哪怕这件事本身要拆很多步、耗时长，也要尽早启动第一步，不能因为"麻烦"就被排到后面）
+3. 低杠杆 + 低成本 → 第三优先（清空类，顺手几分钟清掉，不占后续带宽）
+4. 低杠杆 + 高成本 → 最后（既不产生杠杆效应，处理成本又高，甚至该被质疑是否值得做）
+判断"处理成本"时要参考这条待办有没有已经拆出的细目（subs）——细目多、且没做完的多，说明处理成本高；细目已经做完大半的，说明处理成本已经降低了，不要还按"标题听起来复杂"就判定成本高。
+不要考虑"这条放了多久了"，这个不重要。
+
+二、颗粒度判断（任务粒度错觉 / Planning Fallacy）：
+人预估没做过的任务时，习惯性低估所需步骤，规划时用的是简化的"外部视角"。看到一条待办，先判断它是"一个动作"（单一步骤，5-15分钟内可完成）还是"一个项目"（名字听起来简单，展开后有多个决策点，比如涉及比价、查资料、多方权衡）。
+每条待办可能附带她已经拆好的"细目"（subs 字段，数组，每项有 text 和 done，done:true 表示已经做完）——这是她自己写下的下一步动作。判断颗粒度粗细、要不要给 breakdown 时，必须按下面这套逻辑走，不能因为 subs 不是空的就直接跳过判断：
+- 先看这件事本身还是不是"项目"级别（哪怕已经拆过细目，只要整体还没做完，就要继续判断）。如果只是"一个动作"，或者虽是项目但已经全部做完，coarse 填 false，breakdown 给空数组。
+- 是"项目"级别、且还没做完的，接着判断：把 subs 里所有条目（不管 done 是 true 还是 false）当成"已经规划出来的路径"，评估这条路径走到底、加上 subs 里还没做完的那些，是否已经足够覆盖到这件事做完为止。
+  - 如果已经覆盖（哪怕还剩几条没做完，但路径本身是完整的，不缺后续环节），coarse 填 false——待办没做完不代表颗粒度不够细，只是还没做而已，不要因为"还有事没做完"就建议拆解。
+  - 如果 subs 明显不够覆盖到做完为止（比如只写了开头几步，后面还有明显缺失的环节，或者 subs 为空），coarse 填 true，在 breakdown 里只给"接下来还缺的、subs 里完全没提到过的"新步骤（3-6步）——这些新步骤是接着已有的 subs 继续往下写、补全后面缺的路径，不是重新规划整件事，绝对不能和 subs 里任何一条（不管 done 是true还是false）重复或者意思重叠。
+- 判断这件事还剩多少工作量时，把 subs 里未完成（done:false）的条数也算进去，而不是只看标题本身。
+
+三、用户的决策风格是"最大化型"（maximizer）——她倾向寻找最优解而不是差不多就行，这不是缺点，不需要建议她"随便选一个/降低标准"。如果某条待办需要她做出选择性决策，可以在 reason 里提示"这条建议给自己设一个时间上限去决定，而不是无限展开搜索"，但不要建议她降低判断标准。
+
+请只返回 JSON，不要有任何其他文字，格式如下：
+{"items":[{"id":"...","reason":"「原样复述这条待办的标题」——判断理由，用杠杆/成本的逻辑说明","coarse":false,"breakdown":[]}]}
+items 数组的顺序就是你建议的新顺序。coarse 为 true 时，breakdown 给出3-6条具体步骤；否则 breakdown 给空数组。
+reason 必须以「」括起来的原标题开头，一字不差地照抄这条待办的标题，再接判断理由——这是为了在你批量处理多条待办时，把每条的判断和它对应的标题牢牢绑在一起，避免生成时把不同任务的理由串位/挪行。理由部分控制在30字以内。
+字符串内部（reason、breakdown里的每一步）绝对不能出现未转义的英文或中文双引号——需要强调某个词就用「」或『』代替，不要用引号，否则会破坏JSON格式。
+重要：输入里每个 id 只会出现一次，你返回的 items 数组里，每个 id 也必须只出现一次——不要重复处理同一条待办，也不要遗漏任何一条。`;
+
 const AI_TODO_SYSTEM_PROMPT=`你在帮用户整理她的待办清单，判断标准来自以下几条认知负荷管理的原理，请严格按这套框架思考，不要用"紧急/重要"这种通用四象限。
 
 一、排序判断标准——不是"杠杆类整体排在清空类前面"这种粗暴分组，而是看"杠杆高低 × 处理成本高低"这两个维度组合出的四档优先级：
@@ -8527,6 +8580,8 @@ const AI_TODO_SYSTEM_PROMPT=`你在帮用户整理她的待办清单，判断标
 4. 低杠杆 + 高成本 → 最后（既不产生杠杆效应，处理成本又高，甚至该被质疑是否值得做）
 判断"处理成本"时要参考这条待办有没有已经拆出的细目（subs）——细目多、且没做完的多，说明处理成本高；细目已经做完大半的，说明处理成本已经降低了，不要还按"标题听起来复杂"就判定成本高。
 不要考虑"这条放了多久了"，这个不重要。
+
+同一档内部怎么排（这几条落在同一档时，谁先谁后）：按"处理成本从低到高"再排一次——同样都值得优先做的事，先做能最快启动/关掉的那个，尽快减少同时挂在脑子里的未完成事项数量；更细的"哪个更值得做"这种权衡，交给上面那套四档框架本身去判断，同档内部不需要再引入新的判断标准。
 
 二、颗粒度判断（任务粒度错觉 / Planning Fallacy）：
 人预估没做过的任务时，习惯性低估所需步骤，规划时用的是简化的"外部视角"。看到一条待办，先判断它是"一个动作"（单一步骤，5-15分钟内可完成）还是"一个项目"（名字听起来简单，展开后有多个决策点，比如涉及比价、查资料、多方权衡）。
@@ -8708,7 +8763,7 @@ async function aiSortTodos(){
     // 就不用再花一次 token——直接复用上次 AI 给的整理结果。
     // 缓存key里带上 prompt 版本号——prompt逻辑改过之后，旧缓存不能再直接拿来用，
     // 不然待办明明没变，却会用旧逻辑算出的（可能已经过时/有bug的）结果。
-    const PROMPT_VERSION='v6-continue-existing-subs';
+    const PROMPT_VERSION='v7-same-tier-tiebreak';
     const cache=ld('aiSortCache',null);
     let result;
     if(cache&&cache.promptVersion===PROMPT_VERSION&&cache.payloadStr===payloadStr&&cache.result){
