@@ -580,6 +580,7 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .guan-ai-card-acts button{flex:1;padding:9px 0;border-radius:100px;cursor:pointer;color:inherit;
   font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px}
 .guan-ai-dismiss{border:1px solid rgba(128,128,128,.25);background:transparent;opacity:.55}
+.guan-ai-regen{border:1px solid rgba(128,128,128,.25);background:transparent;opacity:.75}
 .guan-ai-accept{border:none;background:rgba(128,128,128,.22);opacity:.95}
 
 /* --- Step 1b: mode cards --- */
@@ -1491,6 +1492,22 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .hd-item-emoji-pick{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.08);
   border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;
   font-size:19px;cursor:pointer;margin:0 auto 10px}
+.emoji-picker-bg{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.55);
+  display:flex;align-items:flex-end;backdrop-filter:blur(4px)}
+.emoji-picker-box{width:100%;max-height:70vh;background:rgba(24,20,17,.98);
+  border-radius:20px 20px 0 0;border:1px solid rgba(255,255,255,.1);border-bottom:none;
+  display:flex;flex-direction:column;animation:fIn .3s ease}
+.emoji-picker-hd{display:flex;align-items:center;justify-content:space-between;
+  padding:16px 18px 10px;font-family:'Noto Serif SC',serif;font-weight:300;font-size:13px;
+  color:rgba(255,255,255,.8);letter-spacing:.06em}
+.emoji-picker-close{cursor:pointer;opacity:.5;font-size:14px;padding:4px}
+.emoji-picker-scroll{overflow-y:auto;padding:0 14px 24px}
+.emoji-picker-cat-lbl{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;
+  color:rgba(255,255,255,.35);margin:14px 4px 6px}
+.emoji-picker-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.emoji-picker-grid span{font-size:22px;text-align:center;padding:6px 0;border-radius:8px;
+  cursor:pointer;transition:background .15s}
+.emoji-picker-grid span:active{background:rgba(255,255,255,.1)}
 .hd-item-form input{width:100%;background:none;border:none;border-bottom:1px solid rgba(255,255,255,.12);
   color:rgba(255,255,255,.9);font-family:'Noto Serif SC',serif;font-size:12px;
   padding:4px 2px;outline:none;margin-bottom:8px;box-sizing:border-box;text-align:center}
@@ -1698,6 +1715,17 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   min-width:80px;transition:background .2s}
 .cat-edit-pop button:hover{background:rgba(255,255,255,.06)}
 .cat-edit-pop button.danger{color:#C8636A}
+.hd-item-info-pop{position:absolute;background:rgba(20,24,22,.97);
+  border:1px solid rgba(255,255,255,.12);border-radius:12px;
+  padding:12px 14px;width:180px;
+  backdrop-filter:blur(15px);z-index:100;
+  box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.hd-item-info-head{font-family:'Noto Serif SC',serif;font-weight:400;font-size:12.5px;
+  color:rgba(255,255,255,.92);margin-bottom:6px}
+.hd-item-info-note{font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;
+  color:rgba(255,255,255,.55);line-height:1.6;margin-bottom:8px}
+.hd-item-info-edit{display:block;text-align:right;font-family:'Cormorant Garamond',serif;
+  font-style:italic;font-size:11px;color:rgba(255,255,255,.5);cursor:pointer}
 
 /* 写新灵感时折叠的选项区 */
 .insp-opts{margin:-4px 0 12px;padding:10px 12px;border-radius:12px;
@@ -3519,6 +3547,10 @@ function applyUITheme(){
     e.style.background=textCol+'14'; // ~8% 不透明度，比之前更淡
     e.style.color=textCol;
   });
+  // 完全没有任何内容（没记录、没事件、没标签）的日子，数字颜色略微调淡一点点，
+  // 帮着分清"这天有过东西"和"这天什么都没有"——只是很轻微的透明度差异，
+  // 不是之前那种整个格子60%不透明度的明显区别，不会重新变乱。
+  document.querySelectorAll('.cal-d:not(.cal-has-data) .cal-d-num').forEach(e=>{e.style.color=textCol+'B3'});
   document.querySelectorAll('.tg').forEach(e=>e.style.color=textCol);
   document.querySelectorAll('.btn').forEach(e=>{
     if(!e.closest('.add-box')&&!e.closest('.sum-box'))e.style.color=textCol;
@@ -4665,6 +4697,9 @@ ${all.map(s=>`${s.icon} 「${s.name}」— ${s.feel||''}`).join('\n')}
     aiRow.dataset.pendingIcon=written.icon||'✨';
     aiRow.dataset.pendingName=written.name;
     aiRow.dataset.pendingFeel=written.feel||'';
+    // 存下这次写词依据的"感觉核心"，供"重新生成"按钮用——不用重新走一遍判断步骤，
+    // 直接拿同一个概念再写一版不一样的词。
+    aiRow.dataset.pendingConcept=concept;
     const clarifyHtml=judge.clarify?`<div class="guan-ai-clarify">${escapeHtml(judge.clarify)}
       <input id="guanClarifyInput" placeholder="回答会让词更准，不答也行">
       <a onclick="guanRefineWithClarify()">回答后重新想</a>
@@ -4675,6 +4710,7 @@ ${all.map(s=>`${s.icon} 「${s.name}」— ${s.feel||''}`).join('\n')}
       ${clarifyHtml}
       <div class="guan-ai-card-acts">
         <button class="guan-ai-dismiss" onclick="guanDismissAiSuggestion()">忽略</button>
+        <button class="guan-ai-regen" onclick="guanRegenerateAiWord()">换一个</button>
         <button class="guan-ai-accept" onclick="guanAcceptAiSuggestion()">采纳</button>
       </div>
     </div>`;
@@ -4710,11 +4746,58 @@ async function guanRefineWithClarify(){
     aiRow.dataset.pendingIcon=written.icon||'✨';
     aiRow.dataset.pendingName=written.name;
     aiRow.dataset.pendingFeel=written.feel||'';
+    aiRow.dataset.pendingConcept=`${entry.reason||''}；补充：${answer}`;
     aiRow.innerHTML=`<div class="guan-ai-card">
       <div class="guan-ai-card-hint">AI 发现一个新状态</div>
       <div class="guan-ai-card-word">${written.icon||'✨'} 「${escapeHtml(written.name)}」——${escapeHtml(written.feel||'')}</div>
       <div class="guan-ai-card-acts">
         <button class="guan-ai-dismiss" onclick="guanDismissAiSuggestion()">忽略</button>
+        <button class="guan-ai-regen" onclick="guanRegenerateAiWord()">换一个</button>
+        <button class="guan-ai-accept" onclick="guanAcceptAiSuggestion()">采纳</button>
+      </div>
+    </div>`;
+  }catch(err){
+    aiRow.innerHTML=`<div class="guan-ai-loading">${escapeHtml(err.message||'这一次没看清，再试试')}</div>`;
+    setTimeout(()=>{
+      if(aiRow)aiRow.innerHTML=`<button class="guan-ai-ask" onclick="guanAskAiState()">✨ 问问 AI 这算什么状态</button>`;
+    },2200);
+  }
+}
+
+// "换一个"——不满意这次AI写的词，拿同一个感觉核心再写一版，明确要求跟上一次
+// 不一样，不用重新走一遍"判断该不该造新词"那一步（那一步已经确认过该造了）。
+async function guanRegenerateAiWord(){
+  const aiRow=document.getElementById('guanAiRow');
+  if(!aiRow)return;
+  const concept=aiRow.dataset.pendingConcept;
+  const prevName=aiRow.dataset.pendingName;
+  if(!concept)return;
+  const all=guanAllStates();
+  aiRow.innerHTML=`<div class="guan-ai-loading">✨ AI 正在换一个角度想…</div>`;
+  try{
+    const writePrompt=`请给下面这个感觉核心重新取一个词，风格要跟这几个例子完全一样——都是1-2个字的词，配一个贴切的 emoji，feel 是几个用"、"连起来的短语，不是完整解释句：
+🌕「盈」— 充盈、满溢、感恩的满足
+🏔️「根」— 有根、落地、踏实、不慌
+🍷「酥」— 微醉、脸热、飘然、身体软
+
+这次要命名的感觉核心："${concept}"
+
+上一次给的词是「${prevName}」，这次必须换一个不一样的词——可以是换个角度、换个更贴切的意象，或者侧重这个感觉核心里不同的那一面，不能只是近义词换皮。
+不能用这些已经存在的名字：${all.map(s=>s.name).join('、')}，也不能是「${prevName}」。
+
+只返回 JSON，不要有其他文字：{"icon":"...","name":"...","feel":"..."}`;
+    const written=await callClaudeJSON(writePrompt,'请换一个角度重新命名。');
+    if(!written||!written.name)throw new Error('这次没能写出来，再试一次');
+    aiRow.dataset.pendingIcon=written.icon||'✨';
+    aiRow.dataset.pendingName=written.name;
+    aiRow.dataset.pendingFeel=written.feel||'';
+    aiRow.dataset.pendingConcept=concept;
+    aiRow.innerHTML=`<div class="guan-ai-card">
+      <div class="guan-ai-card-hint">AI 发现一个新状态</div>
+      <div class="guan-ai-card-word">${written.icon||'✨'} 「${escapeHtml(written.name)}」——${escapeHtml(written.feel||'')}</div>
+      <div class="guan-ai-card-acts">
+        <button class="guan-ai-dismiss" onclick="guanDismissAiSuggestion()">忽略</button>
+        <button class="guan-ai-regen" onclick="guanRegenerateAiWord()">换一个</button>
         <button class="guan-ai-accept" onclick="guanAcceptAiSuggestion()">采纳</button>
       </div>
     </div>`;
@@ -4734,7 +4817,7 @@ function guanAcceptAiSuggestion(){
   // 保险起见：就算 AI 万一还是取了个重名，这里也不让它真的存进去，避免两个状态共用一个字。
   if(guanAllStates().some(s=>s.name===name)){
     aiRow.innerHTML=`<div class="guan-ai-loading" style="animation:none">「${escapeHtml(name)}」这个字已经在用了，没能存成新词</div>`;
-    delete aiRow.dataset.pendingIcon;delete aiRow.dataset.pendingName;delete aiRow.dataset.pendingFeel;
+    delete aiRow.dataset.pendingIcon;delete aiRow.dataset.pendingName;delete aiRow.dataset.pendingFeel;delete aiRow.dataset.pendingConcept;
     return;
   }
   guanCustomStates.push({
@@ -4764,7 +4847,7 @@ function guanAcceptAiSuggestion(){
   }
   guanBuildEmojiRow();
   aiRow.innerHTML=`<div class="guan-ai-loading" style="animation:none">已经加进你的词库了 · 下次可以直接选「${escapeHtml(name)}」</div>`;
-  delete aiRow.dataset.pendingIcon;delete aiRow.dataset.pendingName;delete aiRow.dataset.pendingFeel;
+  delete aiRow.dataset.pendingIcon;delete aiRow.dataset.pendingName;delete aiRow.dataset.pendingFeel;delete aiRow.dataset.pendingConcept;
   guanScheduleCollapse();
 }
 
@@ -5526,6 +5609,11 @@ function recContinueTimer(){
   if(!tagEls.length)return;
   const tagIds=Array.from(tagEls).map(el=>el.dataset.tid).filter(id=>tags.find(t=>t.id===id));
   if(!tagIds.length)return;
+  // 这里之前引用了一个从没定义过的变量 tag（是改多标签支持时漏掉没同步的一处）——
+  // 只要点这个"继续计时"按钮就会直接报错，整个功能等于是坏的。改成正确地
+  // 从选中的这些标签里算出显示文字，跟其它地方（开始计时、恢复计时）保持一致。
+  const selTags=tagIds.map(id=>tags.find(t=>t.id===id)).filter(Boolean);
+  if(!selTags.length)return;
   closeRecEditor();
   // Set tags
   selTagIds=tagIds;
@@ -5544,7 +5632,7 @@ function recContinueTimer(){
   document.getElementById('tIdle').style.display='none';
   document.getElementById('tRun').style.display='block';
   document.getElementById('tPaused').style.display='none';
-  document.getElementById('tTag').textContent=tag.name;
+  document.getElementById('tTag').textContent=selTags.length>1?selTags.map(t=>t.name).join('、')+'（同时进行）':selTags[0].name;
   document.getElementById('tMeta').textContent=pad(sh)+':'+pad(sm)+' 开始';
   document.getElementById('actI').style.display='none';
   document.getElementById('actR').style.display='flex';
@@ -7272,8 +7360,10 @@ function renderCal(){
     const hasMk=marks.length>0;
     // 日历格子上的标记：今天(细圈) + 有事件(浅色圆) + 个人标签(emoji)。
     // 记录（计时/情绪/睡眠）不再单独画点——但还是照常参与"点这天该跳去哪"的判断
-    // （下面的 onclick），只是不再单独画出来。
-    d.className='cal-d'+(isT?' today':'')+(hasEv?' has-ev':'');
+    // （下面的 onclick），也参与下面这个"这天有没有任何内容"的判断，用来把完全
+    // 空白的日子数字调淡一点点，帮着分清"这天有过东西"和"这天什么都没有"。
+    const hasAny=has||hasEv||hasMk;
+    d.className='cal-d'+(isT?' today':'')+(hasEv?' has-ev':'')+(hasAny?' cal-has-data':'');
     let inner=`<span class="cal-d-num">${day}</span>`;
     const rowEmoji=marks.map(m=>m.emoji);
     if(rowEmoji.length){
@@ -9638,6 +9728,16 @@ function hcDeleteQuickEmoji(i){
   sv('habitQuickEmoji',HABIT_QUICK_EMOJI);
   hcRenderEmoji();
 }
+// 判断一个字符是不是"看起来像 emoji"——emoji 的 Unicode 码位普遍远高于拉丁字母、
+// 常见拼音搜索用的字符，用这个粗略但可靠的阈值可以分清"用户还在打字搜索"和
+// "已经从系统 emoji 键盘上点了一个"。之前是不管三七二十一，只要输入框里有内容
+// 变化就当成"选中了"，直接把当时那个字符（哪怕只是搜索用的字母）抓走、清空、
+// 关闭输入框——这就是搜索 emoji 时一打字就卡死、变成字母的原因。
+function isLikelyEmojiChar(ch){
+  if(!ch)return false;
+  const cp=ch.codePointAt(0);
+  return cp>=0x203C;
+}
 // Open the phone's native emoji keyboard via a barely-there input (no visible textbox chrome)
 function hcOpenEmojiKeyboard(){
   toast('从键盘选一个 emoji');
@@ -9652,19 +9752,21 @@ function hcOpenEmojiKeyboard(){
     inp.setAttribute('inputmode','text');
     document.body.appendChild(inp);
     inp.addEventListener('input',()=>{
-      const v=inp.value.trim();
-      if(v){
-        const chars=Array.from(v);
-        const picked=chars[chars.length-1];
-        habitDraft.emoji=picked;
-        if(!HABIT_QUICK_EMOJI.includes(picked)){
-          HABIT_QUICK_EMOJI.push(picked);
-          sv('habitQuickEmoji',HABIT_QUICK_EMOJI);
-        }
-        inp.value='';
-        inp.blur();
-        hcRenderEmoji();
+      const v=inp.value;
+      if(!v)return;
+      const chars=Array.from(v);
+      const picked=chars[chars.length-1];
+      // 还在打字搜索（比如打"mao"找猫的emoji）——先别关，让用户继续搜，
+      // 只有真的选中了一个emoji本体才往下走。
+      if(!isLikelyEmojiChar(picked))return;
+      habitDraft.emoji=picked;
+      if(!HABIT_QUICK_EMOJI.includes(picked)){
+        HABIT_QUICK_EMOJI.push(picked);
+        sv('habitQuickEmoji',HABIT_QUICK_EMOJI);
       }
+      inp.value='';
+      inp.blur();
+      hcRenderEmoji();
     });
   }
   inp.focus();
@@ -10005,8 +10107,7 @@ function hdItemsRender(){
         <div class="hd-item-tile-emoji">${it.emoji||'💊'}</div>
         <div class="hd-item-tile-name">${escapeHtml(it.name)}</div>
       </div>`;
-    }).join('')}</div>
-    ${items.length?'<div class="hd-items-hint">点格子勾选今天 · 长按看功效</div>':''}`;
+    }).join('')}</div>`;
   attachHdItemTileEvents();
 }
 function attachHdItemTileEvents(){
@@ -10016,7 +10117,10 @@ function attachHdItemTileEvents(){
     const start=()=>{longPressed=false;timer=setTimeout(()=>{
       longPressed=true;
       if(navigator.vibrate)navigator.vibrate(30);
-      hdItemEditStart(id);
+      // 长按是"看功效"，不是直接进编辑——提示文字写的是"长按看功效"，
+      // 之前这里却直接跳编辑表单，文字和实际行为对不上。现在长按先弹出一个
+      // 小卡片，安静地显示这一项的功效说明；真要改，卡片里有个"编辑"链接。
+      hdItemShowInfo(id);
     },480);};
     const cancel=()=>{if(timer)clearTimeout(timer);};
     el.addEventListener('touchstart',start,{passive:true});
@@ -10030,6 +10134,38 @@ function attachHdItemTileEvents(){
       hdItemToggleToday(id);
     });
   });
+}
+// 长按弹出的"看功效"小卡片——纯展示，不是编辑表单。点卡片里的"编辑"才会
+// 真正打开可以改名字/功效/emoji的表单；点卡片外面直接关掉，不留痕迹。
+function hdItemShowInfo(id){
+  document.querySelectorAll('.hd-item-info-pop').forEach(p=>p.remove());
+  const h=habits.find(x=>x.id===habitDetailId);if(!h)return;
+  const it=(h.items||[]).find(i=>i.id===id);if(!it)return;
+  const el=document.querySelector(`.hd-item-tile[data-hiid="${id}"]`);
+  if(!el)return;
+  const pop=document.createElement('div');
+  pop.className='hd-item-info-pop';
+  pop.innerHTML=`
+    <div class="hd-item-info-head">${it.emoji||'💊'} ${escapeHtml(it.name)}</div>
+    <div class="hd-item-info-note">${it.note?escapeHtml(it.note):'还没写下缘由'}</div>
+    <a class="hd-item-info-edit">编辑</a>
+  `;
+  pop.querySelector('.hd-item-info-edit').onclick=()=>{pop.remove();hdItemEditStart(id);};
+  document.body.appendChild(pop);
+  const rect=el.getBoundingClientRect();
+  const popW=180;
+  pop.style.left=Math.max(8,Math.min(window.innerWidth-popW-8,rect.left+rect.width/2-popW/2))+'px';
+  pop.style.top=(rect.bottom+8)+'px';
+  setTimeout(()=>{
+    const closeOnce=(e)=>{
+      if(pop.contains(e.target))return;
+      pop.remove();
+      document.removeEventListener('click',closeOnce);
+      document.removeEventListener('touchstart',closeOnce);
+    };
+    document.addEventListener('click',closeOnce);
+    document.addEventListener('touchstart',closeOnce);
+  },400);
 }
 function hdItemToggleToday(itemId){
   const h=habits.find(x=>x.id===habitDetailId);if(!h)return;
@@ -10051,49 +10187,64 @@ function hdItemFormShow(itemId){
   if(!slot)return;
   const curEmoji=item?(item.emoji||'💊'):'💊';
   slot.innerHTML=`<div class="hd-item-form" id="hdItemForm" data-emoji="${curEmoji}">
-    <div class="hd-item-emoji-pick" id="hdItemEmojiPick" onclick="hdItemOpenEmojiKb()">${curEmoji}</div>
+    <div class="hc-emoji-row" id="hdItemEmojiRow"></div>
     <input id="hdItemNameInput" placeholder="名字，比如「钙片」" value="${item?escapeHtml(item.name):''}" maxlength="30">
-    <textarea id="hdItemNoteInput" placeholder="功效、用法之类，随手写">${item?escapeHtml(item.note||''):''}</textarea>
+    <textarea id="hdItemNoteInput" placeholder="">${item?escapeHtml(item.note||''):''}</textarea>
     <div class="hd-item-form-acts">
       ${item?`<a onclick="hdItemDelete('${itemId}')">删除</a>`:'<a onclick="hdItemFormCancel()">取消</a>'}
       <a class="primary" onclick="hdItemSave(${item?`'${itemId}'`:'null'})">保存</a>
     </div>
   </div>`;
+  hdItemRenderEmojiRow();
   setTimeout(()=>document.getElementById('hdItemNameInput')?.focus(),50);
+}
+// 一排可以直接点的常用emoji——跟习惯创建时选图标共用同一份"常用列表"，
+// 不用每次都呼出系统键盘那套。点"+"才会退回到键盘输入，用来找列表里没有的。
+// 一份分类摆开的、够全的 emoji 表——不是只挑十几个"常用"塞给你，而是按主题
+// 摆开几百个，滚动就能看到全部，点一下就选中，全程不用碰系统输入法。
+const EMOJI_PICKER_SET=[
+  ['心情',['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','😴','🤤','😪','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕','🥱']],
+  ['手势与人',['👍','👎','👌','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','👇','☝️','✋','🤚','🖐️','🖖','👋','🤝','🙏','💪','🧘','🧘‍♀️','🙆','🙅','🤷','🚶','🏃','💃','🕺','👶','🧑','👧','👦','👩','👨','🧓','👵','👴']],
+  ['动物',['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🐤','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐢','🐍','🦎','🐙','🦑','🦀','🐡','🐠','🐟','🐬','🐳','🐋','🦈','🐊','🐅','🦓','🐘','🦒','🐪','🐫','🐐','🦌','🐕','🐈','🐓','🦃','🦜','🐁','🐿️']],
+  ['食物',['🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🍒','🍑','🥭','🍍','🥝','🍅','🥑','🥦','🥒','🌶️','🌽','🥕','🧄','🧅','🥔','🍠','🥐','🍞','🧀','🥚','🍳','🥞','🥓','🍗','🍖','🌭','🍔','🍟','🍕','🥪','🌮','🌯','🥗','🍝','🍜','🍲','🍣','🍱','🥟','🍤','🍙','🍘','🍧','🍨','🍦','🎂','🍰','🍮','🍭','🍫','🍿','🍩','🍪','🥜','🍯','☕','🍵','🥤','🍺','🍷','🍸']],
+  ['活动与运动',['⚽','🏀','🏈','⚾','🎾','🏐','🏓','🏸','🏒','🏹','🎣','🥊','🎽','🛹','⛷️','🏂','🏋️','🤸','🚴','🏆','🥇','🎖️','🎫','🎪','🎭','🎨','🎬','🎤','🎧','🎼','🎹','🥁','🎷','🎸','🎻','🎲','🧩','🎯','🎳','🎮']],
+  ['健康与物品',['💊','💉','🩹','🩺','🌡️','🧴','🧻','🪥','🧼','🛁','💰','💵','💎','⚖️','🔧','🔨','⚙️','🧰','🔩','🗡️','🔫','📿','🔮','💡','🔦','📖','📚','📝','💼','📁','📅','📌','✂️','🔒','🔑','🚪','🛏️','🪑','🚿','🧹','🧺','🛒']],
+  ['自然与天气',['☀️','🌤️','⛅','☁️','🌦️','🌧️','⛈️','🌩️','❄️','☃️','⛄','🌬️','🌪️','🌈','☂️','⚡','🔥','💧','🌊','🌙','⭐','✨','🌸','🌼','🌻','🌹','🌵','🌲','🍀','🍁']],
+  ['符号',['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','☮️','☯️','✡️','🕉️','🔯','💠','⚛️','♻️','✅','❌','⭕','❗','❓','💯','🆗','🆕','🔥','⚡','💤','💫']]
+];
+// 弹一个可以滚动浏览全部分类的选择面板——用一个回调函数接收选中的emoji，
+// 不同地方（清单条目、以后可能的其它入口）都可以复用同一个面板。
+function openEmojiPickerPanel(onPick){
+  document.querySelectorAll('.emoji-picker-bg').forEach(p=>p.remove());
+  const bg=document.createElement('div');
+  bg.className='emoji-picker-bg';
+  bg.onclick=(e)=>{if(e.target===bg)bg.remove();};
+  const body=EMOJI_PICKER_SET.map(([label,list])=>`
+    <div class="emoji-picker-cat-lbl">${label}</div>
+    <div class="emoji-picker-grid">${list.map(e=>`<span onclick="this.closest('.emoji-picker-bg').__onPick('${e}')">${e}</span>`).join('')}</div>
+  `).join('');
+  bg.innerHTML=`<div class="emoji-picker-box">
+    <div class="emoji-picker-hd"><span></span><span class="emoji-picker-close" onclick="this.closest('.emoji-picker-bg').remove()">✕</span></div>
+    <div class="emoji-picker-scroll">${body}</div>
+  </div>`;
+  bg.__onPick=(e)=>{onPick(e);bg.remove();};
+  document.body.appendChild(bg);
+}
+function hdItemRenderEmojiRow(){
+  const row=document.getElementById('hdItemEmojiRow');
+  const form=document.getElementById('hdItemForm');
+  if(!row||!form)return;
+  const cur=form.dataset.emoji||'💊';
+  row.innerHTML=`<div class="hd-item-emoji-pick" onclick="openEmojiPickerPanel(hdItemPickEmoji)">${cur}</div>`;
+}
+function hdItemPickEmoji(e){
+  const form=document.getElementById('hdItemForm');
+  if(form)form.dataset.emoji=e;
+  hdItemRenderEmojiRow();
 }
 function hdItemFormCancel(){
   const slot=document.getElementById('hdItemFormSlot');
   if(slot)slot.innerHTML='';
-}
-// 呼出手机自带的 emoji 键盘——跟习惯本身选图标用的是同一套办法（一个几乎看不见的
-// 输入框，捕捉你在系统键盘上选的最后一个字符），不用自己另外维护一套emoji列表。
-function hdItemOpenEmojiKb(){
-  toast('从键盘选一个 emoji');
-  let inp=document.getElementById('hdItemEmojiKbInput');
-  if(!inp){
-    inp=document.createElement('input');
-    inp.id='hdItemEmojiKbInput';
-    inp.type='text';
-    inp.className='hc-emoji-kb-input';
-    inp.autocomplete='off';
-    inp.autocapitalize='off';
-    inp.setAttribute('inputmode','text');
-    document.body.appendChild(inp);
-    inp.addEventListener('input',()=>{
-      const v=inp.value.trim();
-      if(v){
-        const chars=Array.from(v);
-        const picked=chars[chars.length-1];
-        const form=document.getElementById('hdItemForm');
-        const pick=document.getElementById('hdItemEmojiPick');
-        if(form)form.dataset.emoji=picked;
-        if(pick)pick.textContent=picked;
-        inp.value='';
-        inp.blur();
-      }
-    });
-  }
-  inp.focus();
 }
 function hdItemSave(itemId){
   const h=habits.find(x=>x.id===habitDetailId);if(!h)return;
