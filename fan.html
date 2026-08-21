@@ -1487,7 +1487,8 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .hd-item-tile.dragging{position:fixed;z-index:500;
   box-shadow:0 12px 30px rgba(0,0,0,.4);transform:scale(1.04);opacity:.96;
   transition:none;pointer-events:none}
-.hd-item-tile.drag-over{border-color:rgba(232,180,150,.6);background:rgba(232,180,150,.1)}
+.hd-item-tile-placeholder{border-radius:14px;background:rgba(255,255,255,.02);
+  border:1px dashed rgba(255,255,255,.08)}
 .hd-items-hint{text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;
   font-size:10px;color:rgba(255,255,255,.3);margin-bottom:14px}
 .hd-item-form{padding:14px 10px 10px;border-radius:10px;background:rgba(255,255,255,.06);
@@ -5254,12 +5255,32 @@ function renderTags(){
     el.innerHTML=`<span class="tg-dot" style="background:${t.color}"></span>${t.name}<span class="tg-x" onclick="event.stopPropagation();delTag('${t.id}')">✕</span>`;
     // 点一下 = 加入这次要挂的标签集合；再点一下 = 移出。可以同时选好几个——
     // 比如"等AI回复的时候顺便看书"，就把"写代码"和"看书"都选上，一起开始计时。
+    // 这一排标签在计时进行中(running/paused)也照样能点——正做着A，做着做着
+    // 想同时做B了，直接点一下B，就会并进当前这段正在跑的计时里，不用先停再开。
     el.onclick=()=>{
       if(editing)return;
+      const active=tState==='running'||tState==='paused';
       const i=selTagIds.indexOf(t.id);
-      if(i>-1)selTagIds.splice(i,1);
+      if(i>-1&&active&&selTagIds.length<=1)return; // 正在计时时不能把最后一个标签也点掉
+      // 正在跑（不是暂停）的时候改标签组合——先把"到现在为止"这一段，按切换之前
+      // 的标签组合，存成一条独立的记录，再把计时起点重置到这一刻。这样最后回看
+      // 的时候，能看到"14:00-14:10 只有A""14:10-14:30 A、B同时进行"这样连续但
+      // 分开的两条记录，而不是笼统的一条"14:00-14:30 A、B同时进行"，看不出B到底
+      // 是几点几分才加进来的。
+      if(tState==='running')splitTimerSegment();
+      if(i>-1)selTagIds.splice(selTagIds.indexOf(t.id),1);
       else selTagIds.push(t.id);
       document.getElementById('startBtn').disabled=selTagIds.length===0;
+      if(active){
+        const selTags=selTagIds.map(id=>tags.find(x=>x.id===id)).filter(Boolean);
+        if(selTags.length){
+          document.getElementById('tTag').textContent=selTags.length>1
+            ?selTags.map(x=>x.name).join('、')+'（同时进行）':selTags[0].name;
+          const now=new Date();
+          document.getElementById('tMeta').textContent=pad(now.getHours())+':'+pad(now.getMinutes())+' 开始';
+          saveTimerState();
+        }
+      }
       renderTags();
     };
     row.appendChild(el);
@@ -5391,6 +5412,38 @@ function resumeTimer(){
   saveTimerState();
   document.getElementById('tPaused').style.display='none';
   document.getElementById('actP').style.display='none';document.getElementById('actR').style.display='flex';
+}
+// 正在跑的时候改标签组合——把"到现在为止"这一段先存成一条独立、完整的记录
+// （用的是切换之前的标签组合），再把计时起点重置到这一刻，后面继续计时。
+// 这样一段"先专心做A、后来加入B一起做"的时间，最后会变成两条前后相接、
+// 各自标签组合和时长都准确的记录，而不是笼统的一条"全程A、B同时进行"，
+// 看不出B到底是几点几分才真正加进来的——这对以后想让AI看懂这段时间发生了
+// 什么，是更清楚、更不会引起误解的记法。
+function splitTimerSegment(){
+  if(tState!=='running')return;
+  const now=Date.now();
+  const dur=Math.floor((now-tStart-tPausedTotal)/1000);
+  if(dur>0){
+    const selTags=selTagIds.map(id=>tags.find(x=>x.id===id)).filter(Boolean);
+    if(selTags.length){
+      const first=selTags[0];
+      const rec={tagId:first.id,tagName:first.name,tagColor:first.color,start:tStart,end:now,duration:dur};
+      if(selTags.length>1){
+        rec.tagIds=selTags.map(x=>x.id);
+        rec.tagNames=selTags.map(x=>x.name);
+        rec.tagColors=selTags.map(x=>x.color);
+      }
+      const recDk=dkOf(tStart);
+      if(!allDays[recDk])allDays[recDk]=[];
+      allDays[recDk].push(rec);
+      todayRecs=allDays[todayK()]||[];
+      if(!allDays[todayK()])allDays[todayK()]=todayRecs;
+      sv('days',allDays);
+      renderRecs();
+    }
+  }
+  tStart=now;
+  tPausedTotal=0;
 }
 function stopTimer(){
   if(tState!=='running'&&tState!=='paused')return;
@@ -10164,7 +10217,19 @@ function hdItemStartDrag(el,id,x,y){
   const grid=document.getElementById('hdItemsGrid');
   if(!grid)return;
   const rect=el.getBoundingClientRect();
-  hdDragState={id,el,grid,offsetX:x-rect.left,offsetY:y-rect.top,targetId:id};
+  // 关键修复：习惯详情弹窗那一层用了 backdrop-filter（磨砂模糊效果）。CSS 有条
+  // 不太直观的规则——祖先元素只要用了 backdrop-filter/transform 这类属性，子元素的
+  // position:fixed 就不再相对"整个屏幕"定位，而是相对那个祖先定位，弹窗内部如果
+  // 还带滚动，偏移会更明显。这就是"长按之后卡片一下子飘到一边"的真正原因。
+  // 解决办法：拿起卡片的这一刻，把它整个挪到 <body> 最外层，彻底脱离弹窗那层的
+  // 影响，这样 position:fixed 才会像预期的那样，真的跟着手指在屏幕上走。
+  const placeholder=document.createElement('div');
+  placeholder.className='hd-item-tile-placeholder';
+  placeholder.style.width=rect.width+'px';
+  placeholder.style.height=rect.height+'px';
+  el.parentNode.insertBefore(placeholder,el);
+  document.body.appendChild(el);
+  hdDragState={id,el,grid,placeholder,offsetX:x-rect.left,offsetY:y-rect.top,targetId:id};
   el.classList.add('dragging');
   el.style.width=rect.width+'px';
   el.style.height=rect.height+'px';
@@ -10180,10 +10245,9 @@ function hdItemStartDrag(el,id,x,y){
     const under=document.elementFromPoint(cx,cy);
     hdDragState.el.style.pointerEvents='';
     const overTile=under&&under.closest&&under.closest('.hd-item-tile');
-    document.querySelectorAll('.hd-item-tile.drag-over').forEach(t2=>t2.classList.remove('drag-over'));
-    if(overTile&&overTile!==hdDragState.el&&overTile.dataset.hiid){
+    if(overTile&&overTile!==hdDragState.el&&overTile.dataset.hiid&&overTile.dataset.hiid!==hdDragState.targetId){
       hdDragState.targetId=overTile.dataset.hiid;
-      overTile.classList.add('drag-over');
+      hdItemPreviewReorder(); // 其它格子实时滑开让位，不用等松手才看到结果
     }
     if(e.cancelable)e.preventDefault();
   };
@@ -10199,11 +10263,54 @@ function hdItemStartDrag(el,id,x,y){
   document.addEventListener('mousemove',move);
   document.addEventListener('mouseup',end);
 }
+// 实时预览"如果现在松手，顺序会变成什么样"——用的是经典的 FLIP 动画技巧：
+// 先记下每个格子现在的屏幕位置(First)，改 CSS 的 order 属性让布局瞬间跳到新的
+// 排列(Last)，再用 transform 把它们"倒骗"回原来的位置看起来好像什么都没变
+// (Invert)，最后清掉这个 transform、让浏览器自己把这段位移平滑过渡过去(Play)。
+// 效果就是苹果那种"拖过去，其它格子滑开让位"的丝滑感，不是瞬间跳过去。
+function hdItemPreviewReorder(){
+  const h=habits.find(x=>x.id===habitDetailId);
+  if(!h||!h.items||!hdDragState)return;
+  const ids=h.items.map(i=>i.id);
+  const from=ids.indexOf(hdDragState.id);
+  const to=ids.indexOf(hdDragState.targetId);
+  if(from<0||to<0)return;
+  const preview=ids.slice();
+  const [moved]=preview.splice(from,1);
+  preview.splice(to,0,moved);
+
+  const tiles=Array.from(document.querySelectorAll('#hdItemsGrid .hd-item-tile'));
+  const firstRects=new Map();
+  tiles.forEach(t=>firstRects.set(t,t.getBoundingClientRect()));
+
+  preview.forEach((pid,idx)=>{
+    const el2=document.querySelector(`#hdItemsGrid .hd-item-tile[data-hiid="${pid}"]`);
+    if(el2)el2.style.order=idx;
+  });
+  if(hdDragState.placeholder)hdDragState.placeholder.style.order=preview.indexOf(hdDragState.id);
+
+  tiles.forEach(t=>{
+    const first=firstRects.get(t);
+    const last=t.getBoundingClientRect();
+    const dx=first.left-last.left,dy=first.top-last.top;
+    if(dx||dy){
+      t.style.transition='none';
+      t.style.transform=`translate(${dx}px,${dy}px)`;
+      requestAnimationFrame(()=>{
+        t.style.transition='transform .22s cubic-bezier(.16,1,.3,1)';
+        t.style.transform='';
+      });
+    }
+  });
+}
 function hdItemEndDrag(){
   if(!hdDragState)return;
-  const {id,targetId}=hdDragState;
-  document.querySelectorAll('.hd-item-tile.drag-over').forEach(t2=>t2.classList.remove('drag-over'));
+  const {id,targetId,el,placeholder}=hdDragState;
   hdDragState=null;
+  // 把临时挪去 body 的这张卡片、还有占位的空格，都清掉——不然重新渲染只会刷新
+  // 清单本身那块区域，这两个游离在外面的元素不会被带走，会变成残留的死节点。
+  if(el&&el.parentNode)el.remove();
+  if(placeholder&&placeholder.parentNode)placeholder.remove();
   if(id!==targetId){
     const h=habits.find(x=>x.id===habitDetailId);
     if(h&&h.items){
@@ -10216,7 +10323,7 @@ function hdItemEndDrag(){
       }
     }
   }
-  hdItemsRender(); // 统一在这里重画一次，把拖动时加的内联定位样式也一起清掉
+  hdItemsRender();
 }
 // 点名字文字弹出的小卡片——纯展示这一项的功效说明，不是编辑表单。
 // 点卡片里的"编辑"才会真正打开可以改名字/功效/emoji的表单；点卡片外面直接关掉。
