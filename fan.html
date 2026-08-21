@@ -1468,18 +1468,26 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   cursor:pointer;line-height:1;padding:0 4px}
 .hd-items-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}
 .hd-item-tile{position:relative;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);
-  border-radius:14px;padding:12px 4px 9px;text-align:center;cursor:pointer;
-  transition:background .25s,border-color .25s;user-select:none;-webkit-user-select:none}
+  border-radius:14px;padding:12px 4px 9px;text-align:center;
+  transition:background .25s,border-color .25s,box-shadow .2s;user-select:none;-webkit-user-select:none;
+  touch-action:pan-y}
 .hd-item-tile.checked{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.16)}
 .hd-item-tile-badge{position:absolute;top:6px;right:6px;width:15px;height:15px;border-radius:50%;
   border:1px solid rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;
-  font-size:9px;color:#1a1613;transition:all .2s}
+  font-size:9px;color:#1a1613;transition:all .2s;cursor:pointer}
 .hd-item-tile.checked .hd-item-tile-badge{background:var(--hgrad,rgba(255,255,255,.6));border-color:transparent}
-.hd-item-tile-emoji{font-size:22px;margin-bottom:6px;opacity:.65;transition:opacity .25s}
+.hd-item-tile-emoji{font-size:22px;margin-bottom:6px;opacity:.65;transition:opacity .25s;cursor:pointer}
 .hd-item-tile.checked .hd-item-tile-emoji{opacity:.55}
 .hd-item-tile-name{font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;
-  color:rgba(255,255,255,.85);letter-spacing:.01em}
+  color:rgba(255,255,255,.85);letter-spacing:.01em;cursor:pointer}
 .hd-item-tile.checked .hd-item-tile-name{color:rgba(255,255,255,.55)}
+/* 拖动——长按（按在卡片任何部位都行）拿起这张卡片，跟着手指/鼠标飘，不抖动、
+   不需要"点两个互换"。拿起的这张会脱离网格变成 fixed 定位跟手走，悬停在哪张
+   卡片上面就轻轻描一圈边框提示"松手会插到这儿"，松手才真正改顺序。 */
+.hd-item-tile.dragging{position:fixed;z-index:500;
+  box-shadow:0 12px 30px rgba(0,0,0,.4);transform:scale(1.04);opacity:.96;
+  transition:none;pointer-events:none}
+.hd-item-tile.drag-over{border-color:rgba(232,180,150,.6);background:rgba(232,180,150,.1)}
 .hd-items-hint{text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;
   font-size:10px;color:rgba(255,255,255,.3);margin-bottom:14px}
 .hd-item-form{padding:14px 10px 10px;border-radius:10px;background:rgba(255,255,255,.06);
@@ -1725,6 +1733,11 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   color:rgba(255,255,255,.92);margin-bottom:6px}
 .hd-item-info-note{font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px;
   color:rgba(255,255,255,.55);line-height:1.6;margin-bottom:8px}
+.hd-item-info-move{display:flex;gap:14px;margin-bottom:8px;padding-bottom:8px;
+  border-bottom:1px solid rgba(255,255,255,.08)}
+.hd-item-info-move a{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;
+  color:rgba(255,255,255,.55);cursor:pointer}
+.hd-item-info-move a.disabled{opacity:.25;pointer-events:none}
 .hd-item-info-edit{display:block;text-align:right;font-family:'Cormorant Garamond',serif;
   font-style:italic;font-size:11px;color:rgba(255,255,255,.5);cursor:pointer}
 
@@ -5415,6 +5428,11 @@ function stopTimer(){
 function resetTimer(){
   if(tInterval){clearInterval(tInterval);tInterval=null;}
   tState='idle';tStart=null;tPausedTotal=0;tPauseStart=null;
+  // 停止计时后，把标签选中状态也清空——之前这里没清，导致"同时"选的那几个
+  // 标签会一直挂着，下次点别的标签是在原有基础上"加"进去，很容易在没注意到
+  // 的情况下又变成同时选中好几个。清空以后每次都是从头选，不会有残留。
+  selTagIds=[];
+  renderTags();
   document.getElementById('tIdle').style.display='block';document.getElementById('tRun').style.display='none';
   document.getElementById('actR').style.display='none';document.getElementById('actP').style.display='none';
   document.getElementById('actI').style.display='flex';
@@ -5607,11 +5625,25 @@ function recContinueTimer(){
   if(!tagEls.length)return;
   const tagIds=Array.from(tagEls).map(el=>el.dataset.tid).filter(id=>tags.find(t=>t.id===id));
   if(!tagIds.length)return;
-  // 这里之前引用了一个从没定义过的变量 tag（是改多标签支持时漏掉没同步的一处）——
-  // 只要点这个"继续计时"按钮就会直接报错，整个功能等于是坏的。改成正确地
-  // 从选中的这些标签里算出显示文字，跟其它地方（开始计时、恢复计时）保持一致。
   const selTags=tagIds.map(id=>tags.find(t=>t.id===id)).filter(Boolean);
   if(!selTags.length)return;
+  // 如果这是在编辑一条已经存在的记录（不是新建/补记），先把原来那条删掉，
+  // 再开始新的计时——之前这里没删，导致"编辑一条记录→改标签→点继续计时"
+  // 会在原记录还在的情况下又另外开一段新的计时，停止后就会多出一条
+  // 时间跟原记录重叠的记录，等于同一段时间被记了两次。
+  if(recEditState.mode==='edit'){
+    const oldRec=todayRecs[recEditState.index];
+    if(oldRec){
+      const oldDk=dkOf(oldRec.start);
+      if(allDays[oldDk]){
+        const idx=allDays[oldDk].findIndex(r=>r.start===oldRec.start&&r.end===oldRec.end&&r.tagId===oldRec.tagId);
+        if(idx>=0)allDays[oldDk].splice(idx,1);
+      }
+      todayRecs=allDays[todayK()]||[];
+      sv('days',allDays);
+      renderRecs();
+    }
+  }
   closeRecEditor();
   // Set tags
   selTagIds=tagIds;
@@ -10005,6 +10037,7 @@ function openHabitDetail(id){
   habitDetailId=id;
   const now=new Date();
   habitDetailMonth={y:now.getFullYear(),m:now.getMonth()};
+  hdDragState=null;
   renderHabitDetail();
 }
 
@@ -10083,33 +10116,110 @@ function hdItemsRender(){
     }).join('')}</div>`;
   attachHdItemTileEvents();
 }
+// 点法拆开了：点 emoji 或右上角那个圆圈 = 打卡；点名字文字 = 看说明。
+// 不再需要一个额外的小图标去挤占地方，用本来就看得见的元素当入口。
+// 长按（在哪个部位按住都行）不触发这两个动作，而是拿起整张卡片，可以真的拖着
+// 移动位置，跟手指走，松手落在哪儿就排在哪儿——不抖动、不用"点两个互换"。
 function attachHdItemTileEvents(){
   document.querySelectorAll('.hd-item-tile').forEach(el=>{
     const id=el.dataset.hiid;
-    let timer=null,longPressed=false;
-    const start=()=>{longPressed=false;timer=setTimeout(()=>{
-      longPressed=true;
-      if(navigator.vibrate)navigator.vibrate(30);
-      // 长按是"看功效"，不是直接进编辑——提示文字写的是"长按看功效"，
-      // 之前这里却直接跳编辑表单，文字和实际行为对不上。现在长按先弹出一个
-      // 小卡片，安静地显示这一项的功效说明；真要改，卡片里有个"编辑"链接。
-      hdItemShowInfo(id);
-    },480);};
-    const cancel=()=>{if(timer)clearTimeout(timer);};
-    el.addEventListener('touchstart',start,{passive:true});
-    el.addEventListener('touchend',cancel);
-    el.addEventListener('touchmove',cancel,{passive:true});
-    el.addEventListener('mousedown',start);
-    el.addEventListener('mouseup',cancel);
-    el.addEventListener('mouseleave',cancel);
-    el.addEventListener('click',()=>{
+    let timer=null,longPressed=false,moved=false;
+    let startX=0,startY=0;
+    const start=(x,y)=>{
+      startX=x;startY=y;longPressed=false;moved=false;
+      timer=setTimeout(()=>{
+        longPressed=true;
+        if(navigator.vibrate)navigator.vibrate(30);
+        hdItemStartDrag(el,id,x,y);
+      },420);
+    };
+    const cancelTimer=()=>{if(timer){clearTimeout(timer);timer=null;}};
+    const onMove=(x,y)=>{
+      if(timer&&!longPressed){
+        if(Math.abs(x-startX)>8||Math.abs(y-startY)>8){moved=true;cancelTimer();}
+      }
+    };
+    el.addEventListener('touchstart',(e)=>{const t=e.touches[0];start(t.clientX,t.clientY);},{passive:true});
+    el.addEventListener('touchmove',(e)=>{const t=e.touches[0];onMove(t.clientX,t.clientY);},{passive:true});
+    el.addEventListener('touchend',cancelTimer);
+    el.addEventListener('mousedown',(e)=>start(e.clientX,e.clientY));
+    el.addEventListener('mousemove',(e)=>onMove(e.clientX,e.clientY));
+    el.addEventListener('mouseup',cancelTimer);
+    el.addEventListener('mouseleave',cancelTimer);
+    const tapAction=(fn)=>(e)=>{
+      e.stopPropagation();
       if(longPressed){longPressed=false;return;}
-      hdItemToggleToday(id);
-    });
+      fn();
+    };
+    el.querySelector('.hd-item-tile-emoji').addEventListener('click',tapAction(()=>hdItemToggleToday(id)));
+    el.querySelector('.hd-item-tile-badge').addEventListener('click',tapAction(()=>hdItemToggleToday(id)));
+    el.querySelector('.hd-item-tile-name').addEventListener('click',tapAction(()=>hdItemShowInfo(id)));
   });
 }
-// 长按弹出的"看功效"小卡片——纯展示，不是编辑表单。点卡片里的"编辑"才会
-// 真正打开可以改名字/功效/emoji的表单；点卡片外面直接关掉，不留痕迹。
+// 真正的拖动——拿起这张卡片跟着手指/鼠标走，悬停在哪张卡片上面就在心里记下
+// "如果这时候松手，会插到这个位置"，松手时才真正把数组顺序改掉、重新渲染一次。
+// 拖动过程中不去动其它卡片的DOM结构（避免跟渲染打架），只让被拖的这张自己飘起来。
+let hdDragState=null;
+function hdItemStartDrag(el,id,x,y){
+  const grid=document.getElementById('hdItemsGrid');
+  if(!grid)return;
+  const rect=el.getBoundingClientRect();
+  hdDragState={id,el,grid,offsetX:x-rect.left,offsetY:y-rect.top,targetId:id};
+  el.classList.add('dragging');
+  el.style.width=rect.width+'px';
+  el.style.height=rect.height+'px';
+  el.style.left=rect.left+'px';
+  el.style.top=rect.top+'px';
+  const move=(e)=>{
+    if(!hdDragState)return;
+    const t=e.touches?e.touches[0]:e;
+    const cx=t.clientX,cy=t.clientY;
+    hdDragState.el.style.left=(cx-hdDragState.offsetX)+'px';
+    hdDragState.el.style.top=(cy-hdDragState.offsetY)+'px';
+    hdDragState.el.style.pointerEvents='none';
+    const under=document.elementFromPoint(cx,cy);
+    hdDragState.el.style.pointerEvents='';
+    const overTile=under&&under.closest&&under.closest('.hd-item-tile');
+    document.querySelectorAll('.hd-item-tile.drag-over').forEach(t2=>t2.classList.remove('drag-over'));
+    if(overTile&&overTile!==hdDragState.el&&overTile.dataset.hiid){
+      hdDragState.targetId=overTile.dataset.hiid;
+      overTile.classList.add('drag-over');
+    }
+    if(e.cancelable)e.preventDefault();
+  };
+  const end=()=>{
+    document.removeEventListener('touchmove',move);
+    document.removeEventListener('touchend',end);
+    document.removeEventListener('mousemove',move);
+    document.removeEventListener('mouseup',end);
+    hdItemEndDrag();
+  };
+  document.addEventListener('touchmove',move,{passive:false});
+  document.addEventListener('touchend',end);
+  document.addEventListener('mousemove',move);
+  document.addEventListener('mouseup',end);
+}
+function hdItemEndDrag(){
+  if(!hdDragState)return;
+  const {id,targetId}=hdDragState;
+  document.querySelectorAll('.hd-item-tile.drag-over').forEach(t2=>t2.classList.remove('drag-over'));
+  hdDragState=null;
+  if(id!==targetId){
+    const h=habits.find(x=>x.id===habitDetailId);
+    if(h&&h.items){
+      const from=h.items.findIndex(x=>x.id===id);
+      const to=h.items.findIndex(x=>x.id===targetId);
+      if(from>=0&&to>=0){
+        const [moved]=h.items.splice(from,1);
+        h.items.splice(to,0,moved);
+        sv('habits',habits);
+      }
+    }
+  }
+  hdItemsRender(); // 统一在这里重画一次，把拖动时加的内联定位样式也一起清掉
+}
+// 点名字文字弹出的小卡片——纯展示这一项的功效说明，不是编辑表单。
+// 点卡片里的"编辑"才会真正打开可以改名字/功效/emoji的表单；点卡片外面直接关掉。
 function hdItemShowInfo(id){
   document.querySelectorAll('.hd-item-info-pop').forEach(p=>p.remove());
   const h=habits.find(x=>x.id===habitDetailId);if(!h)return;
@@ -10145,9 +10255,24 @@ function hdItemToggleToday(itemId){
   const it=(h.items||[]).find(i=>i.id===itemId);if(!it)return;
   const tk=todayK();
   if(!it.log)it.log={};
-  // 纯当天参考——只记今天勾没勾，不影响这个习惯本身的连续打卡记录，
-  // 也不会反过来把整个习惯自动标记完成。
   it.log[tk]=!it.log[tk];
+  // 清单全部勾完 = 这个习惯今天就算完成了，不用再额外点一下习惯本身的打卡按钮；
+  // 反过来，如果之前是靠"清单全部勾完"自动打上的这个勾，现在又有一项被取消了，
+  // 就把这个自动打的勾撤回去——只撤自动打的，你自己手动点的勾不会被这个逻辑碰。
+  const allChecked=(h.items||[]).length>0&&h.items.every(i2=>i2.log&&i2.log[tk]);
+  if(!h.log)h.log={};
+  if(!h.autoDoneByItems)h.autoDoneByItems={};
+  const wasDone=(h.log[tk]||0)>=1;
+  if(allChecked&&!wasDone){
+    h.log[tk]=1;
+    h.autoDoneByItems[tk]=true;
+    const streak=calcHabitStreak(h);
+    if(streak===28||(streak>28&&streak%28===0)){playHabitMilestone();}
+    else{playHabitDaily();}
+  }else if(!allChecked&&wasDone&&h.autoDoneByItems[tk]){
+    delete h.log[tk];
+    delete h.autoDoneByItems[tk];
+  }
   sv('habits',habits);
   hdItemsRender();
 }
