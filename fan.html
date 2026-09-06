@@ -144,16 +144,11 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 /* Tags inline */
 .tags-sec{margin:18px 0 8px}
 .tags-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.voice-quick-row{margin-top:10px;text-align:center}
-.voice-quick-btn{background:none;border:1px dashed rgba(255,255,255,.12);border-radius:100px;
-  padding:6px 14px;cursor:pointer;color:rgba(255,255,255,.4);
-  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;
-  display:inline-flex;align-items:center;gap:6px;transition:all .3s}
-.voice-quick-icon{font-size:13px}
-.voice-quick-btn.listening{border-color:rgba(232,130,110,.5);color:rgba(232,150,130,.85);
-  border-style:solid;animation:voicePulse 1.4s ease-in-out infinite}
-.voice-quick-btn.thinking{border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.65)}
-@keyframes voicePulse{0%,100%{opacity:.7}50%{opacity:1}}
+@keyframes voicePulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.12)}}
+.voice-status{text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:10.5px;color:rgba(255,255,255,.4);min-height:0;margin-top:2px;
+  opacity:0;transition:opacity .3s}
+.voice-status.show{opacity:1;margin-top:6px}
 .tg{padding:6px 14px;border-radius:100px;font-size:11px;letter-spacing:.04em;
   border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
   cursor:pointer;transition:all .35s,color 2s;position:relative;display:flex;align-items:center;gap:6px;
@@ -183,6 +178,10 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .btn:active{transform:scale(.96)}
 .btn:disabled{opacity:.3;cursor:default}
 .btn:disabled:active{transform:none}
+.btn.inactive{opacity:.3;cursor:default}
+.btn.inactive:active{transform:none}
+.btn.inactive.voice-listening{opacity:.9;animation:voicePulse 1.3s ease-in-out infinite;cursor:pointer}
+.btn.inactive.voice-thinking{opacity:.75;animation:aiThinking 1s ease-in-out infinite;cursor:pointer}
 .btn-strong{background:rgba(255,255,255,.16)}
 
 .end-btn{display:block;width:100%;margin-top:12px;padding:12px;border-radius:14px;
@@ -2375,7 +2374,53 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   text-align:center;opacity:.55;margin-bottom:18px;transition:color 2s}
 .guan-divination-btn{position:absolute;right:2px;top:-2px;font-size:11px;opacity:.25;
   cursor:pointer;padding:4px;transition:opacity .3s,color .3s}
-.guan-divination-btn.on{opacity:.85;color:#C08850}
+.guan-divination-btn.on{opacity:.85}
+.guan-card-label.divining{letter-spacing:.45em}
+.guan-gua-chip{display:inline-flex;align-items:center;justify-content:center;
+  font-family:'Noto Serif SC',serif;font-weight:400;min-width:20px;height:20px;padding:0 6px;
+  border-radius:4px;cursor:pointer;user-select:none;-webkit-user-select:none;
+  border:1px solid rgba(255,250,244,.25);opacity:.75;letter-spacing:.02em;
+  transition:background .2s,opacity .15s}
+.guan-gua-chip:active{background:rgba(255,250,244,.1);opacity:.5}
+.guan-gua-chip.manual::after{content:'';display:inline-block;width:4px;height:4px;border-radius:50%;
+  background:currentColor;margin-left:5px;vertical-align:middle;opacity:.7}
+.guan-bu-row{margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,250,244,.1);
+  display:flex;flex-direction:column;align-items:center;gap:14px}
+.guan-bu-lbl{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;
+  opacity:.4;letter-spacing:.08em}
+.guan-bu-line{display:flex;align-items:center;justify-content:center;gap:12px}
+.guan-bu-num{width:40px;height:40px;text-align:center;background:none;
+  border:1px solid rgba(255,250,244,.2);border-radius:50%;color:rgba(255,250,244,.9);
+  font-family:'Noto Serif SC',serif;font-size:16px;padding:0;outline:none;-moz-appearance:textfield;
+  transition:border-color .2s,background .2s}
+.guan-bu-num:focus{border-color:rgba(255,250,244,.4);background:rgba(255,250,244,.04)}
+.guan-bu-num::-webkit-outer-spin-button,.guan-bu-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.guan-bu-go{width:100%;padding:13px;border:1px solid rgba(255,250,244,.18);
+  background:rgba(255,250,244,.05);color:rgba(255,250,244,.85);border-radius:100px;
+  font-family:'Noto Serif SC',serif;font-size:12px;letter-spacing:.3em;cursor:pointer;
+  text-align:center;display:block}
+.gua-reveal-bg{position:fixed;inset:0;z-index:420;background:rgba(10,8,6,.62);
+  backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);
+  display:flex;align-items:center;justify-content:center;padding:24px}
+.gua-reveal-box{position:relative;width:100%;max-width:300px;max-height:80vh;overflow-y:auto;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,250,244,.1);border-radius:18px;
+  backdrop-filter:blur(32px) saturate(150%);-webkit-backdrop-filter:blur(32px) saturate(150%);
+  color:rgba(255,250,244,.92);padding:26px 22px 22px;text-align:center;
+  box-shadow:0 20px 60px rgba(10,8,6,.35);animation:popIn .3s cubic-bezier(.16,1,.3,1)}
+.gua-reveal-close{position:absolute;top:10px;right:14px;opacity:.4;cursor:pointer;font-size:13px;padding:4px}
+.gua-reveal-hd{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;opacity:.45;letter-spacing:.05em}
+.gua-reveal-icon{font-size:26px;margin-top:8px;line-height:1}
+.gua-reveal-name{font-family:'Noto Serif SC',serif;font-weight:300;font-size:30px;letter-spacing:.2em;margin:6px 0 2px}
+.gua-reveal-feel{font-family:'Noto Serif SC',serif;font-weight:300;font-size:11.5px;opacity:.6;letter-spacing:.04em;margin:-10px 0 16px}
+.gua-reveal-sub{font-size:10px;opacity:.4;letter-spacing:.2em;margin-bottom:18px}
+.gua-lines{display:flex;flex-direction:column-reverse;gap:9px;align-items:center;margin:0 auto 16px}
+.gua-line{display:flex;gap:10px;width:64px;height:6px;transition:opacity .45s;border-radius:2px;padding:4px;box-sizing:content-box}
+.gua-line i{flex:1;display:block;height:6px;border-radius:2px;background:rgba(255,250,244,.62)}
+.gua-line.moving{outline:1px solid rgba(255,250,244,.5);outline-offset:2px;border-radius:5px}
+.gua-reveal-change{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;opacity:.55;margin-bottom:16px}
+.gua-reading{font-family:'Noto Serif SC',serif;font-weight:300;font-size:12.5px;line-height:2;text-align:left;opacity:.88;min-height:24px;white-space:pre-wrap}
+.gua-reading-hint{opacity:.4;font-size:11px;font-style:italic;font-family:'Cormorant Garamond',serif}
+.gua-reading-again{display:inline-block;margin-top:10px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;opacity:.4;cursor:pointer}
 .sw-row{display:none;justify-content:center;gap:24px;padding:6px 0;margin-bottom:10px}
 .sw-row.show{display:flex}
 .sw-btn{display:flex;align-items:center;gap:6px;cursor:pointer;
@@ -2773,15 +2818,11 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 
       <div class="tags-sec">
         <div class="tags-row" id="tagsRow"></div>
-        <div class="voice-quick-row">
-          <button class="voice-quick-btn" id="voiceQuickBtn" onclick="voiceStartListening()" title="说话快速开始">
-            <span class="voice-quick-icon">🎙️</span><span class="voice-quick-status" id="voiceQuickStatus">说一句话，直接开始</span>
-          </button>
-        </div>
       </div>
+      <div class="voice-status" id="voiceQuickStatus"></div>
 
       <div class="acts" id="actI">
-        <button class="btn btn-strong" id="startBtn" onclick="startTimer()" disabled>开始</button>
+        <button class="btn btn-strong inactive" id="startBtn">开始</button>
       </div>
       <div class="acts" id="actR" style="display:none">
         <button class="btn" onclick="pauseTimer()">暂停</button>
@@ -4236,10 +4277,204 @@ let guanHiddenFixed = ld('guanHiddenFixed', []);
 // "悟" — 跟其它状态用法完全一样（选它、记录、写缘由、封存、问问 AI），
 // 只是永远排在最后一格：用于"还说不清是什么感觉"的时候，先记下来再靠 AI 帮着辨认。
 const GUAN_WU_STATE = {icon:'🧘',name:'照',color:'#8B7355',feel:'照见此刻情绪',_meta:true};
+// 卜卦模式下，滑杆最后那个固定位置从"照"换成"卜"——两个都是固定的、删不掉的。
+// 滑到"卜"= 心里有件具体的事，郑重地报三个数起一卦（手动）；
+// 滑到其它情绪词 = 正常记录，这一刻的卦按时间自动算（自动）。
+const GUAN_BU_STATE = {icon:'🔮',name:'卜',color:'#8B7355',feel:'心里有事，报三个数问一卦',_meta:true};
 function guanAllStates(){
   const fixed = GUAN_STATES.filter(s=>!guanHiddenFixed.includes(s.name)).map(s=>({...s,_custom:false}));
   const custom = guanCustomStates.map(s=>({...s,_custom:true}));
-  return fixed.concat(custom).concat([GUAN_WU_STATE]);
+  return fixed.concat(custom).concat([guanDivinationMode?GUAN_BU_STATE:GUAN_WU_STATE]);
+}
+
+// ============ 卜卦 (起卦 / 变卦 / 64卦) ============
+// 先天八卦数：1乾 2兑 3离 4震 5巽 6坎 7艮 8坤。每个卦三根爻，数组从下往上，1=阳(实线) 0=阴(断线)。
+const GUA_TRI_LINES={1:[1,1,1],2:[1,1,0],3:[1,0,1],4:[1,0,0],5:[0,1,1],6:[0,1,0],7:[0,0,1],8:[0,0,0]};
+const GUA_TRI_NAMES={1:'乾',2:'兑',3:'离',4:'震',5:'巽',6:'坎',7:'艮',8:'坤'};
+// 64卦名：GUA_NAMES[上卦][下卦]
+const GUA_NAMES={
+  1:{1:'乾',2:'履',3:'同人',4:'无妄',5:'姤',6:'讼',7:'遁',8:'否'},
+  2:{1:'夬',2:'兑',3:'革',4:'随',5:'大过',6:'困',7:'咸',8:'萃'},
+  3:{1:'大有',2:'睽',3:'离',4:'噬嗑',5:'鼎',6:'未济',7:'旅',8:'晋'},
+  4:{1:'大壮',2:'归妹',3:'丰',4:'震',5:'恒',6:'解',7:'小过',8:'豫'},
+  5:{1:'小畜',2:'中孚',3:'家人',4:'益',5:'巽',6:'涣',7:'渐',8:'观'},
+  6:{1:'需',2:'节',3:'既济',4:'屯',5:'井',6:'坎',7:'蹇',8:'比'},
+  7:{1:'大畜',2:'损',3:'贲',4:'颐',5:'蛊',6:'蒙',7:'艮',8:'剥'},
+  8:{1:'泰',2:'临',3:'明夷',4:'复',5:'升',6:'师',7:'谦',8:'坤'}
+};
+// 每一卦配一个 emoji 和一句"气质"（跟"照"里每个状态的 icon + feel 一个路数）——
+// 卦名不再是一个光秃秃的字，一眼能看出大概是什么意思；这两样也会存进记录里给 AI 看。
+// feel 是解释性的短语，不是爻辞原文。
+const GUA_INFO={
+  乾:['☀️','刚健、自强、势头正盛'],坤:['🌍','厚载、承受、安静地托住'],屯:['🌱','初生、艰难起步、万事开头'],
+  蒙:['🌫️','蒙昧、未明、需要被启发'],需:['🌧️','等待、耐心、时机未到'],讼:['⚖️','争执、不平、心里有辩'],
+  师:['🛡️','用兵、纪律、需要统率自己'],比:['🤝','亲近、结盟、找同路人'],小畜:['🌤️','小有积蓄、密云未雨'],
+  履:['👣','如履薄冰、谨慎前行'],泰:['🌸','通泰、天地交、顺畅'],否:['🍂','闭塞、不通、暂时收敛'],
+  同人:['🕯️','同心、与人共、开阔'],大有:['🌾','丰盛、拥有、光明照大'],谦:['🌿','谦下、退让、山藏于地'],
+  豫:['🎶','愉悦、松弛、顺势而动'],随:['🍃','随顺、跟随、放下主张'],蛊:['🪱','积弊、旧事发酵、需要整治'],
+  临:['🌅','临近、俯身照看'],观:['👁️','观照、静看、退一步看清'],噬嗑:['🦷','咬合、决断、处理梗阻'],
+  贲:['🎨','文饰、修饰、外在整理'],剥:['🍁','剥落、消退、旧的在脱落'],复:['🔄','回归、复苏、一阳来复'],
+  无妄:['🌈','不妄动、顺其自然、意外之变'],大畜:['🏔️','积蓄、克制、大有所养'],颐:['🍚','养、饮食、照顾自己'],
+  大过:['🌊','过重、栋梁将弯、超出常度'],坎:['💧','险陷、重险、水行险处'],离:['🔥','附丽、光明、依附而明'],
+  咸:['💞','感应、互相触动、心有所感'],恒:['⏳','恒久、持守、不变的坚持'],遁:['🌙','退避、隐去、暂时抽身'],
+  大壮:['🐏','壮盛、气势、当止则止'],晋:['🌄','前进、上升、明出地上'],明夷:['🌑','光明受伤、晦暗、需藏锋'],
+  家人:['🏡','家、内部关系、各安其位'],睽:['🔀','乖离、分歧、异中求同'],蹇:['🪨','困难、跛行、前有险阻'],
+  解:['🔓','解开、缓解、雷雨作而解'],损:['🍵','减损、舍去、以少为益'],益:['🌳','增益、受益、风雷相助'],
+  夬:['⚔️','决断、决裂、刚决柔'],姤:['🌀','相遇、不期而遇、阴生'],萃:['🌼','聚集、汇聚、人聚'],
+  升:['🎈','上升、渐进、积小成大'],困:['🪢','困顿、受困、泽无水'],井:['🪣','井养、根本、常供不竭'],
+  革:['🦋','变革、改换、旧去新来'],鼎:['🍲','鼎新、承载、烹调成熟'],震:['⚡','震动、惊起、雷动而惧'],
+  艮:['🧘','止、静止、时止则止'],渐:['🦢','渐进、循序、鸿渐于陆'],归妹:['💍','归宿、依附、终有所归'],
+  丰:['🌞','丰盛、盛大、日中则昃'],旅:['🎒','旅居、漂泊、客处他乡'],巽:['🎐','入、顺从、无孔不入'],
+  兑:['😊','悦、和悦、口舌之乐'],涣:['💨','涣散、离散、也可散去阻滞'],节:['🎋','节制、有度、不可过'],
+  中孚:['🕊️','诚信、中心有信、感通'],小过:['🐦','小有过越、宜小事'],既济:['✅','已成、完成、盛极需守'],
+  未济:['🌉','未成、未济、终将有渡']
+};
+function guaTriFromLines(l){
+  for(const k in GUA_TRI_LINES){const t=GUA_TRI_LINES[k];if(t[0]===l[0]&&t[1]===l[1]&&t[2]===l[2])return +k;}
+  return 8;
+}
+// 把上卦/下卦/动爻组装成一条完整、能直接存进记录、AI 一看就懂的卦象数据
+function guaBuild(upper,lower,moving,mode,nums){
+  const lines=GUA_TRI_LINES[lower].concat(GUA_TRI_LINES[upper]); // 六爻，从下往上
+  const changed=lines.slice();changed[moving-1]=changed[moving-1]?0:1;
+  const cLower=guaTriFromLines(changed.slice(0,3)),cUpper=guaTriFromLines(changed.slice(3,6));
+  // 互卦：二三四爻为下、三四五爻为上——传统解卦里代表事情中间的过程/内在状态
+  const hLower=guaTriFromLines(lines.slice(1,4)),hUpper=guaTriFromLines(lines.slice(2,5));
+  // 错卦：六爻阴阳全反；综卦：六爻上下颠倒；交卦：上下卦互换——这三样都是纯算法，
+  // 没有争议，不像"卦主爻"那样需要历代易学家的注解共识，可以放心直接算给 AI 用。
+  const oppLines=lines.map(l=>l?0:1);
+  const oLower=guaTriFromLines(oppLines.slice(0,3)),oUpper=guaTriFromLines(oppLines.slice(3,6));
+  const revLines=lines.slice().reverse();
+  const rLower=guaTriFromLines(revLines.slice(0,3)),rUpper=guaTriFromLines(revLines.slice(3,6));
+  // 中位：二爻、五爻自古是"中位"，没有争议；当位：单数爻(一三五)该是阳、
+  // 双数爻(二四六)该是阴，动爻符不符合这条死规则，也是算出来的，不用查书。
+  const isCentral=moving===2||moving===5;
+  const shouldBeYang=moving%2===1;
+  const isCorrect=!!lines[moving-1]===shouldBeYang;
+  // 应位：初四、二五、三六两两相应——一阴一阳叫"有应"（这一爻不是孤立的，
+  // 有呼应的力量），同性叫"无应"（孤立、没有配合）。这也是固定配对规则，
+  // 不涉及需要查书的解读知识。
+  const correspondMap={1:4,2:5,3:6,4:1,5:2,6:3};
+  const correspondLine=correspondMap[moving];
+  const hasCorrespondence=(!!lines[moving-1])!==(!!lines[correspondLine-1]);
+  return {
+    nuclearName:GUA_NAMES[hUpper][hLower],  // 互卦
+    oppositeName:GUA_NAMES[oUpper][oLower], // 错卦
+    reverseName:GUA_NAMES[rUpper][rLower],  // 综卦
+    crossName:GUA_NAMES[lower][upper],      // 交卦：上下卦互换
+    isCentral,isCorrect,hasCorrespondence,correspondLine, // 动爻居中位/当位/有应
+    mode,                       // 'auto' 时间起卦 / 'manual' 自己报的三个数
+    nums:nums||null,            // manual 时的三个数
+    upper,lower,moving,         // 上卦数、下卦数、动爻位（1-6，从下往上数）
+    name:GUA_NAMES[upper][lower],           // 本卦
+    upperName:GUA_TRI_NAMES[upper],lowerName:GUA_TRI_NAMES[lower],
+    lines,                                   // [1,0,1,...] 1阳0阴，从下往上
+    changedName:GUA_NAMES[cUpper][cLower],   // 变卦
+    icon:(GUA_INFO[GUA_NAMES[upper][lower]]||['✨',''])[0],  // 这一卦的 emoji
+    feel:(GUA_INFO[GUA_NAMES[upper][lower]]||['✨',''])[1],  // 这一卦的气质（解释性短语）
+    reading:null                             // AI 解读（看过之后才存）
+  };
+}
+// 时间起卦（梅花易数时起卦法）：年支+月+日 → 上卦；再加时支+分钟 → 下卦；
+// 上卦数+下卦数 → 动爻。三条原则缺一不可：
+// 1. 分钟真正带进上下卦——之前的漏洞是上卦只用年月日算，这三样在同一天里
+//    根本不会变，结果一整天不管什么时候起卦都是同一个上卦。现在分钟同时
+//    参与上卦和下卦的计算，跨分钟自然变卦，不再是"死数字"。
+// 2. 动爻由上下卦的数字推出，不再单独引入秒/毫秒这类更细的时间——这是传统
+//    时起卦法本来的做法（上卦数+下卦数+时辰数 mod 6），也保证了"同一分钟内
+//    怎么按都是同一卦"这份郑重感：手抖多点一下不会变卦，只有真的跨了一分钟
+//    才会变。之前为了解决"总是同一卦"的bug加了秒和毫秒，其实是矫枉过正，
+//    真正的漏洞在分钟没进上卦，跟要不要加秒无关。
+// 3. 情绪不参与算卦——卦要来自你之外，才谈得上是面镜子；情绪只在AI解读这一步
+//    起作用（把卦和你此刻的状态对照着看），不能反过来决定卦本身长什么样，
+//    否则卦就成了情绪的翻译、自画像，不再是外部的映照。这条是不可动摇的原则，
+//    以后任何想改这条的念头，都要先回来重读这段话。
+function guaAutoFromTs(ts){
+  const d=new Date(ts);const gz=getGanzhi(d);
+  const yB=GZ_BRANCHES.indexOf(gz.year[1])+1;               // 子1…亥12
+  const mB=GZ_BRANCHES.indexOf(gz.month[1]);                 // 支序 0-11
+  const monthNum=((mB-2+12)%12)+1;                           // 寅=1…丑=12
+  const dayNum=d.getDate();
+  const hB=GZ_BRANCHES.indexOf(gz.hour[1])+1;
+  const minNum=d.getMinutes();
+  const upper=(yB+monthNum+dayNum+minNum)%8||8;
+  const lower=(upper+hB+minNum)%8||8;
+  const moving=(upper+lower)%6||6;
+  return guaBuild(upper,lower,moving,'auto',null);
+}
+// 报数起卦：第一个数 → 上卦，第二个数 → 下卦，三数之和 → 动爻
+function guaManual(n1,n2,n3){
+  return guaBuild(n1%8||8,n2%8||8,(n1+n2+n3)%6||6,'manual',[n1,n2,n3]);
+}
+// 给人看、给 AI 看都不会有歧义的一句话描述——导出、AI解读的时候都用这个
+// ============ 爻辞库（第一批：8个纯卦，共48条） ============
+// 每一条都用至少三个独立来源交叉核对过，字一致才收进来；"校对状态"标"已校"
+// 的才允许在解读里引用原文——数据不全没关系，缺的那些卦，AI 就退回"凭自己的
+// 理解讲"，不会因为库不全就出错或者编一条假的进去。
+// 后面 56 卦按同样的标准陆续补，不会一次性囫囵吞枣塞一大堆没核对过的进来。
+const GUA_YAOCI={
+  // ---- 第一批：8个纯卦 ----
+  '乾':{1:{yaoci:'潜龙，勿用。',校对状态:'已校',分歧记录:null},2:{yaoci:'见龙在田，利见大人。',校对状态:'已校',分歧记录:null},3:{yaoci:'君子终日乾乾，夕惕若，厉无咎。',校对状态:'已校',分歧记录:null},4:{yaoci:'或跃在渊，无咎。',校对状态:'已校',分歧记录:null},5:{yaoci:'飞龙在天，利见大人。',校对状态:'已校',分歧记录:null},6:{yaoci:'亢龙，有悔。',校对状态:'已校',分歧记录:null}},
+  '坤':{1:{yaoci:'履霜，坚冰至。',校对状态:'已校',分歧记录:null},2:{yaoci:'直方大，不习无不利。',校对状态:'已校',分歧记录:null},3:{yaoci:'含章可贞，或从王事，无成有终。',校对状态:'已校',分歧记录:null},4:{yaoci:'括囊，无咎无誉。',校对状态:'已校',分歧记录:null},5:{yaoci:'黄裳，元吉。',校对状态:'已校',分歧记录:null},6:{yaoci:'龙战于野，其血玄黄。',校对状态:'已校',分歧记录:null}},
+  '震':{1:{yaoci:'震来虩虩，后笑言哑哑，吉。',校对状态:'已校',分歧记录:null},2:{yaoci:'震来厉，亿丧贝，跻于九陵，勿逐，七日得。',校对状态:'已校',分歧记录:null},3:{yaoci:'震苏苏，震行无眚。',校对状态:'已校',分歧记录:null},4:{yaoci:'震遂泥。',校对状态:'已校',分歧记录:null},5:{yaoci:'震往来厉，亿无丧，有事。',校对状态:'已校',分歧记录:null},6:{yaoci:'震索索，视矍矍，征凶。震不于其躬，于其邻，无咎。婚媾有言。',校对状态:'已校',分歧记录:'部分通俗本作"婚媾有咎"，《周易译注》《本义》均作"有言"，采用后者'}},
+  '艮':{1:{yaoci:'艮其趾，无咎，利永贞。',校对状态:'已校',分歧记录:null},2:{yaoci:'艮其腓，不拯其随，其心不快。',校对状态:'已校',分歧记录:null},3:{yaoci:'艮其限，列其夤，厉薰心。',校对状态:'已校',分歧记录:null},4:{yaoci:'艮其身，无咎。',校对状态:'已校',分歧记录:null},5:{yaoci:'艮其辅，言有序，悔亡。',校对状态:'已校',分歧记录:null},6:{yaoci:'敦艮，吉。',校对状态:'已校',分歧记录:null}},
+  '离':{1:{yaoci:'履错然，敬之，无咎。',校对状态:'已校',分歧记录:null},2:{yaoci:'黄离，元吉。',校对状态:'已校',分歧记录:null},3:{yaoci:'日昃之离，不鼓缶而歌，则大耋之嗟，凶。',校对状态:'已校',分歧记录:null},4:{yaoci:'突如其来如，焚如，死如，弃如。',校对状态:'已校',分歧记录:null},5:{yaoci:'出涕沱若，戚嗟若，吉。',校对状态:'已校',分歧记录:null},6:{yaoci:'王用出征，有嘉折首，获匪其丑，无咎。',校对状态:'已校',分歧记录:'一处现代版本作"获其匪丑"（字序颠倒），多数来源作"获匪其丑"，采用后者'}},
+  '坎':{1:{yaoci:'习坎，入于坎窞，凶。',校对状态:'已校',分歧记录:null},2:{yaoci:'坎有险，求小得。',校对状态:'已校',分歧记录:null},3:{yaoci:'来之坎坎，险且枕，入于坎窞，勿用。',校对状态:'已校',分歧记录:null},4:{yaoci:'樽酒簋贰，用缶，纳约自牖，终无咎。',校对状态:'已校',分歧记录:null},5:{yaoci:'坎不盈，只既平，无咎。',校对状态:'已校',分歧记录:'"只"字部分版本作"祇"，《周易译注》采用"只"，两字古通用，采用前者'},6:{yaoci:'系用徽纆，置于丛棘，三岁不得，凶。',校对状态:'已校',分歧记录:null}},
+  '兑':{1:{yaoci:'和兑，吉。',校对状态:'已校',分歧记录:null},2:{yaoci:'孚兑，吉，悔亡。',校对状态:'已校',分歧记录:null},3:{yaoci:'来兑，凶。',校对状态:'已校',分歧记录:null},4:{yaoci:'商兑未宁，介疾有喜。',校对状态:'已校',分歧记录:null},5:{yaoci:'孚于剥，有厉。',校对状态:'已校',分歧记录:null},6:{yaoci:'引兑。',校对状态:'已校',分歧记录:null}},
+  '巽':{1:{yaoci:'进退，利武人之贞。',校对状态:'已校',分歧记录:null},2:{yaoci:'巽在床下，用史巫纷若，吉，无咎。',校对状态:'已校',分歧记录:null},3:{yaoci:'频巽，吝。',校对状态:'已校',分歧记录:null},4:{yaoci:'悔亡，田获三品。',校对状态:'已校',分歧记录:null},5:{yaoci:'贞吉，悔亡，无不利。无初有终，先庚三日，后庚三日，吉。',校对状态:'已校',分歧记录:null},6:{yaoci:'巽在床下，丧其资斧，贞凶。',校对状态:'已校',分歧记录:null}},
+  // ---- 第二批：履需讼师比小畜泰否 ----
+  '履':{1:{yaoci:'素履，往，无咎。',校对状态:'已校',分歧记录:null},2:{yaoci:'履道坦坦，幽人贞吉。',校对状态:'已校',分歧记录:null},3:{yaoci:'眇能视，跛能履，履虎尾，咥人，凶。武人为于大君。',校对状态:'已校',分歧记录:null},4:{yaoci:'履虎尾，愬愬，终吉。',校对状态:'已校',分歧记录:'易学网提出按《说文》应作"虩虩"更贴合卦义（履卦以虎为轴心意象），但通行本作"愬愬"，采用通行版'},5:{yaoci:'夬履，贞厉。',校对状态:'已校',分歧记录:null},6:{yaoci:'视履考祥，其旋元吉。',校对状态:'已校',分歧记录:'"视履考祥"与"其旋元吉"之间的逗号位置各本略有不同，不影响用字，采用通行断句'}},
+  '需':{1:{yaoci:'需于郊，利用恒，无咎。',校对状态:'已校',分歧记录:null},2:{yaoci:'需于沙，小有言，终吉。',校对状态:'已校',分歧记录:null},3:{yaoci:'需于泥，致寇至。',校对状态:'已校',分歧记录:null},4:{yaoci:'需于血，出自穴。',校对状态:'已校',分歧记录:null},5:{yaoci:'需于酒食，贞吉。',校对状态:'已校',分歧记录:null},6:{yaoci:'入于穴，有不速之客三人来，敬之终吉。',校对状态:'已校',分歧记录:null}},
+  '讼':{1:{yaoci:'不永所事，小有言，终吉。',校对状态:'已校',分歧记录:null},2:{yaoci:'不克讼，归而逋，其邑人三百户，无眚。',校对状态:'已校',分歧记录:'个别低质量来源误作"归而通"，经五个独立来源核对确认应为"归而逋"'},3:{yaoci:'食旧德，贞厉，终吉。或从王事，无成。',校对状态:'已校',分歧记录:null},4:{yaoci:'不克讼，复即命，渝，安贞，吉。',校对状态:'已校',分歧记录:'个别来源误作"复自命"，多数权威来源（含执象易注、高岛断易）确认应为"复即命"'},5:{yaoci:'讼，元吉。',校对状态:'已校',分歧记录:null},6:{yaoci:'或锡之鞶带，终朝三褫之。',校对状态:'已校',分歧记录:null}},
+  '师':{1:{yaoci:'师出以律，否臧凶。',校对状态:'已校',分歧记录:null},2:{yaoci:'在师中吉，无咎，王三锡命。',校对状态:'已校',分歧记录:null},3:{yaoci:'师或舆尸，凶。',校对状态:'已校',分歧记录:null},4:{yaoci:'师左次，无咎。',校对状态:'已校',分歧记录:null},5:{yaoci:'田有禽，利执言，无咎。长子帅师，弟子舆尸，贞凶。',校对状态:'已校',分歧记录:null},6:{yaoci:'大君有命，开国承家，小人勿用。',校对状态:'已校',分歧记录:null}},
+  '比':{1:{yaoci:'有孚比之，无咎。有孚盈缶，终来有它，吉。',校对状态:'已校',分歧记录:'"有它"部分坊本作"有他"，为异体字关系，采用"它"'},2:{yaoci:'比之自内，贞吉。',校对状态:'已校',分歧记录:null},3:{yaoci:'比之匪人。',校对状态:'已校',分歧记录:null},4:{yaoci:'外比之，贞吉。',校对状态:'已校',分歧记录:null},5:{yaoci:'显比，王用三驱，失前禽，邑人不诫，吉。',校对状态:'已校',分歧记录:null},6:{yaoci:'比之无首，凶。',校对状态:'已校',分歧记录:null}},
+  '小畜':{1:{yaoci:'复自道，何其咎，吉。',校对状态:'已校',分歧记录:null},2:{yaoci:'牵复，吉。',校对状态:'已校',分歧记录:null},3:{yaoci:'舆说辐，夫妻反目。',校对状态:'已校',分歧记录:null},4:{yaoci:'有孚，血去惕出，无咎。',校对状态:'已校',分歧记录:null},5:{yaoci:'有孚挛如，富以其邻。',校对状态:'已校',分歧记录:null},6:{yaoci:'既雨既处，尚德载。妇贞厉。月几望。君子征凶。',校对状态:'已校',分歧记录:null}},
+  '泰':{1:{yaoci:'拔茅茹，以其汇。征吉。',校对状态:'已校',分歧记录:'个别低质量来源误作"以其夤"（疑与艮卦"列其夤"混淆的识别错误），四个独立来源确认应为"以其汇"'},2:{yaoci:'包荒，用冯河，不遐遗。朋亡，得尚于中行。',校对状态:'已校',分歧记录:null},3:{yaoci:'无平不陂，无往不复。艰贞无咎。勿恤其孚，于食有福。',校对状态:'已校',分歧记录:null},4:{yaoci:'翩翩，不富以其邻，不戒以孚。',校对状态:'已校',分歧记录:null},5:{yaoci:'帝乙归妹，以祉元吉。',校对状态:'已校',分歧记录:null},6:{yaoci:'城复于隍，勿用师。自邑告命，贞吝。',校对状态:'已校',分歧记录:null}},
+  '否':{1:{yaoci:'拔茅茹，以其汇。贞吉，亨。',校对状态:'已校',分歧记录:null},2:{yaoci:'包承，小人吉，大人否亨。',校对状态:'已校',分歧记录:null},3:{yaoci:'包羞。',校对状态:'已校',分歧记录:null},4:{yaoci:'有命，无咎。畴离祉。',校对状态:'已校',分歧记录:null},5:{yaoci:'休否，大人吉。其亡其亡，系于苞桑。',校对状态:'已校',分歧记录:null},6:{yaoci:'倾否，先否，后喜。',校对状态:'已校',分歧记录:null}}
+};
+// 查这一卦这一爻有没有已校对的原文——没有就返回 null，调用的地方会自然地
+// 回退到"不引用原文，靠AI自己理解讲"，不会因为查不到就出错。
+function guaYaoci(guaName,moving){
+  const entry=GUA_YAOCI[guaName];
+  if(!entry||!entry[moving]||entry[moving].校对状态!=='已校')return null;
+  return entry[moving].yaoci;
+}
+function guaLabel(g){
+  if(!g)return '';
+  const src=g.mode==='manual'?`自己报的数 ${g.nums.join('·')}`:'按时间起卦';
+  const pos=`${g.isCentral?'居中位':'不居中位'}、${g.isCorrect?'当位':'不当位'}、${g.hasCorrespondence?`与第${g.correspondLine}爻有应`:`与第${g.correspondLine}爻无应`}`;
+  const yaoci=guaYaoci(g.name,g.moving);
+  const yaociStr=yaoci?`，爻辞原文「${yaoci}」`:'';
+  return `${g.icon||''}${g.name}卦（${g.feel||''}；${g.upperName}上${g.lowerName}下，${src}，动爻第${g.moving}爻[${pos}]${yaociStr}，互卦${g.nuclearName||'—'}，错卦${g.oppositeName||'—'}，综卦${g.reverseName||'—'}，交卦${g.crossName||'—'}，变${g.changedName}卦）`;
+}
+// 每条情绪记录天生就"有"一卦（完全由时间算出来），老记录也补上，数据才完整。
+// （在 energyLog 声明之后再调用，见下方 guanBackfillIconFeel 旁边）
+function guaBackfill(){
+  let changed=false;
+  (energyLog||[]).forEach(e=>{
+    if(!e.gua&&e.ts&&e.state!=='卜'){e.gua=guaAutoFromTs(e.ts);changed=true;}
+    else if(e.gua&&(!e.gua.icon||!e.gua.feel)){const inf=GUA_INFO[e.gua.name]||['✨',''];e.gua.icon=inf[0];e.gua.feel=inf[1];changed=true;}
+    if(e.gua&&!e.gua.nuclearName&&e.gua.lines){const hL=guaTriFromLines(e.gua.lines.slice(1,4)),hU=guaTriFromLines(e.gua.lines.slice(2,5));e.gua.nuclearName=GUA_NAMES[hU][hL];changed=true;}
+    if(e.gua&&!e.gua.oppositeName&&e.gua.lines){
+      const opp=e.gua.lines.map(l=>l?0:1);
+      const oL=guaTriFromLines(opp.slice(0,3)),oU=guaTriFromLines(opp.slice(3,6));
+      e.gua.oppositeName=GUA_NAMES[oU][oL];
+      const rev=e.gua.lines.slice().reverse();
+      const rL=guaTriFromLines(rev.slice(0,3)),rU=guaTriFromLines(rev.slice(3,6));
+      e.gua.reverseName=GUA_NAMES[rU][rL];
+      e.gua.isCentral=e.gua.moving===2||e.gua.moving===5;
+      e.gua.isCorrect=!!e.gua.lines[e.gua.moving-1]===(e.gua.moving%2===1);
+      changed=true;
+    }
+    if(e.gua&&e.gua.crossName===undefined&&e.gua.upper&&e.gua.lower){
+      e.gua.crossName=GUA_NAMES[e.gua.lower][e.gua.upper];
+      const correspondMap={1:4,2:5,3:6,4:1,5:2,6:3};
+      e.gua.correspondLine=correspondMap[e.gua.moving];
+      e.gua.hasCorrespondence=(!!e.gua.lines[e.gua.moving-1])!==(!!e.gua.lines[e.gua.correspondLine-1]);
+      changed=true;
+    }
+  });
+  if(changed)sv('energyLog',energyLog);
 }
 
 // ============ 干支历计算 (Ganzhi/八字) ============
@@ -4344,6 +4579,7 @@ let energyLog = ld('energyLog', []);
 // 上"这种对不上的状态；这里用现在的 guanCustomStates / guanWordArchive 数据，
 // 尽力把这些历史记录的图标、解释补回来。补不了的情况只有一种：entry.state 本身
 // 还停留在"照"（没有任何线索知道它当时到底被改成了什么词），这种没法回填，跳过。
+guaBackfill();
 (function guanBackfillIconFeel(){
   if(ld('guanIconBackfillDone',false))return;
   let changed=false;
@@ -4556,6 +4792,10 @@ function guanAutoGrowReason(){
 function guanResetPanel(){
   const rec=document.getElementById('gs1Recorded');
   if(rec)rec.classList.remove('show');
+  const buRow=document.getElementById('guanBuNumsRow');
+  if(buRow)buRow.remove();
+  const ri=document.getElementById('gs1ReasonInput');
+  if(ri)ri.placeholder='缘由...';
   const preview=document.getElementById('gs1Preview');
   if(preview)preview.style.display='inline';
   const detail=document.getElementById('gs1Detail');
@@ -4604,6 +4844,11 @@ function guanToggleReason(){
   setTimeout(()=>{input.focus();guanAutoGrowReason();},50);
 }
 
+// 当前这条是不是滑到"卜"记的——是的话，"问问AI这算什么状态"就不该出现（那是给情绪命名用的）
+function guanIsBuEntry(){
+  const e=gs1LastEntryTs?(energyLog||[]).find(x=>x.ts===gs1LastEntryTs):null;
+  return !!(e&&e.state==='卜');
+}
 // Show seal button when user types
 function guanReasonOnInput(){
   guanAutoGrowReason();
@@ -4619,7 +4864,7 @@ function guanReasonOnInput(){
   // 这两件事互不阻挡。只在AI还没开始加载/给结果时才更新这一行，避免打断已经在跑的请求。
   const aiRow=document.getElementById('guanAiRow');
   if(aiRow&&!aiRow.querySelector('.guan-ai-loading')&&!aiRow.querySelector('.guan-ai-card')){
-    if(val.length>=6){
+    if(val.length>=6&&!guanIsBuEntry()){
       aiRow.style.display='block';
       aiRow.innerHTML=`<button class="guan-ai-ask" onclick="guanAskAiState()">✨ 问问 AI 这算什么状态</button>`;
     }else{
@@ -4635,7 +4880,7 @@ function guanCommitReason(){
   const reason=(document.getElementById('gs1ReasonInput').value||'').trim();
   // Hide input + seal, show "已封存"
   const toggle=document.getElementById('gs1ReasonToggle');
-  toggle.innerHTML='✓ 已 封 存';
+  toggle.innerHTML=guanIsBuEntry()?'✓ 问 题 已 定':'✓ 已 封 存';
   toggle.style.color='rgba(255,250,244,.45)';
   toggle.style.fontSize='9px';
   toggle.style.letterSpacing='.4em';
@@ -4651,7 +4896,7 @@ function guanCommitReason(){
   // 这个入口在 guanReasonOnInput 里已经提前出现过了（不用等封存）；这里只是兜底——
   // 万一AI这一行还是空的（比如没等输入触发就直接点了封存），封存时也补上。
   const aiRow=document.getElementById('guanAiRow');
-  const offerAi = reason.length>=6;
+  const offerAi = reason.length>=6 && !guanIsBuEntry();
   if(aiRow&&!aiRow.querySelector('.guan-ai-loading')&&!aiRow.querySelector('.guan-ai-card')){
     if(offerAi){
       aiRow.style.display='block';
@@ -4757,9 +5002,10 @@ ${all.map(s=>`${s.icon} 「${s.name}」— ${s.feel||''}`).join('\n')}
     const concept=judge.concept||'这次的感受，词库里没有一个词能完全对上';
     // 第二步：只负责写——给一个方向和参考例子，不再堆一堆规则，让文字回到词库本来的语感。
     aiRow.innerHTML=`<div class="guan-ai-loading">✨ AI 正在想怎么形容…</div>`;
-    const writePrompt=`请给下面这个感觉核心取一个词。${guanWriteStyleInstruction()}
+    const writePrompt=`请给用户此刻的状态取一个词。${guanWriteStyleInstruction()}
 
-这次要命名的感觉核心："${concept}"
+她写的完整内容："${reason}"
+（判断步骤内部提炼出的方向供参考，不是命名的唯一依据：${concept}——命名请针对她写的这整段内容去体会，不要只根据这一句摘要，摘要可能丢掉了细节和层次。）
 
 不能用这些已经存在的名字：${all.map(s=>s.name).join('、')}。emoji 要能传达这个感觉的全部面向，不能只画出其中欢快的一半。
 
@@ -4850,9 +5096,10 @@ async function guanRegenerateAiWord(){
   try{
     const usedNames=[...guanAiSuggestHistory.map(h=>h.name),prevName].filter(Boolean);
     const usedIcons=[...guanAiSuggestHistory.map(h=>h.icon),prevIcon].filter(Boolean);
-    const writePrompt=`请给下面这个感觉核心重新取一个词。${guanWriteStyleInstruction()}
+    const writePrompt=`请给用户此刻的状态重新取一个词。${guanWriteStyleInstruction()}
 
-这次要命名的感觉核心："${concept}"
+她写的完整内容："${snapshot}"
+（判断步骤内部提炼出的方向供参考，不是命名的唯一依据：${concept}——命名请针对她写的这整段内容去体会，不要只根据这一句摘要。）
 
 之前给过的词和emoji都不能再用——名字：${usedNames.join('、')||'（无）'}；emoji：${usedIcons.join(' ')||'（无）'}。
 这次要换一个不一样的词，也要换一个不一样的emoji（不能只是把同一个emoji再用一次），可以是换个角度、换个更贴切的意象，或者侧重这个感觉核心里不同的那一面，不能只是近义词换皮。
@@ -4938,12 +5185,222 @@ let guanAiSuggestHistory = [];
 // 图标还是照常配一个普通 emoji（不换成别的符号）。三个地方（首次问、追问后、
 // 换一个）共用这份风格说明，开关只用改这一处，不用三个地方分别改。
 let guanDivinationMode = ld('guanDivinationMode', false);
+// ---------- 卜卦：界面部分 ----------
+// "已 记 录 · 盈" 这一行——卜卦模式下，后面安静地跟一个卦名小字（比如"坎"），
+// 长按它才揭卦看解读；不按就只是个字。平时（开关关着）这一行跟以前一模一样。
+function guanRenderRecordedLine(rec, chosen, entry){
+  // "卜"这个状态名本身没什么信息量——卦起出来之后，直接让卦（比如"👣 履"）
+  // 当这一行的主显示，不再是"已记录·卜·👣履"这种重复的说法。
+  // 还没起卦之前（正在填三个数那会儿），先老老实实显示"已记录·卜"。
+  const showBu = chosen.name==='卜' && guanDivinationMode && entry && entry.gua;
+  rec.innerHTML = showBu ? '已 记 录 · ' : `已 记 录 · ${escapeHtml(chosen.name)}`;
+  if(showBu){
+    const chip=document.createElement('span');
+    chip.className='guan-gua-chip'+(entry.gua.mode==='manual'?' manual':'');
+    chip.textContent=(entry.gua.icon?entry.gua.icon+' ':'')+entry.gua.name;
+    chip.title='点开揭卦';
+    chip.onclick=(e)=>{e.stopPropagation();guaOpenReveal(entry.ts);};
+    rec.appendChild(chip);
+    return;
+  }
+  if(!guanDivinationMode||!entry||!entry.gua)return;
+  const chip=document.createElement('span');
+  chip.className='guan-gua-chip'+(entry.gua.mode==='manual'?' manual':'');
+  chip.textContent=(entry.gua.icon?entry.gua.icon+' ':'')+entry.gua.name;
+  chip.title='点开揭卦';
+  chip.onclick=(e)=>{e.stopPropagation();guaOpenReveal(entry.ts);};
+  rec.appendChild(document.createTextNode(' · '));
+  rec.appendChild(chip);
+}
+// 滑到"卜"记录的那条——在缘由下面给出"报三个数"的三个小格子。
+// 填完点"起卦"，这三个数算出来的卦会替换掉自动按时间算的那个。
+function guanRenderBuNumsRow(chosen, entry){
+  const old=document.getElementById('guanBuNumsRow');
+  if(old)old.remove();
+  if(!guanDivinationMode||!chosen||chosen.name!=='卜'||!entry)return;
+  const detail=document.getElementById('gs1Detail');
+  if(!detail)return;
+  const row=document.createElement('div');
+  row.id='guanBuNumsRow';
+  row.className='guan-bu-row';
+  // 一个按钮就够——填了三个数就用报数起卦；不填，直接点"起卦"就按此刻的时间起卦。
+  // 不用分开做两条路，也不用挨个标"上/下/动"，圆圈本身够清楚了。
+  row.innerHTML=`<div class="guan-bu-lbl">静 心 · 默 数 三 个 数（不 填 也 行）</div>
+    <div class="guan-bu-line">
+      <input type="number" inputmode="numeric" class="guan-bu-num" min="1">
+      <input type="number" inputmode="numeric" class="guan-bu-num" min="1">
+      <input type="number" inputmode="numeric" class="guan-bu-num" min="1">
+    </div>
+    <button class="guan-bu-go">起　卦</button>`;
+  row.querySelector('.guan-bu-go').onclick=()=>{
+    const live=(document.getElementById('gs1ReasonInput')?.value||'').trim();
+    if(live)entry.reason=live;
+    if(!entry.reason){toast('先写下要问的事');guanToggleReasonOpen();return;}
+    const raw=Array.from(row.querySelectorAll('.guan-bu-num')).map(i=>i.value.trim());
+    const filled=raw.filter(v=>v!=='');
+    let gua;
+    if(filled.length===0){
+      gua=guaAutoFromTs(Date.now());   // 一个数都没填——按点下这一刻的时间起卦
+    }else{
+      const ns=raw.map(v=>parseInt(v,10));
+      if(ns.some(n=>!Number.isFinite(n)||n<=0)){toast('三个数都填一下，或者都不填');return;}
+      gua=guaManual(ns[0],ns[1],ns[2]);
+    }
+    entry.gua=gua;
+    sv('energyLog',energyLog);
+    if(typeof guanCommitReason==='function')guanCommitReason();
+    const rec=document.getElementById('gs1Recorded');
+    if(rec)guanRenderRecordedLine(rec,chosen,entry);
+    row.remove();
+    if(window._gs1ResetTimer)clearTimeout(window._gs1ResetTimer);
+    guaOpenReveal(entry.ts);
+  };
+  detail.appendChild(row);
+  if(window._gs1ResetTimer)clearTimeout(window._gs1ResetTimer); // 报数期间别自动收起
+}
+// 把缘由输入框打开（如果还没开），用在报数前得先写问题的提醒里
+function guanToggleReasonOpen(){
+  const inp=document.getElementById('gs1ReasonInput');
+  if(inp&&!inp.classList.contains('show')&&typeof guanToggleReason==='function')guanToggleReason();
+  if(inp)setTimeout(()=>inp.focus(),50);
+}
+// 揭卦弹窗：六爻从下往上一根根浮现（动爻描一圈），本卦 → 变卦，然后 AI 解读。
+// 解读只生成一次，存回这条记录，下次打开直接显示，也方便以后导出给 AI 看。
+function guaOpenReveal(ts){
+  const entry=(energyLog||[]).find(e=>e.ts===ts);
+  if(!entry||!entry.gua)return;
+  const g=entry.gua;
+  document.querySelectorAll('.gua-reveal-bg').forEach(p=>p.remove());
+  const bg=document.createElement('div');
+  bg.className='gua-reveal-bg';
+  bg.onclick=e=>{if(e.target===bg)bg.remove();};
+  const src=g.mode==='manual'?`报数 ${g.nums.join(' · ')}`:(entry.state==='卜'?'按此刻起卦':'时间起卦');
+  bg.innerHTML=`<div class="gua-reveal-box">
+    <div class="gua-reveal-close" onclick="this.closest('.gua-reveal-bg').remove()">✕</div>
+    <div class="gua-reveal-hd">${escapeHtml(entry.state||'')} · ${src}</div>
+    <div class="gua-reveal-icon">${g.icon||''}</div>
+    <div class="gua-reveal-name">${g.name}</div>
+    <div class="gua-reveal-sub">${g.upperName}上${g.lowerName}下</div>
+    <div class="gua-reveal-feel">${escapeHtml(g.feel||'')}</div>
+    <div class="gua-lines" id="guaLines"></div>
+    <div class="gua-reveal-change">动爻 · 第${['一','二','三','四','五','六'][g.moving-1]}爻 　→　 变 · ${g.changedName}</div>
+    <div class="gua-reading" id="guaReading"></div>
+  </div>`;
+  document.body.appendChild(bg);
+  const linesEl=bg.querySelector('#guaLines');
+  g.lines.forEach((l,i)=>{
+    const row=document.createElement('div');
+    row.className='gua-line'+(l?' yang':' yin')+(i===g.moving-1?' moving':'');
+    row.innerHTML=l?'<i></i>':'<i></i><i></i>';
+    row.style.opacity='0';
+    linesEl.appendChild(row);
+    setTimeout(()=>{row.style.opacity='1';},120+i*260);
+  });
+  const readingEl=bg.querySelector('#guaReading');
+  const show=(text)=>{
+    let i=0;readingEl.textContent='';
+    (function type(){
+      if(i>=text.length){
+        const again=document.createElement('a');again.className='gua-reading-again';again.textContent='换一种解';
+        again.onclick=()=>{g.reading=null;readingEl.innerHTML='<span class="gua-reading-hint">重新解读中…</span>';guaFetchReading(entry).then(t=>{if(bg.isConnected&&t)show(t);}).catch(err=>{if(bg.isConnected)readingEl.innerHTML=`<span class="gua-reading-hint">${escapeHtml(err.message||'没解出来')}</span>`;});};
+        readingEl.appendChild(document.createElement('br'));readingEl.appendChild(again);
+        return;
+      }
+      readingEl.textContent+=text[i++];setTimeout(type,14);
+    })();
+  };
+
+  setTimeout(()=>{
+    if(g.reading){show(g.reading);return;}
+    if(!aiApiKey){readingEl.innerHTML='<span class="gua-reading-hint">设置 AI 后可看解读</span>';return;}
+    readingEl.innerHTML='<span class="gua-reading-hint">解读中…</span>';
+    guaFetchReading(entry).then(text=>{
+      if(!bg.isConnected)return;
+      if(text)show(text);else readingEl.innerHTML='<span class="gua-reading-hint">这一次没解出来，再试试</span>';
+    }).catch(err=>{
+      if(!bg.isConnected)return;
+      readingEl.innerHTML=`<span class="gua-reading-hint">${escapeHtml(err.message||'这一次没解出来，再试试')}</span>`;
+    });
+  },120+g.lines.length*260+300);
+}
+async function guaFetchReading(entry){
+  const g=entry.gua;
+  // 如果这条就是当前正在写的记录，把输入框里还没封存的文字也带上——不然解读拿不到你刚写的事
+  if(entry.ts===gs1LastEntryTs){
+    const live=(document.getElementById('gs1ReasonInput')?.value||'').trim();
+    if(live&&live!==entry.reason){entry.reason=live;sv('energyLog',energyLog);}
+  }
+  const manual=g.mode==='manual';
+  const sys=`你是一位懂《周易》的朋友，在帮用户看她刚起的一卦。这个产品的选择是——让用户用第三人称去看自己的处境，不是在跟AI对话，是在旁观自己；这种抽离感，反而能让人看得更清、更容易走进去。你的每一段解读都要贴合这个基调。请按传统解卦的层次来解，但用她听得懂的、温和克制的话：
+
+【卦】${guaLabel(g)}
+【她记录的状态】「${entry.state||''}」${entry.feel?'（'+entry.feel+'）':''}
+【她写的${manual?'要问的事':'缘由'}】"${entry.reason||'（没写）'}"
+
+解读要求：
+1. ${manual?'这是她郑重报数问的一件具体的事，整段解读都要围绕这件事来答——先说清这一卦对这件事的映照是什么，不要绕开她问的问题去泛泛谈卦。':'这一卦是按她记录那一刻的时间起的，跟她写的内容没有因果关系——你的工作是把这一刻的卦象和她此刻写下的状态对照起来看，找出真实的映照，不要生拉硬扯；对不上的地方也可以直说这一卦提醒的是另一面。'}
+2. 先看她写的这句话，主语是谁，解读就是在解谁——判断标准是字面的主语，不是去猜"背后真正在意的是谁"：
+   - 主语是她自己（"我今天……""我在纠结……""我是不是……"），或者没写清楚、看不出主语——默认用"她"来称呼。
+   - 主语是别人——不管是"我朋友""我妈""公司那个同事"这类关系称呼，还是具体人名，还是"他/她"（比如"他想我吗""他是不是不喜欢我了"，主语都是"他"）——解读就是在解那个人，用对应的第三人称去讲他（"他""她""那位朋友"这类），不要因为背后其实是她在意这件事，就把主语偷偷换回"她"。
+   - 全文人称必须从头到尾一致，中途不要切换。
+3. 分几层但写成连贯的话，不分点：本卦的意象在说什么；动爻（第${g.moving}爻，${g.isCentral?'居中位':'不居中位'}、${g.isCorrect?'当位':'不当位'}、${g.hasCorrespondence?`与第${g.correspondLine}爻有应`:`与第${g.correspondLine}爻无应`}——中位是全卦最稳的位置（二爻是下卦之中，五爻是上卦之中，这两个位置天然带一种"守中不偏"的分量）；当位是这一爻本身阴阳是否安在了该在的地方；有应是它和呼应爻（初四、二五、三六两两相应）之间是不是一阴一阳、互相支持——有应就不是孤军奋战，无应就要点出"独木难支"或者"没有回响"。这三者共同决定这一爻的分量与孤立程度，可以据此判断这一爻的解读该有多重、多急）——这是全卦的重点。${guaYaoci(g.name,g.moving)?`这一爻的爻辞原文已经核对过、附在了上面【卦】那一条里——请紧扣这段原文的字面意思去讲它落在这件事上意味着什么，不要脱离原文另外发挥或者引申出原文没有的意思。`:'这一卦暂时没有核对过的爻辞原文，请用你对这一爻传统含义的理解，用自己的话讲它落在这件事上意味着什么。'}变卦${g.changedName}给出的是这件事的走向或另一面。互卦${g.nuclearName||''}可以一句带过，指向过程中的内在状态。错卦${g.oppositeName||''}、综卦${g.reverseName||''}、交卦${g.crossName||''}不必每次都提，只在它们真的能帮这次解读说得更透时才带一句（比如本卦和错卦/综卦之间有值得点出的呼应或反差，或者交卦能讲清"换位会看到什么"）。
+4. 必须引用她写的原话里的一个词或一句（用「」括起来），让她看到你是在解这段具体的话，不是套话。
+5. 卦是镜子不是预言：可以直说这一爻在讲什么，但不预测具体结果，不下判断，不灌鸡汤；遇到剥、否、蹇、困这类卦如实说它的消耗和难处，再指出它内在提示的方向。
+6. 篇幅不限——把该讲的讲透，需要多长就多长，不要为了凑短把话说虚；可以分几段自然地写，不用标题、不要前言。
+7. 结尾不要抛问题、不要给建议或指引（不要出现"你应该""可以试着""建议你"这类词，问句也不要）。用一句"落点句"收束——把这一卦最想说的核心，用一句"这一爻讲的是……"或"这一卦的核心是……"这样揭示式的话点出来，点到即止，不告诉她该怎么办，让她自己在心里回味。落点句可以带上人称（比如"这一爻讲的是她此刻在做的事——……"），也可以不带，看哪种更贴合整段解读的呼吸；但如果带人称，必须和前面全文保持一致（前面用的是"她"就还是"她"，是"他"就还是"他"），不要突然断裂。
+
+直接返回这一段文字本身，不要 JSON，不要引号包裹，不要任何多余的话。`;
+  const text=await callClaudeText(sys,'请解这一卦。');
+  g.reading=String(text||'').trim();
+  sv('energyLog',energyLog);
+  return g.reading;
+}
+// 跟 callClaudeJSON 一样的请求，只是把回来的文字原样给出来、不解析 JSON——
+// 用在"要一段话"而不是"要一个结构"的地方（比如卦的解读）。
+async function callClaudeText(systemPrompt,userPrompt,_retrying){
+  if(!aiApiKey)throw new Error('还没有放进那把钥匙——去"AI 设置"里粘贴一下');
+  let resp;
+  try{
+    resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'content-type':'application/json','x-api-key':aiApiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:2048,system:systemPrompt,messages:[{role:'user',content:userPrompt}]})
+    });
+  }catch(err){
+    if(!_retrying)return callClaudeText(systemPrompt,userPrompt,true);
+    throw new Error('此刻网络不太通畅，稍后再试');
+  }
+  if(!resp.ok){
+    let rawMsg='';
+    try{const e=await resp.json();if(e&&e.error&&e.error.message)rawMsg=e.error.message;}catch(err){}
+    if(!_retrying&&resp.status>=500)return callClaudeText(systemPrompt,userPrompt,true);
+    throw new Error(friendlyAiErrorMessage(resp.status,rawMsg));
+  }
+  const data=await resp.json();
+  return (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+}
 function guanToggleDivinationMode(){
   guanDivinationMode = !guanDivinationMode;
   sv('guanDivinationMode', guanDivinationMode);
+  guanApplyDivinationModeUI();
+  toast(guanDivinationMode ? '卜卦模式已开启' : '卜卦模式已关闭');
+}
+// 开关切换后要同步的界面：标题文字、☰ 亮不亮、滑杆最后那个位置是"照"还是"卜"、
+// 以及当前这条记录旁边的卦名小字要不要显示。初始化时也调一次。
+function guanApplyDivinationModeUI(){
   const btn = document.getElementById('guanDivinationBtn');
   if(btn) btn.classList.toggle('on', guanDivinationMode);
-  toast(guanDivinationMode ? '卜卦模式已开启' : '卜卦模式已关闭');
+  const lbl = document.querySelector('.guan-card-label');
+  if(lbl){ lbl.textContent = guanDivinationMode ? '此 刻 · 卜 卦' : '此 刻 · 能 量'; lbl.classList.toggle('divining',guanDivinationMode); }
+  if(typeof guanBuildEmojiRow==='function') guanBuildEmojiRow();
+  const rec=document.getElementById('gs1Recorded');
+  if(rec&&rec.classList.contains('show')&&gs1LastEntryTs){
+    const entry=(energyLog||[]).find(e=>e.ts===gs1LastEntryTs);
+    const chosen=guanAllStates()[gs1Idx];
+    if(entry&&chosen)guanRenderRecordedLine(rec,chosen,entry);
+  }
+  const row=document.getElementById('guanBuNumsRow');
+  if(row&&!guanDivinationMode)row.remove();
 }
 function guanWriteStyleInstruction(){
   if(guanDivinationMode){
@@ -5104,6 +5561,8 @@ function guanDoRecord(){
     existing.state = chosen.name;
     existing.icon = chosen.icon||'';
     existing.feel = chosen.feel||'';
+    if(chosen.name==='卜'){ if(existing.gua&&existing.gua.mode!=='manual')existing.gua=null; }
+    else if(!existing.gua){ existing.gua=guaAutoFromTs(existing.ts); }
     entry = existing;
   }else{
     entry = {
@@ -5116,6 +5575,9 @@ function guanDoRecord(){
       ganzhi: gz.full,
       gzYear: gz.year, gzMonth: gz.month, gzDay: gz.day, gzHour: gz.hour
     };
+    // 每条记录天生自带这一刻的卦（按时间算），不管开没开卜卦模式都存——
+    // 唯独滑到"卜"的记录例外："卜"就是"我要自己报数"，报数之前不该先冒出一个自动的卦来。
+    entry.gua = chosen.name==='卜' ? null : guaAutoFromTs(entry.ts);
     energyLog.push(entry);
     gs1LastEntryTs = entry.ts;
   }
@@ -5125,7 +5587,7 @@ function guanDoRecord(){
   document.getElementById('gs1Confirm').classList.remove('show');
   const rec = document.getElementById('gs1Recorded');
   rec.classList.add('show');
-  rec.textContent = `已 记 录 · ${chosen.name}`;
+  guanRenderRecordedLine(rec, chosen, entry);
   
   // Now show reason toggle (optional)
   const reasonToggle = document.getElementById('gs1ReasonToggle');
@@ -5146,6 +5608,18 @@ function guanDoRecord(){
     reasonInput.style.overflowY = '';
   }
   document.getElementById('gs1Detail').classList.add('show');
+  guanRenderBuNumsRow(chosen, entry);
+  // 滑到"卜"：直接把写问题的框打开、提示写要问的事，不用再去点"+ 缘由"
+  if(chosen.name==='卜'){
+    reasonInput.placeholder='写下要问的事…';
+    reasonToggle.textContent='+ 问题';
+    reasonToggle.classList.add('hidden');      // 问题框直接打开，不用再点
+    reasonInput.classList.add('show');
+    if(window._gs1ResetTimer){clearTimeout(window._gs1ResetTimer);window._gs1ResetTimer=null;}
+    setTimeout(()=>{reasonInput.focus();guanAutoGrowReason();},50);
+  }else{
+    reasonInput.placeholder='缘由...';
+  }
   // 新的一条记录开始了——上一条记录留下的AI建议（比如"已经加进你的词库了…"）
   // 必须马上清掉，否则它会一直占着位置，还会挡住这一条新记录的"问问AI"按钮出现。
   // 换情绪的情况也一并清掉——旧的AI建议是针对换之前那个情绪+缘由生成的，
@@ -5382,7 +5856,7 @@ function renderTags(){
       if(tState==='running')splitTimerSegment();
       if(i>-1)selTagIds.splice(selTagIds.indexOf(t.id),1);
       else selTagIds.push(t.id);
-      document.getElementById('startBtn').disabled=selTagIds.length===0;
+      syncStartBtnState();
       if(active){
         const selTags=selTagIds.map(id=>tags.find(x=>x.id===id)).filter(Boolean);
         if(selTags.length){
@@ -5407,7 +5881,7 @@ function delTag(id){
   tags=tags.filter(t=>t.id!==id);
   sv('tags',tags);
   const i=selTagIds.indexOf(id);
-  if(i>-1){selTagIds.splice(i,1);document.getElementById('startBtn').disabled=selTagIds.length===0;}
+  if(i>-1){selTagIds.splice(i,1);syncStartBtnState();}
   renderTags();
 }
 
@@ -5448,9 +5922,42 @@ function saveTag(){
 // 收费；缺点是不同浏览器/系统支持程度不一样，Safari（也就是这个PWA主要跑的
 // 环境）上的表现不一定稳，实际好不好用需要你自己试。
 let voiceRecognition=null;
+let voiceLatestTranscript='';
+// "开始"按钮外观跟着有没有选标签走——没选就是看起来"禁用"的暗淡样子，
+// 但故意不用原生 disabled 属性：disabled 会让大多数浏览器彻底屏蔽掉这个
+// 元素的触摸事件，长按就没法在它上面生效了。改用一个视觉上一样暗淡的
+// class，按钮本身仍然能接收按住/松开的事件。
+function syncStartBtnState(){
+  const btn=document.getElementById('startBtn');
+  if(btn)btn.classList.toggle('inactive',selTagIds.length===0);
+}
+// 没选标签时，这个按钮本来就是"没用"的暗淡状态——正好废物利用：按住就是
+// 在录音，松开就是录完处理，不用再另外做一个麦克风图标占地方。
+// 选了标签之后，按住不做任何事，正常点击照旧是开始计时。
+function setupStartBtnVoice(){
+  const btn=document.getElementById('startBtn');
+  if(!btn)return;
+  const onPressStart=()=>{
+    if(!btn.classList.contains('inactive'))return; // 已经选了标签，交给下面的click走正常开始计时
+    voiceStartListening();
+  };
+  const onPressEnd=()=>{
+    if(voiceRecognition)voiceStopListening();
+  };
+  btn.addEventListener('touchstart',onPressStart,{passive:true});
+  btn.addEventListener('touchend',onPressEnd);
+  btn.addEventListener('touchcancel',onPressEnd);
+  btn.addEventListener('mousedown',onPressStart);
+  btn.addEventListener('mouseup',onPressEnd);
+  btn.addEventListener('mouseleave',onPressEnd);
+  btn.addEventListener('click',()=>{
+    if(btn.classList.contains('inactive'))return; // 没选标签，点了也不做任何事，只有按住录音有反应
+    startTimer();
+  });
+}
 function voiceStartListening(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  const btn=document.getElementById('voiceQuickBtn');
+  const btn=document.getElementById('startBtn');
   const status=document.getElementById('voiceQuickStatus');
   if(!SR){
     toast('这台设备/浏览器不支持语音识别');
@@ -5460,45 +5967,80 @@ function voiceStartListening(){
   if(!aiApiKey){openAiKeySettings();return;}
   const rec=new SR();
   voiceRecognition=rec;
+  voiceLatestTranscript='';
   rec.lang='zh-CN';
-  rec.interimResults=false;
+  rec.interimResults=true;
+  // 改成"按住说话，松手就处理"——不再依赖浏览器自己判断"你是不是说完了、
+  // 停顿够长了没"，那段静音判定本身就会拖出一截延迟。continuous:true 让它
+  // 一直听着不自动掐断，真正"说完了"这个信号交给你自己松手来发出，松开的
+  // 瞬间就立刻拿当前识别到的文字去处理，不用再等它自己反应过来。
+  rec.continuous=true;
   rec.maxAlternatives=1;
-  btn.classList.add('listening');
-  status.textContent='在听 · 说完停顿一下';
+  btn.classList.add('voice-listening');
+  status.textContent='按住说话，松开处理';
+  status.classList.add('show');
   rec.onresult=(e)=>{
-    const transcript=e.results[0][0].transcript;
-    voiceProcessTranscript(transcript);
+    let combined='';
+    for(let i=0;i<e.results.length;i++)combined+=e.results[i][0].transcript;
+    voiceLatestTranscript=combined;
+    status.textContent=combined;
   };
   rec.onerror=(e)=>{
     voiceRecognition=null;
-    btn.classList.remove('listening');
-    status.textContent='说一句话，直接开始';
+    btn.classList.remove('voice-listening');
+    status.classList.remove('show');
     if(e.error==='no-speech')toast('没听到声音，再试一次');
     else if(e.error==='not-allowed'||e.error==='service-not-allowed')toast('没有麦克风权限，去系统设置里开一下');
-    else toast('识别失败，再试一次');
+    else if(e.error!=='aborted')toast('识别失败，再试一次'); // aborted是我们自己主动stop触发的，不算错误
   };
-  rec.onend=()=>{
-    voiceRecognition=null;
-    btn.classList.remove('listening');
-  };
+  rec.onend=()=>{voiceRecognition=null;};
   try{
     rec.start();
   }catch(err){
     voiceRecognition=null;
-    btn.classList.remove('listening');
-    status.textContent='说一句话，直接开始';
+    btn.classList.remove('voice-listening');
+    status.classList.remove('show');
     toast('没能呼出语音识别，再试一次');
   }
 }
+// 松开手指——不管浏览器自己有没有反应过来，直接拿当前已经识别到的文字去处理。
+function voiceStopListening(){
+  const btn=document.getElementById('startBtn');
+  btn.classList.remove('voice-listening');
+  if(voiceRecognition){
+    try{voiceRecognition.stop();}catch(e){}
+  }
+  const text=voiceLatestTranscript.trim();
+  if(text)voiceProcessTranscript(text);
+  else{
+    document.getElementById('voiceQuickStatus').classList.remove('show');
+  }
+}
 async function voiceProcessTranscript(text){
-  const btn=document.getElementById('voiceQuickBtn');
+  const btn=document.getElementById('startBtn');
   const status=document.getElementById('voiceQuickStatus');
-  btn.classList.remove('listening');
-  btn.classList.add('thinking');
-  status.textContent=`"${text}" · AI 判断中…`;
+  btn.classList.remove('voice-listening');
+  status.classList.add('show');
+  // 本地快速匹配——如果说的话里直接包含某个已有标签的完整名字，就不用等AI
+  // 跑一轮网络请求了，直接本地判定匹配、立刻开始。日常大部分时候都是在做
+  // "已经建过标签的熟悉的事"，这条路径会明显更快；只有这里没匹配上，才退回去
+  // 慢一点但更聪明的AI判断（比如需要提炼、需要判断新标签名字这种情况）。
+  const localMatch=tags.find(t=>text.includes(t.name));
+  if(localMatch){
+    voiceCommitTag(localMatch);
+    status.classList.remove('show');
+    return;
+  }
+  btn.classList.add('voice-thinking');
+  status.textContent=`"${text}" · 判断中…`;
   try{
     const sysPrompt=`用户对着计时App说了一句话，想开始给某件事计时（也可能是在已经计时的情况下，想再加一件事一起做）。
-从这句话里判断她想做的是什么事，在下面这份她已有的标签列表里找最匹配的一个；如果没有任何一个真正匹配这件事，就给一个建议的新标签名字（简洁，2-6个字，风格要跟她已有的标签一致，不要是一整句话，也不要带"正在""开始"这类多余的词，只留事情本身，比如"我现在开始做脱毛功课了"应该提炼成"脱毛"）。
+从这句话里提炼出这件事的标签名字：去掉"现在""正在""开始""准备""了"这类不影响活动本身的语气词/时态词，但必须保留描述这个动作的关键词——如果动词本身就是这件事名字的一部分，绝对不能删掉它，删了会变成一个东西的名字而不是一件事。
+比如"我现在开始做脱毛功课了"，"做...功课"是套话可以去掉，"脱毛"本身已经是完整的活动名字，提炼成"脱毛"；
+但"准备打美白针"不能提炼成"美白针"（那是一个东西/项目的名字，不是一件事），要保留动词，提炼成"打美白针"或者"注射美白针"这种"动词+对象"的完整说法。
+简单说：判断标准不是"越短越好"，是"提炼完之后，这个词自己读出来，是不是一个说得通的、正在做的事"。
+
+然后在下面这份她已有的标签列表里找最匹配的一个；如果没有任何一个真正匹配这件事，就把提炼出来的这个名字（2-8个字）当成建议的新标签名字。
 
 她已有的标签：${tags.map(t=>t.name).join('、')||'（还没有标签）'}
 
@@ -5516,31 +6058,37 @@ async function voiceProcessTranscript(text){
       sv('tags',tags);
     }
     if(!tag)throw new Error('没听懂要做什么，再说一次');
-    if(tState==='running'){
-      // 已经在计时了——当成"同时"功能一样，把这件事并进当前这段计时里，
-      // 复用跟点标签一样的分段逻辑（先把到现在为止这一段存成一条记录）。
-      if(!selTagIds.includes(tag.id)){
-        splitTimerSegment();
-        selTagIds.push(tag.id);
-        const selTags=selTagIds.map(id=>tags.find(x=>x.id===id)).filter(Boolean);
-        document.getElementById('tTag').textContent=selTags.length>1
-          ?selTags.map(x=>x.name).join('、')+'（同时进行）':selTags[0].name;
-        const now=new Date();
-        document.getElementById('tMeta').textContent=pad(now.getHours())+':'+pad(now.getMinutes())+' 开始';
-        saveTimerState();
-      }
-    }else{
-      selTagIds=[tag.id];
-      startTimer();
-    }
-    renderTags();
-    status.textContent='说一句话，直接开始';
-    btn.classList.remove('thinking');
+    voiceCommitTag(tag);
+    btn.classList.remove('voice-thinking');
+    status.classList.remove('show');
   }catch(err){
-    status.textContent='说一句话，直接开始';
-    btn.classList.remove('thinking');
+    btn.classList.remove('voice-thinking');
+    status.classList.remove('show');
     toast(err.message||'没听清，再说一次');
   }
+}
+// 拿到确定要用的标签之后，接下来该"开始计时"还是"并进当前这段计时"——
+// 本地快速匹配、AI判断这两条路径最终都会走到这一步，共用同一份逻辑。
+function voiceCommitTag(tag){
+  if(tState==='running'){
+    // 已经在计时了——当成"同时"功能一样，把这件事并进当前这段计时里，
+    // 复用跟点标签一样的分段逻辑（先把到现在为止这一段存成一条记录）。
+    if(!selTagIds.includes(tag.id)){
+      splitTimerSegment();
+      selTagIds.push(tag.id);
+      const selTags=selTagIds.map(id=>tags.find(x=>x.id===id)).filter(Boolean);
+      document.getElementById('tTag').textContent=selTags.length>1
+        ?selTags.map(x=>x.name).join('、')+'（同时进行）':selTags[0].name;
+      const now=new Date();
+      document.getElementById('tMeta').textContent=pad(now.getHours())+':'+pad(now.getMinutes())+' 开始';
+      saveTimerState();
+    }
+  }else{
+    selTagIds=[tag.id];
+    startTimer();
+  }
+  renderTags();
+  syncStartBtnState();
 }
 function startTimer(){
   if(!selTagIds.length||tState!=='idle')return;
@@ -5699,6 +6247,7 @@ function resetTimer(){
   // 的情况下又变成同时选中好几个。清空以后每次都是从头选，不会有残留。
   selTagIds=[];
   renderTags();
+  syncStartBtnState();
   document.getElementById('tIdle').style.display='block';document.getElementById('tRun').style.display='none';
   document.getElementById('actR').style.display='none';document.getElementById('actP').style.display='none';
   document.getElementById('actI').style.display='flex';
@@ -6221,7 +6770,7 @@ function exportAllCSV(){
         type:'energy',
         solar:solar,
         ganzhi:gz,
-        detail:state
+        detail:state+(e.gua?' · '+guaLabel(e.gua):'')+(e.gua&&e.gua.reading?' · 解读：'+e.gua.reading:'')
       });
     });
   }
@@ -6415,6 +6964,7 @@ function exportAllJSON(rangeStart,rangeEnd){
       const state=e.state||(guanAllStates()[e.idx]?guanAllStates()[e.idx].name:'');
       let str=`${pad(d.getHours())}:${pad(d.getMinutes())} ${egz.hour}时 ⚡${state}`;
       if(e.reason)str+=' — '+e.reason;
+      if(e.gua)str+=' ｜ '+guaLabel(e.gua)+(e.gua.reading?' ｜ 解读：'+e.gua.reading:'');
       timeline.push({ts:e.ts,text:str});
     });
     
@@ -7757,8 +8307,16 @@ function showDayD(dk){
       const stateObj=guanAllStates().find(s=>s.name===en.state);
       return stateObj?stateObj.icon:(en.emoji||'');
     })();
+    // 日历里不管卜卦模式开没开，每条记录的卦都显示（数据本来就在）；自己报过数的带个小点。
+    const guaChip=en.gua?`<span class="guan-gua-chip${en.gua.mode==='manual'?' manual':''}" data-gua-ts="${en.ts}" title="点开揭卦">${en.gua.icon?en.gua.icon+' ':''}${en.gua.name}</span>`:'';
+    // "卜"这个状态名本身没什么信息量——真正有内容的是它算出来的那一卦。
+    // 所以"卜"记录不显示"卜🔮"，直接让卦（比如"👣 履"）当这条记录的主显示；
+    // 平时滑情绪词记录的，还是照常显示情绪本身，卦作为后面附带的一层。
+    const stateLine=en.state==='卜'
+      ? (guaChip||`${escapeHtml(en.state)}${icon?' '+icon:''}`)
+      : `${escapeHtml(en.state||'')}${icon?' '+icon:''}${guaChip?' · '+guaChip:''}`;
     html+=`<div class="day-en-card" style="padding-left:4px">
-      <div style="flex:1"><div class="day-en-info"><em>${tm} · ${escapeHtml(en.state||'')}${icon?' '+icon:''}</em></div>
+      <div style="flex:1"><div class="day-en-info"><em>${tm} · ${stateLine}</em></div>
       ${en.reason?`<div class="day-en-reason">${escapeHtml(en.reason)}</div>`:''}</div></div>`;
   });
   // 5. Actions
@@ -7770,6 +8328,7 @@ function showDayD(dk){
     <button class="export-btn" onclick="openEvModal('${dk}')" style="opacity:.6">+ 事件</button>
     <button class="export-btn" onclick="openMarkModal('${dk}')" style="opacity:.6">+ Emoji</button></div>`;
   dd.innerHTML=html;dd.classList.add('show');setTimeout(()=>applyUITheme(),50);
+  dd.querySelectorAll('.guan-gua-chip[data-gua-ts]').forEach(ch=>{ch.onclick=(e)=>{e.stopPropagation();guaOpenReveal(+ch.dataset.guaTs);};});
 }
 
 // ================================================================
@@ -11700,8 +12259,9 @@ function init(){
   recoverTimer();
   recoverPomo();
   habitReminderSetup();
-  const guanDivBtn=document.getElementById('guanDivinationBtn');
-  if(guanDivBtn)guanDivBtn.classList.toggle('on',guanDivinationMode);
+  setupStartBtnVoice();
+  syncStartBtnState();
+  guanApplyDivinationModeUI();
   // When iOS returns from background, immediately sync timers
   document.addEventListener('visibilitychange',()=>{
     if(document.visibilityState==='visible'){
