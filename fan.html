@@ -144,11 +144,7 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 /* Tags inline */
 .tags-sec{margin:18px 0 8px}
 .tags-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-@keyframes voicePulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.12)}}
-.voice-status{text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;
-  font-size:10.5px;color:rgba(255,255,255,.4);min-height:0;margin-top:2px;
-  opacity:0;transition:opacity .3s}
-.voice-status.show{opacity:1;margin-top:6px}
+@keyframes voicePulse{0%,100%{opacity:.6}50%{opacity:1}}
 .tg{padding:6px 14px;border-radius:100px;font-size:11px;letter-spacing:.04em;
   border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
   cursor:pointer;transition:all .35s,color 2s;position:relative;display:flex;align-items:center;gap:6px;
@@ -2376,12 +2372,10 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   cursor:pointer;padding:4px;transition:opacity .3s,color .3s}
 .guan-divination-btn.on{opacity:.85}
 .guan-card-label.divining{letter-spacing:.45em}
-.guan-gua-chip{display:inline-flex;align-items:center;justify-content:center;
-  font-family:'Noto Serif SC',serif;font-weight:400;min-width:20px;height:20px;padding:0 6px;
-  border-radius:4px;cursor:pointer;user-select:none;-webkit-user-select:none;
-  border:1px solid rgba(255,250,244,.25);opacity:.75;letter-spacing:.02em;
-  transition:background .2s,opacity .15s}
-.guan-gua-chip:active{background:rgba(255,250,244,.1);opacity:.5}
+.guan-gua-chip{display:inline;font-family:'Noto Serif SC',serif;font-weight:400;
+  cursor:pointer;user-select:none;-webkit-user-select:none;opacity:.75;letter-spacing:.02em;
+  border-bottom:1px dotted rgba(255,250,244,.35);padding-bottom:1px;transition:opacity .15s,border-color .15s}
+.guan-gua-chip:active{opacity:.5;border-bottom-color:rgba(255,250,244,.15)}
 .guan-gua-chip.manual::after{content:'';display:inline-block;width:4px;height:4px;border-radius:50%;
   background:currentColor;margin-left:5px;vertical-align:middle;opacity:.7}
 .guan-bu-row{margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,250,244,.1);
@@ -2819,7 +2813,6 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
       <div class="tags-sec">
         <div class="tags-row" id="tagsRow"></div>
       </div>
-      <div class="voice-status" id="voiceQuickStatus"></div>
 
       <div class="acts" id="actI">
         <button class="btn btn-strong inactive" id="startBtn">开始</button>
@@ -4370,7 +4363,7 @@ function guaBuild(upper,lower,moving,mode,nums){
     upperName:GUA_TRI_NAMES[upper],lowerName:GUA_TRI_NAMES[lower],
     lines,                                   // [1,0,1,...] 1阳0阴，从下往上
     changedName:GUA_NAMES[cUpper][cLower],   // 变卦
-    icon:(GUA_INFO[GUA_NAMES[upper][lower]]||['✨',''])[0],  // 这一卦的 emoji
+    icon:(GUA_INFO[GUA_NAMES[upper][lower]]||['✨',''])[0],  // 这一卦自己的emoji，各卦不同、贴合各自意象
     feel:(GUA_INFO[GUA_NAMES[upper][lower]]||['✨',''])[1],  // 这一卦的气质（解释性短语）
     reading:null                             // AI 解读（看过之后才存）
   };
@@ -4430,8 +4423,157 @@ const GUA_YAOCI={
   '比':{1:{yaoci:'有孚比之，无咎。有孚盈缶，终来有它，吉。',校对状态:'已校',分歧记录:'"有它"部分坊本作"有他"，为异体字关系，采用"它"'},2:{yaoci:'比之自内，贞吉。',校对状态:'已校',分歧记录:null},3:{yaoci:'比之匪人。',校对状态:'已校',分歧记录:null},4:{yaoci:'外比之，贞吉。',校对状态:'已校',分歧记录:null},5:{yaoci:'显比，王用三驱，失前禽，邑人不诫，吉。',校对状态:'已校',分歧记录:null},6:{yaoci:'比之无首，凶。',校对状态:'已校',分歧记录:null}},
   '小畜':{1:{yaoci:'复自道，何其咎，吉。',校对状态:'已校',分歧记录:null},2:{yaoci:'牵复，吉。',校对状态:'已校',分歧记录:null},3:{yaoci:'舆说辐，夫妻反目。',校对状态:'已校',分歧记录:null},4:{yaoci:'有孚，血去惕出，无咎。',校对状态:'已校',分歧记录:null},5:{yaoci:'有孚挛如，富以其邻。',校对状态:'已校',分歧记录:null},6:{yaoci:'既雨既处，尚德载。妇贞厉。月几望。君子征凶。',校对状态:'已校',分歧记录:null}},
   '泰':{1:{yaoci:'拔茅茹，以其汇。征吉。',校对状态:'已校',分歧记录:'个别低质量来源误作"以其夤"（疑与艮卦"列其夤"混淆的识别错误），四个独立来源确认应为"以其汇"'},2:{yaoci:'包荒，用冯河，不遐遗。朋亡，得尚于中行。',校对状态:'已校',分歧记录:null},3:{yaoci:'无平不陂，无往不复。艰贞无咎。勿恤其孚，于食有福。',校对状态:'已校',分歧记录:null},4:{yaoci:'翩翩，不富以其邻，不戒以孚。',校对状态:'已校',分歧记录:null},5:{yaoci:'帝乙归妹，以祉元吉。',校对状态:'已校',分歧记录:null},6:{yaoci:'城复于隍，勿用师。自邑告命，贞吝。',校对状态:'已校',分歧记录:null}},
-  '否':{1:{yaoci:'拔茅茹，以其汇。贞吉，亨。',校对状态:'已校',分歧记录:null},2:{yaoci:'包承，小人吉，大人否亨。',校对状态:'已校',分歧记录:null},3:{yaoci:'包羞。',校对状态:'已校',分歧记录:null},4:{yaoci:'有命，无咎。畴离祉。',校对状态:'已校',分歧记录:null},5:{yaoci:'休否，大人吉。其亡其亡，系于苞桑。',校对状态:'已校',分歧记录:null},6:{yaoci:'倾否，先否，后喜。',校对状态:'已校',分歧记录:null}}
+  '否':{1:{yaoci:'拔茅茹，以其汇。贞吉，亨。',校对状态:'已校',分歧记录:null},2:{yaoci:'包承，小人吉，大人否亨。',校对状态:'已校',分歧记录:null},3:{yaoci:'包羞。',校对状态:'已校',分歧记录:null},4:{yaoci:'有命，无咎。畴离祉。',校对状态:'已校',分歧记录:null},5:{yaoci:'休否，大人吉。其亡其亡，系于苞桑。',校对状态:'已校',分歧记录:null},6:{yaoci:'倾否，先否，后喜。',校对状态:'已校',分歧记录:null}},
+  // ---- 第三批：同人大有谦豫随蛊临观 ----
+  '同人':{1:{yaoci:'同人于门，无咎。',校对状态:'已校',分歧记录:null},2:{yaoci:'同人于宗，吝。',校对状态:'已校',分歧记录:null},3:{yaoci:'伏戎于莽，升其高陵，三岁不兴。',校对状态:'已校',分歧记录:null},4:{yaoci:'乘其墉，弗克攻，吉。',校对状态:'已校',分歧记录:null},5:{yaoci:'同人，先号咷而后笑，大师克相遇。',校对状态:'已校',分歧记录:'"号咷"部分来源写作"号啕"，两字通用，采用易学网/百度百科版本"咷"'},6:{yaoci:'同人于郊，无悔。',校对状态:'已校',分歧记录:null}},
+  '大有':{1:{yaoci:'无交害，匪咎，艰则无咎。',校对状态:'已校',分歧记录:null},2:{yaoci:'大车以载，有攸往，无咎。',校对状态:'已校',分歧记录:null},3:{yaoci:'公用亨于天子，小人弗克。',校对状态:'已校',分歧记录:null},4:{yaoci:'匪其彭，无咎。',校对状态:'已校',分歧记录:null},5:{yaoci:'厥孚交如，威如，吉。',校对状态:'已校',分歧记录:null},6:{yaoci:'自天佑之，吉无不利。',校对状态:'已校',分歧记录:null}},
+  '谦':{1:{yaoci:'谦谦君子，用涉大川，吉。',校对状态:'已校',分歧记录:null},2:{yaoci:'鸣谦，贞吉。',校对状态:'已校',分歧记录:null},3:{yaoci:'劳谦君子，有终，吉。',校对状态:'已校',分歧记录:null},4:{yaoci:'无不利，撝谦。',校对状态:'已校',分歧记录:'两个低质量来源识别失败显示为"□谦"，三个高质量来源（豆瓣、儒家网、Cantian AI）确认应为"撝谦"'},5:{yaoci:'不富以其邻，利用侵伐，无不利。',校对状态:'已校',分歧记录:null},6:{yaoci:'鸣谦，利用行师，征邑国。',校对状态:'已校',分歧记录:null}},
+  '豫':{1:{yaoci:'鸣豫，凶。',校对状态:'已校',分歧记录:null},2:{yaoci:'介于石，不终日，贞吉。',校对状态:'已校',分歧记录:null},3:{yaoci:'盱豫，悔。迟有悔。',校对状态:'已校',分歧记录:null},4:{yaoci:'由豫，大有得。勿疑。朋盍簪。',校对状态:'已校',分歧记录:null},5:{yaoci:'贞疾，恒不死。',校对状态:'已校',分歧记录:null},6:{yaoci:'冥豫，成有渝。无咎。',校对状态:'已校',分歧记录:null}},
+  '随':{1:{yaoci:'官有渝，贞吉。出门交有功。',校对状态:'已校',分歧记录:null},2:{yaoci:'系小子，失丈夫。',校对状态:'已校',分歧记录:null},3:{yaoci:'系丈夫，失小子。随有求得，利居贞。',校对状态:'已校',分歧记录:null},4:{yaoci:'随有获，贞凶。有孚，在道以明，何咎。',校对状态:'已校',分歧记录:null},5:{yaoci:'孚于嘉，吉。',校对状态:'已校',分歧记录:null},6:{yaoci:'拘系之，乃从维之。王用亨于西山。',校对状态:'已校',分歧记录:null}},
+  '蛊':{1:{yaoci:'干父之蛊，有子，考无咎，厉终吉。',校对状态:'已校',分歧记录:null},2:{yaoci:'干母之蛊，不可贞。',校对状态:'已校',分歧记录:null},3:{yaoci:'干父之蛊，小有悔，无大咎。',校对状态:'已校',分歧记录:'两个低质量来源误作"干父小有晦，无大咎"（漏"之蛊"、"悔"错成"晦"），七个以上来源确认应为"干父之蛊，小有悔，无大咎"，且与全卦"干/裕+X+之蛊"的固定结构一致'},4:{yaoci:'裕父之蛊，往见吝。',校对状态:'已校',分歧记录:null},5:{yaoci:'干父之蛊，用誉。',校对状态:'已校',分歧记录:null},6:{yaoci:'不事王侯，高尚其事。',校对状态:'已校',分歧记录:null}},
+  '临':{1:{yaoci:'咸临，贞吉。',校对状态:'已校',分歧记录:null},2:{yaoci:'咸临，吉，无不利。',校对状态:'已校',分歧记录:null},3:{yaoci:'甘临，无攸利。既忧之，无咎。',校对状态:'已校',分歧记录:null},4:{yaoci:'至临，无咎。',校对状态:'已校',分歧记录:null},5:{yaoci:'知临，大君之宜，吉。',校对状态:'已校',分歧记录:null},6:{yaoci:'敦临，吉，无咎。',校对状态:'已校',分歧记录:null}},
+  '观':{1:{yaoci:'童观，小人无咎，君子吝。',校对状态:'已校',分歧记录:null},2:{yaoci:'窥观，利女贞。',校对状态:'已校',分歧记录:null},3:{yaoci:'观我生，进退。',校对状态:'已校',分歧记录:null},4:{yaoci:'观国之光，利用宾于王。',校对状态:'已校',分歧记录:null},5:{yaoci:'观我生，君子无咎。',校对状态:'已校',分歧记录:null},6:{yaoci:'观其生，君子无咎。',校对状态:'已校',分歧记录:null}},
+  // ---- 第四批：噬嗑贲剥复无妄大畜颐大过 ----
+  '噬嗑':{1:{yaoci:'屦校灭趾，无咎。',校对状态:'已校',分歧记录:null},2:{yaoci:'噬肤灭鼻，无咎。',校对状态:'已校',分歧记录:null},3:{yaoci:'噬腊肉遇毒，小吝，无咎。',校对状态:'已校',分歧记录:null},4:{yaoci:'噬乾胏，得金矢。利艰贞，吉。',校对状态:'已校',分歧记录:'"胏"是冷字，一处低质量来源识别失败，执象易注/国学梦确认清晰'},5:{yaoci:'噬乾肉，得黄金，贞厉，无咎。',校对状态:'已校',分歧记录:null},6:{yaoci:'何校灭耳，凶。',校对状态:'已校',分歧记录:null}},
+  '贲':{1:{yaoci:'贲其趾，舍车而徒。',校对状态:'已校',分歧记录:null},2:{yaoci:'贲其须。',校对状态:'已校',分歧记录:null},3:{yaoci:'贲如，濡如，永贞吉。',校对状态:'已校',分歧记录:null},4:{yaoci:'贲如皤如，白马翰如，匪寇婚媾。',校对状态:'已校',分歧记录:null},5:{yaoci:'贲于丘园，束帛戋戋，吝，终吉。',校对状态:'已校',分歧记录:null},6:{yaoci:'白贲，无咎。',校对状态:'已校',分歧记录:null}},
+  '剥':{1:{yaoci:'剥床以足，蔑贞凶。',校对状态:'已校',分歧记录:null},2:{yaoci:'剥床以辨，蔑贞凶。',校对状态:'已校',分歧记录:null},3:{yaoci:'剥之，无咎。',校对状态:'已校',分歧记录:'"床类"结构（剥床以X）只出现在初、二、四这三爻；六三、六五、上九各自是独立意象，不是"六三例外"这么简单，是"床类"和"非床类"各占三爻'},4:{yaoci:'剥床以肤，凶。',校对状态:'已校',分歧记录:null},5:{yaoci:'贯鱼以宫人宠，无不利。',校对状态:'已校',分歧记录:null},6:{yaoci:'硕果不食，君子得舆，小人剥庐。',校对状态:'已校',分歧记录:null}},
+  '复':{1:{yaoci:'不远复，无祗悔，元吉。',校对状态:'已校',分歧记录:'"祗"部分来源作"祇"，两字通用异体'},2:{yaoci:'休复，吉。',校对状态:'已校',分歧记录:null},3:{yaoci:'频复，厉，无咎。',校对状态:'已校',分歧记录:null},4:{yaoci:'中行独复。',校对状态:'已校',分歧记录:null},5:{yaoci:'敦复，无悔。',校对状态:'已校',分歧记录:null},6:{yaoci:'迷复，凶，有灾眚。用行师，终有大败，以其国君凶，至于十年不克征。',校对状态:'已校',分歧记录:null}},
+  '无妄':{1:{yaoci:'无妄往，吉。',校对状态:'已校',分歧记录:null},2:{yaoci:'不耕获，不菑畬，则利用攸往。',校对状态:'已校',分歧记录:null},3:{yaoci:'无妄之灾，或系之牛，行人之得，邑人之灾。',校对状态:'已校',分歧记录:null},4:{yaoci:'可贞，无咎。',校对状态:'已校',分歧记录:null},5:{yaoci:'无妄之疾，勿药有喜。',校对状态:'已校',分歧记录:null},6:{yaoci:'无妄行，有眚，无攸利。',校对状态:'已校',分歧记录:null}},
+  '大畜':{1:{yaoci:'有厉，利已。',校对状态:'已校',分歧记录:null},2:{yaoci:'舆说輹。',校对状态:'已校',分歧记录:null},3:{yaoci:'良马逐，利艰贞。曰闲舆卫，利有攸往。',校对状态:'已校',分歧记录:null},4:{yaoci:'童牛之牿，元吉。',校对状态:'已校',分歧记录:null},5:{yaoci:'豮豕之牙，吉。',校对状态:'已校',分歧记录:null},6:{yaoci:'何天之衢，亨。',校对状态:'已校',分歧记录:'古籍《易经证释》一处提出"何"或为"向"字之讹的理论，但极少数说法，绝大多数来源均作"何天之衢"，采用通行版'}},
+  '颐':{1:{yaoci:'舍尔灵龟，观我朵颐，凶。',校对状态:'已校',分歧记录:null},2:{yaoci:'颠颐，拂经，于丘颐，征凶。',校对状态:'已校',分歧记录:null},3:{yaoci:'拂颐，贞凶，十年勿用，无攸利。',校对状态:'已校',分歧记录:null},4:{yaoci:'颠颐，吉。虎视眈眈，其欲逐逐，无咎。',校对状态:'已校',分歧记录:null},5:{yaoci:'拂经，居贞吉，不可涉大川。',校对状态:'已校',分歧记录:null},6:{yaoci:'由颐，厉，吉。利涉大川。',校对状态:'已校',分歧记录:null}},
+  '大过':{1:{yaoci:'藉用白茅，无咎。',校对状态:'已校',分歧记录:null},2:{yaoci:'枯杨生稊，老夫得其女妻，无不利。',校对状态:'已校',分歧记录:'冷字"稊"，一处来源自身前后不一致误作"梯"，多数来源确认为"稊"；另帛书本作"荑"（tí，同为嫩芽义），是版本异文不是错误，通行本用"稊"'},3:{yaoci:'栋桡，凶。',校对状态:'已校',分歧记录:null},4:{yaoci:'栋隆，吉。有它，吝。',校对状态:'已校',分歧记录:null},5:{yaoci:'枯杨生华，老妇得其士夫，无咎无誉。',校对状态:'已校',分歧记录:'帛书本作"荂"（fū，同为花义），是版本异文不是错误，通行本用"华"'},6:{yaoci:'过涉灭顶，凶，无咎。',校对状态:'已校',分歧记录:null}},
+  // ---- 第五批：屯蒙咸恒遁大壮晋明夷 ----
+  '屯':{1:{yaoci:'磐桓，利居贞。利建侯。',校对状态:'已校',分歧记录:null},2:{yaoci:'屯如邅如，乘马班如。匪寇，婚媾。女子贞不字，十年乃字。',校对状态:'已校',分歧记录:null},3:{yaoci:'即鹿无虞，惟入于林中，君子几不如舍，往吝。',校对状态:'已校',分歧记录:null},4:{yaoci:'乘马班如，求婚媾。往吉，无不利。',校对状态:'已校',分歧记录:null},5:{yaoci:'屯其膏，小，贞吉；大，贞凶。',校对状态:'已校',分歧记录:null},6:{yaoci:'乘马班如，泣血涟如。',校对状态:'已校',分歧记录:null}},
+  '蒙':{1:{yaoci:'发蒙，利用刑人，用说桎梏，以往吝。',校对状态:'已校',分歧记录:null},2:{yaoci:'包蒙，吉。纳妇，吉。子克家。',校对状态:'已校',分歧记录:null},3:{yaoci:'勿用取女，见金夫，不有躬，无攸利。',校对状态:'已校',分歧记录:'"取女"部分来源作"娶女"，两字通用异体，采用较古的"取"字版本'},4:{yaoci:'困蒙，吝。',校对状态:'已校',分歧记录:null},5:{yaoci:'童蒙，吉。',校对状态:'已校',分歧记录:null},6:{yaoci:'击蒙，不利为寇，利御寇。',校对状态:'已校',分歧记录:null}},
+  '咸':{1:{yaoci:'咸其拇。',校对状态:'已校',分歧记录:null},2:{yaoci:'咸其腓，凶。居吉。',校对状态:'已校',分歧记录:null},3:{yaoci:'咸其股，执其随，往吝。',校对状态:'已校',分歧记录:null},4:{yaoci:'贞吉。悔亡。憧憧往来，朋从尔思。',校对状态:'已校',分歧记录:null},5:{yaoci:'咸其脢，无悔。',校对状态:'已校',分歧记录:null},6:{yaoci:'咸其辅颊舌。',校对状态:'已校',分歧记录:null}},
+  '恒':{1:{yaoci:'浚恒，贞凶，无攸利。',校对状态:'已校',分歧记录:null},2:{yaoci:'悔亡。',校对状态:'已校',分歧记录:null},3:{yaoci:'不恒其德，或承之羞，贞吝。',校对状态:'已校',分歧记录:null},4:{yaoci:'田无禽。',校对状态:'已校',分歧记录:null},5:{yaoci:'恒其德，贞，妇人吉，夫子凶。',校对状态:'已校',分歧记录:null},6:{yaoci:'振恒，凶。',校对状态:'已校',分歧记录:null}},
+  '遁':{1:{yaoci:'遯尾，厉，勿用有攸往。',校对状态:'已校',分歧记录:null},2:{yaoci:'执之用黄牛之革，莫之胜说。',校对状态:'已校',分歧记录:null},3:{yaoci:'系遯，有疾厉，畜臣妾吉。',校对状态:'已校',分歧记录:null},4:{yaoci:'好遯，君子吉，小人否。',校对状态:'已校',分歧记录:null},5:{yaoci:'嘉遯，贞吉。',校对状态:'已校',分歧记录:null},6:{yaoci:'肥遯，无不利。',校对状态:'已校',分歧记录:null}},
+  '大壮':{1:{yaoci:'壮于趾，征凶，有孚。',校对状态:'已校',分歧记录:null},2:{yaoci:'贞吉。',校对状态:'已校',分歧记录:null},3:{yaoci:'小人用壮，君子用罔，贞厉。羝羊触藩，羸其角。',校对状态:'已校',分歧记录:null},4:{yaoci:'贞吉，悔亡，藩决不羸，壮于大舆之輹。',校对状态:'已校',分歧记录:null},5:{yaoci:'丧羊于易，无悔。',校对状态:'已校',分歧记录:null},6:{yaoci:'羝羊触藩，不能退，不能遂，无攸利，艰则吉。',校对状态:'已校',分歧记录:null}},
+  '晋':{1:{yaoci:'晋如摧如，贞吉。罔孚，裕无咎。',校对状态:'已校',分歧记录:null},2:{yaoci:'晋如，愁如，贞吉。受兹介福，于其王母。',校对状态:'已校',分歧记录:null},3:{yaoci:'众允，悔亡。',校对状态:'已校',分歧记录:null},4:{yaoci:'晋如鼫鼠，贞厉。',校对状态:'已校',分歧记录:null},5:{yaoci:'悔亡，失得，勿恤。往吉，无不利。',校对状态:'已校',分歧记录:null},6:{yaoci:'晋其角，维用伐邑，厉吉，无咎，贞吝。',校对状态:'已校',分歧记录:null}},
+  '明夷':{1:{yaoci:'明夷于飞，垂其翼。君子于行，三日不食，有攸往，主人有言。',校对状态:'已校',分歧记录:null},2:{yaoci:'明夷，夷于左股，用拯马壮，吉。',校对状态:'已校',分歧记录:null},3:{yaoci:'明夷于南狩，得其大首，不可疾贞。',校对状态:'已校',分歧记录:null},4:{yaoci:'入于左腹，获明夷之心，出于门庭。',校对状态:'已校',分歧记录:'"出于门庭"一处来源作"于出门庭"（字序不同），多数来源作"出于门庭"，采用多数版本'},5:{yaoci:'箕子之明夷，利贞。',校对状态:'已校',分歧记录:null},6:{yaoci:'不明晦，初登于天，后入于地。',校对状态:'已校',分歧记录:null}},
+  // ---- 第六批：家人睽蹇解损益夬姤 ----
+  '家人':{1:{yaoci:'闲有家，悔亡。',校对状态:'已校',分歧记录:null},2:{yaoci:'无攸遂，在中馈，贞吉。',校对状态:'已校',分歧记录:null},3:{yaoci:'家人嗃嗃，悔厉吉；妇子嘻嘻，终吝。',校对状态:'已校',分歧记录:'"嗃嗃"两个来源因重复字识别失败显示为"嗃□"，其余来源清晰确认为"嗃嗃"'},4:{yaoci:'富家，大吉。',校对状态:'已校',分歧记录:null},5:{yaoci:'王假有家，勿恤，吉。',校对状态:'已校',分歧记录:null},6:{yaoci:'有孚威如，终吉。',校对状态:'已校',分歧记录:null}},
+  '睽':{1:{yaoci:'悔亡。丧马勿逐自复。见恶人无咎。',校对状态:'已校',分歧记录:null},2:{yaoci:'遇主于巷，无咎。',校对状态:'已校',分歧记录:null},3:{yaoci:'见舆曳，其牛掣，其人天且劓，无初有终。',校对状态:'已校',分歧记录:null},4:{yaoci:'睽孤遇元夫，交孚，厉，无咎。',校对状态:'已校',分歧记录:null},5:{yaoci:'悔亡。厥宗噬肤，往何咎？',校对状态:'已校',分歧记录:null},6:{yaoci:'睽孤见豕负涂，载鬼一车，先张之弧，后说之弧，匪寇，婚媾。往遇雨则吉。',校对状态:'已校',分歧记录:null}},
+  '蹇':{1:{yaoci:'往蹇，来誉。',校对状态:'已校',分歧记录:null},2:{yaoci:'王臣蹇蹇，匪躬之故。',校对状态:'已校',分歧记录:'"匪躬之故"一处来源误作"匪穷之故"，多数来源确认为"躬"'},3:{yaoci:'往蹇来反。',校对状态:'已校',分歧记录:null},4:{yaoci:'往蹇来连。',校对状态:'已校',分歧记录:null},5:{yaoci:'大蹇朋来。',校对状态:'已校',分歧记录:null},6:{yaoci:'往蹇来硕，吉；利见大人。',校对状态:'已校',分歧记录:null}},
+  '解':{1:{yaoci:'无咎。',校对状态:'已校',分歧记录:null},2:{yaoci:'田获三狐，得黄矢，贞吉。',校对状态:'已校',分歧记录:null},3:{yaoci:'负且乘，致寇至，贞吝。',校对状态:'已校',分歧记录:null},4:{yaoci:'解而拇，朋至斯孚。',校对状态:'已校',分歧记录:null},5:{yaoci:'君子维有解，吉；有孚于小人。',校对状态:'已校',分歧记录:null},6:{yaoci:'公用射隼于高墉之上，获之，无不利。',校对状态:'已校',分歧记录:null}},
+  '损':{1:{yaoci:'已事遄往，无咎，酌损之。',校对状态:'已校',分歧记录:null},2:{yaoci:'利贞，征凶，弗损，益之。',校对状态:'已校',分歧记录:null},3:{yaoci:'三人行，则损一人；一人行，则得其友。',校对状态:'已校',分歧记录:null},4:{yaoci:'损其疾，使遄有喜，无咎。',校对状态:'已校',分歧记录:null},5:{yaoci:'或益之，十朋之龟，弗克违，元吉。',校对状态:'已校',分歧记录:null},6:{yaoci:'弗损，益之，无咎，贞吉，利有攸往，得臣无家。',校对状态:'已校',分歧记录:null}},
+  '益':{1:{yaoci:'利用为大作，元吉，无咎。',校对状态:'已校',分歧记录:null},2:{yaoci:'或益之十朋之龟，弗克违，永贞吉。王用享于帝，吉。',校对状态:'已校',分歧记录:null},3:{yaoci:'益之用凶事，无咎。有孚中行，告公用圭。',校对状态:'已校',分歧记录:null},4:{yaoci:'中行告公从，利用为依迁国。',校对状态:'已校',分歧记录:'逗号断句各来源略有不同（"中行，告公从"/"中行告公，从"），用字一致，采用执象易注/高岛断易的断法'},5:{yaoci:'有孚惠心，勿问元吉。有孚惠我德。',校对状态:'已校',分歧记录:null},6:{yaoci:'莫益之，或击之，立心勿恒，凶。',校对状态:'已校',分歧记录:null}},
+  '夬':{1:{yaoci:'壮于前趾，往不胜为咎。',校对状态:'已校',分歧记录:'一处来源作"为吝"，但《象传》本身作"不胜而往，咎也"，与"咎"字对应，采用"咎"'},2:{yaoci:'惕号，莫夜有戎，勿恤。',校对状态:'已校',分歧记录:null},3:{yaoci:'壮于頄，有凶。君子夬夬，独行遇雨，若濡有愠，无咎。',校对状态:'已校',分歧记录:null},4:{yaoci:'臀无肤，其行次且。牵羊悔亡，闻言不信。',校对状态:'已校',分歧记录:null},5:{yaoci:'苋陆夬夬，中行无咎。',校对状态:'已校',分歧记录:null},6:{yaoci:'无号，终有凶。',校对状态:'已校',分歧记录:null}},
+  '姤':{1:{yaoci:'系于金柅，贞吉，有攸往，见凶，羸豕孚踟躅。',校对状态:'已校',分歧记录:'"孚"字一处来源缺失，"踟躅"/"蹢躅"两种写法通用，采用多数版本'},2:{yaoci:'包有鱼，无咎，不利宾。',校对状态:'已校',分歧记录:null},3:{yaoci:'臀无肤，其行次且，厉，无大咎。',校对状态:'已校',分歧记录:null},4:{yaoci:'包无鱼，起凶。',校对状态:'已校',分歧记录:null},5:{yaoci:'以杞包瓜，含章，有陨自天。',校对状态:'已校',分歧记录:null},6:{yaoci:'姤其角，吝，无咎。',校对状态:'已校',分歧记录:null}},
+  // ---- 第七批：萃升困井革渐丰旅（解卦历史里出现过的卦，做完这批全部有原文兜底）----
+  '萃':{1:{yaoci:'有孚不终，乃乱乃萃，若号，一握为笑，勿恤，往无咎。',校对状态:'已校',分歧记录:null},2:{yaoci:'引吉，无咎，孚乃利用禴。',校对状态:'已校',分歧记录:null},3:{yaoci:'萃如嗟如，无攸利，往无咎，小吝。',校对状态:'已校',分歧记录:null},4:{yaoci:'大吉，无咎。',校对状态:'已校',分歧记录:null},5:{yaoci:'萃有位，无咎。匪孚，元永贞，悔亡。',校对状态:'已校',分歧记录:null},6:{yaoci:'赍咨涕洟，无咎。',校对状态:'已校',分歧记录:'两个来源因识别失败显示为"□咨涕洟"，其中一处自己另一段又写成"齑咨涕洟"，国易堂/国学典籍网清晰确认为"赍"'}},
+  '升':{1:{yaoci:'允升，大吉。',校对状态:'已校',分歧记录:null},2:{yaoci:'孚乃利用禴，无咎。',校对状态:'已校',分歧记录:null},3:{yaoci:'升虚邑。',校对状态:'已校',分歧记录:null},4:{yaoci:'王用亨于岐山，吉，无咎。',校对状态:'已校',分歧记录:null},5:{yaoci:'贞吉，升阶。',校对状态:'已校',分歧记录:null},6:{yaoci:'冥升，利于不息之贞。',校对状态:'已校',分歧记录:null}},
+  '困':{1:{yaoci:'臀困于株木，入于幽谷，三岁不觌。',校对状态:'已校',分歧记录:null},2:{yaoci:'困于酒食，朱绂方来，利用享祀。征凶，无咎。',校对状态:'已校',分歧记录:null},3:{yaoci:'困于石，据于蒺藜，入于其宫，不见其妻，凶。',校对状态:'已校',分歧记录:null},4:{yaoci:'来徐徐，困于金车，吝，有终。',校对状态:'已校',分歧记录:null},5:{yaoci:'劓刖，困于赤绂，乃徐有说，利用祭祀。',校对状态:'已校',分歧记录:null},6:{yaoci:'困于葛藟，于臲卼，曰动悔有悔，征吉。',校对状态:'已校',分歧记录:null}},
+  '井':{1:{yaoci:'井泥不食，旧井无禽。',校对状态:'已校',分歧记录:null},2:{yaoci:'井谷射鲋，瓮敝漏。',校对状态:'已校',分歧记录:null},3:{yaoci:'井渫不食，为我心恻，可用汲，王明，并受其福。',校对状态:'已校',分歧记录:null},4:{yaoci:'井甃，无咎。',校对状态:'已校',分歧记录:null},5:{yaoci:'井洌，寒泉食。',校对状态:'已校',分歧记录:null},6:{yaoci:'井收勿幕，有孚元吉。',校对状态:'已校',分歧记录:null}},
+  '革':{1:{yaoci:'巩用黄牛之革。',校对状态:'已校',分歧记录:null},2:{yaoci:'巳日乃革之，征吉，无咎。',校对状态:'已校',分歧记录:null},3:{yaoci:'征凶。贞厉。革言三就，有孚。',校对状态:'已校',分歧记录:null},4:{yaoci:'悔亡。有孚改命，吉。',校对状态:'已校',分歧记录:null},5:{yaoci:'大人虎变，未占有孚。',校对状态:'已校',分歧记录:null},6:{yaoci:'君子豹变，小人革面，征凶，居贞吉。',校对状态:'已校',分歧记录:null}},
+  '渐':{1:{yaoci:'鸿渐于干，小子厉，有言，无咎。',校对状态:'已校',分歧记录:null},2:{yaoci:'鸿渐于磐，饮食衎衎，吉。',校对状态:'已校',分歧记录:'一处来源误作"饮食衍衍"，多个高质量来源（含十三经注疏引文）确认为"衎衎"'},3:{yaoci:'鸿渐于陆，夫征不复，妇孕不育，凶；利御寇。',校对状态:'已校',分歧记录:null},4:{yaoci:'鸿渐于木，或得其桷，无咎。',校对状态:'已校',分歧记录:null},5:{yaoci:'鸿渐于陵，妇三岁不孕，终莫之胜，吉。',校对状态:'已校',分歧记录:null},6:{yaoci:'鸿渐于逵，其羽可用为仪，吉。',校对状态:'已校',分歧记录:null}},
+  '丰':{1:{yaoci:'遇其配主，虽旬无咎，往有尚。',校对状态:'已校',分歧记录:null},2:{yaoci:'丰其蔀，日中见斗。往得疑疾，有孚发若，吉。',校对状态:'已校',分歧记录:null},3:{yaoci:'丰其沛，日中见沬，折其右肱，无咎。',校对状态:'已校',分歧记录:'一处来源结尾误作"吉"（与自己引用的象传矛盾），多数来源确认为"无咎"；"见沬"/"见昧"两种写法都有出现，采用较多来源的"沬"'},4:{yaoci:'丰其蔀，日中见斗，遇其夷主，吉。',校对状态:'已校',分歧记录:null},5:{yaoci:'来章，有庆誉，吉。',校对状态:'已校',分歧记录:null},6:{yaoci:'丰其屋，蔀其家，窥其户，阒其无人，三岁不觌，凶。',校对状态:'已校',分歧记录:null}},
+  '旅':{1:{yaoci:'旅琐琐，斯其所取灾。',校对状态:'已校',分歧记录:null},2:{yaoci:'旅即次，怀其资，得童仆贞。',校对状态:'已校',分歧记录:null},3:{yaoci:'旅焚其次，丧其童仆，贞厉。',校对状态:'已校',分歧记录:null},4:{yaoci:'旅于处，得其资斧，我心不快。',校对状态:'已校',分歧记录:null},5:{yaoci:'射雉一矢亡，终以誉命。',校对状态:'已校',分歧记录:null},6:{yaoci:'鸟焚其巢，旅人先笑后号咷。丧牛于易，凶。',校对状态:'已校',分歧记录:'"号咷"/"号啕"两种写法通用'}},
+  // ---- 第八批（最后一批）：鼎归妹涣节中孚小过既济未济 ----
+  '鼎':{1:{yaoci:'鼎颠趾，利出否，得妾以其子，无咎。',校对状态:'已校',分歧记录:null},2:{yaoci:'鼎有实，我仇有疾，不我能即，吉。',校对状态:'已校',分歧记录:null},3:{yaoci:'鼎耳革，其行塞，雉膏不食，方雨亏悔，终吉。',校对状态:'已校',分歧记录:null},4:{yaoci:'鼎折足，覆公餗，其形渥，凶。',校对状态:'已校',分歧记录:null},5:{yaoci:'鼎黄耳金铉，利贞。',校对状态:'已校',分歧记录:null},6:{yaoci:'鼎玉铉，大吉，无不利。',校对状态:'已校',分歧记录:null}},
+  '归妹':{1:{yaoci:'归妹以娣，跛能履，征吉。',校对状态:'已校',分歧记录:null},2:{yaoci:'眇能视，利幽人之贞。',校对状态:'已校',分歧记录:null},3:{yaoci:'归妹以须，反归以娣。',校对状态:'已校',分歧记录:null},4:{yaoci:'归妹愆期，迟归有时。',校对状态:'已校',分歧记录:null},5:{yaoci:'帝乙归妹，其君之袂不如其娣之袂良。月几望，吉。',校对状态:'已校',分歧记录:'"月几望"/"月既望"两种写法，多数来源用"几望"'},6:{yaoci:'女承筐无实，士刲羊无血，无攸利。',校对状态:'已校',分歧记录:null}},
+  '涣':{1:{yaoci:'用拯马壮，吉。',校对状态:'已校',分歧记录:null},2:{yaoci:'涣奔其机，悔亡。',校对状态:'已校',分歧记录:null},3:{yaoci:'涣其躬，无悔。',校对状态:'已校',分歧记录:null},4:{yaoci:'涣其群，元吉。涣有丘，匪夷所思。',校对状态:'已校',分歧记录:null},5:{yaoci:'涣汗其大号，涣王居，无咎。',校对状态:'已校',分歧记录:null},6:{yaoci:'涣其血，去逖出，无咎。',校对状态:'已校',分歧记录:null}},
+  '节':{1:{yaoci:'不出户庭，无咎。',校对状态:'已校',分歧记录:null},2:{yaoci:'不出门庭，凶。',校对状态:'已校',分歧记录:null},3:{yaoci:'不节若，则嗟若，无咎。',校对状态:'已校',分歧记录:null},4:{yaoci:'安节，亨。',校对状态:'已校',分歧记录:null},5:{yaoci:'甘节，吉。往有尚。',校对状态:'已校',分歧记录:null},6:{yaoci:'苦节，贞凶，悔亡。',校对状态:'已校',分歧记录:null}},
+  '中孚':{1:{yaoci:'虞吉，有它不燕。',校对状态:'已校',分歧记录:null},2:{yaoci:'鸣鹤在阴，其子和之，我有好爵，吾与尔靡之。',校对状态:'已校',分歧记录:'一处来源字序作"鹤鸣在阴"，多数来源作"鸣鹤在阴"'},3:{yaoci:'得敌，或鼓或罢，或泣或歌。',校对状态:'已校',分歧记录:null},4:{yaoci:'月几望，马匹亡，无咎。',校对状态:'已校',分歧记录:'"月几望"/"月既望"两种写法，多数来源用"几望"'},5:{yaoci:'有孚挛如，无咎。',校对状态:'已校',分歧记录:null},6:{yaoci:'翰音登于天，贞凶。',校对状态:'已校',分歧记录:null}},
+  '小过':{1:{yaoci:'飞鸟以凶。',校对状态:'已校',分歧记录:null},2:{yaoci:'过其祖，遇其妣；不及其君，遇其臣；无咎。',校对状态:'已校',分歧记录:null},3:{yaoci:'弗过防之，从或戕之，凶。',校对状态:'已校',分歧记录:null},4:{yaoci:'无咎，弗过遇之。往厉必戒，勿用永贞。',校对状态:'已校',分歧记录:null},5:{yaoci:'密云不雨，自我西郊，公弋取彼在穴。',校对状态:'已校',分歧记录:null},6:{yaoci:'弗遇过之，飞鸟离之，凶，是谓灾眚。',校对状态:'已校',分歧记录:null}},
+  '既济':{1:{yaoci:'曳其轮，濡其尾，无咎。',校对状态:'已校',分歧记录:null},2:{yaoci:'妇丧其茀，勿逐，七日得。',校对状态:'已校',分歧记录:null},3:{yaoci:'高宗伐鬼方，三年克之，小人勿用。',校对状态:'已校',分歧记录:null},4:{yaoci:'繻有衣袽，终日戒。',校对状态:'已校',分歧记录:null},5:{yaoci:'东邻杀牛，不如西邻之禴祭，实受其福。',校对状态:'已校',分歧记录:null},6:{yaoci:'濡其首，厉。',校对状态:'已校',分歧记录:null}},
+  '未济':{1:{yaoci:'濡其尾，吝。',校对状态:'已校',分歧记录:null},2:{yaoci:'曳其轮，贞吉。',校对状态:'已校',分歧记录:null},3:{yaoci:'未济，征凶，利涉大川。',校对状态:'已校',分歧记录:null},4:{yaoci:'贞吉，悔亡。震用伐鬼方，三年有赏于大国。',校对状态:'已校',分歧记录:null},5:{yaoci:'贞吉，无悔。君子之光，有孚吉。',校对状态:'已校',分歧记录:null},6:{yaoci:'有孚于饮酒，无咎。濡其首，有孚失是。',校对状态:'已校',分歧记录:null}}
 };
+// 起卦算法的全年回归测试——不是一次性脚本，是往后每次改动 getGanzhi/guaAutoFromTs
+// 之后都该跑一遍的自检。立春月柱那类bug的特点是"平时看不出、只在特定几天犯"，
+// 光跑几个随机日期测不出来，必须扫一遍全年才靠得住。
+// 用法：在浏览器控制台跑 guaSelfTestYearSweep()，返回一个结果对象；ok为false时，
+// problems数组里是具体哪天哪个检查没过。
+function guaSelfTestYearSweep(year){
+  year = year || new Date().getFullYear();
+  const problems=[];
+  // 1. 月支序列检查：全年365/366天扫一遍，月支只能按 子丑寅卯辰巳午未申酉戌亥子
+  //    这个顺序单调前进，不能倒退、不能跳过、不能在同一个月支上重复出现"回到"某个更早的月支。
+  const isLeap=(year%4===0&&year%100!==0)||year%400===0;
+  const daysInYear=isLeap?366:365;
+  const order=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+  let prevBranch=null, seq=[];
+  for(let d=0; d<daysInYear; d++){
+    const dt=new Date(year,0,1); dt.setDate(dt.getDate()+d);
+    const gz=getGanzhi(dt);
+    const branch=gz.month[1];
+    if(branch!==prevBranch){ seq.push({date:dt.toISOString().slice(0,10),branch}); prevBranch=branch; }
+  }
+  // 期望：从序列第一个月支开始，往后每一个都是"上一个在环上的下一位"，直到循环回到起点为止，
+  // 不允许中途跳回到已经出现过的月支（那就是倒退/重复）。
+  const seen=new Set();
+  for(let i=0;i<seq.length;i++){
+    const {date,branch}=seq[i];
+    if(i>0){
+      const prevIdx=order.indexOf(seq[i-1].branch);
+      const curIdx=order.indexOf(branch);
+      const expectedIdx=(prevIdx+1)%12;
+      if(curIdx!==expectedIdx){
+        problems.push(`月支倒退或跳跃：${date} 从"${seq[i-1].branch}"变成"${branch}"，不是紧接着的下一个月支（应该是"${order[expectedIdx]}"）`);
+      }
+    }
+    seen.add(branch);
+  }
+  // 2. upper/lower/moving 全年抽样必须都落在合法范围（1-8, 1-8, 1-6），不能出现0或超范围
+  let outOfRange=0;
+  for(let d=0; d<daysInYear; d+=3){ // 每3天抽一次，减少循环次数但仍覆盖全年
+    const dt=new Date(year,0,1); dt.setDate(dt.getDate()+d);
+    for(const minute of [0,15,30,45,59]){
+      const t=new Date(dt.getFullYear(),dt.getMonth(),dt.getDate(),12,minute,0).getTime();
+      const g=guaAutoFromTs(t);
+      if(g.upper<1||g.upper>8||g.lower<1||g.lower>8||g.moving<1||g.moving>6){
+        outOfRange++;
+        problems.push(`超出合法范围：${dt.toISOString().slice(0,10)} ${minute}分 upper=${g.upper} lower=${g.lower} moving=${g.moving}`);
+      }
+    }
+  }
+  // 3. 同一分钟内两次调用必须给出一样的卦（郑重感的核心保证）
+  const t0=new Date(year,5,15,10,30,0).getTime();
+  const t1=new Date(year,5,15,10,30,59).getTime();
+  const gA=guaAutoFromTs(t0), gB=guaAutoFromTs(t1);
+  const sameMinuteStable=(gA.upper===gB.upper&&gA.lower===gB.lower&&gA.moving===gB.moving);
+  if(!sameMinuteStable)problems.push('同一分钟内两次起卦结果不一致，违反"郑重感"的核心设计');
+  return {
+    ok: problems.length===0,
+    year, daysInYear,
+    月支序列: seq.map(s=>s.branch).join('->'),
+    抽样次数: Math.ceil(daysInYear/3)*5,
+    超范围次数: outOfRange,
+    同分钟稳定: sameMinuteStable,
+    problems
+  };
+}
+// 查这一卦这一爻有没有已校对的原文——没有就返回 null，调用的地方会自然地
+// 回退到"不引用原文，靠AI自己理解讲"，不会因为查不到就出错。
+// 跨卦串扰检查——不是给用户用的功能，是每收一批新爻辞时自己跑一遍的维护工具。
+// 思路：常见虚字/结果字（无咎、吉凶这类）到处出现很正常，不算问题；但如果一个
+// 生僻字意外出现在两个不同的卦里，很可能是"记串了"（比如把这卦的字錯記成了
+// 另一卦的），需要人工确认是不是"经典对文"（比如泰初九和否初六都用"以其汇"，
+// 这是易经本身故意设计的呼应，不是错误）还是真的录错了。
+// 用法：在浏览器控制台跑 guaCheckCrossContamination()，看输出的列表。
+function guaCheckCrossContamination(){
+  const COMMON=new Set('无咎吉凶贞厉悔亡利有孚其于以之不为往来上下大小人君子田邑王用而及若如或终始得失出入见行道正中也一二三四五六七八九十日月自我不'.split(''));
+  const charLoc={};
+  Object.entries(GUA_YAOCI).forEach(([gua,yaos])=>{
+    Object.entries(yaos).forEach(([pos,data])=>{
+      Array.from(new Set(data.yaoci.replace(/[，。；、！？]/g,'').split(''))).forEach(ch=>{
+        if(COMMON.has(ch))return;
+        if(!charLoc[ch])charLoc[ch]=[];
+        charLoc[ch].push(gua+pos);
+      });
+    });
+  });
+  const suspects={};
+  Object.entries(charLoc).forEach(([ch,locs])=>{
+    // 只在这个字在整个库里出现次数很少（≤3次，真正称得上"生僻"）、
+    // 又分散在不止一个卦里时才算可疑——像"龙""履"这种正常反复出现的
+    // 主题字不该被打扰，只有真正稀有又跨卦出现的字才值得人工看一眼。
+    if(locs.length>3)return;
+    const guaSet=new Set(locs.map(l=>l.replace(/\d+$/,'')));
+    if(guaSet.size>1)suspects[ch]=locs;
+  });
+  return suspects;
+}
 // 查这一卦这一爻有没有已校对的原文——没有就返回 null，调用的地方会自然地
 // 回退到"不引用原文，靠AI自己理解讲"，不会因为查不到就出错。
 function guaYaoci(guaName,moving){
@@ -4452,8 +4594,14 @@ function guaLabel(g){
 function guaBackfill(){
   let changed=false;
   (energyLog||[]).forEach(e=>{
-    if(!e.gua&&e.ts&&e.state!=='卜'){e.gua=guaAutoFromTs(e.ts);changed=true;}
-    else if(e.gua&&(!e.gua.icon||!e.gua.feel)){const inf=GUA_INFO[e.gua.name]||['✨',''];e.gua.icon=inf[0];e.gua.feel=inf[1];changed=true;}
+    // 不管是不是"卜"，只要这条记录还没有卦，就按它自己的时间戳补一个——
+    // "卜"记录也会走到这里，是故意的：如果当时滑到"卜"、确认了，但报数那步
+    // 没走完（没填数字也没点"起卦"）就退出了，这条记录会一直卡在gua=null，
+    // 日历里就只剩"卜"两个字加图标，什么内容都没有，也没法点开揭卦。这里给它
+    // 兜个底，按它自己的时间戳补一个自动起的卦——这跟"起卦"按钮本身"不填数字
+    // 就按此刻自动起卦"是同一套逻辑，半途放弃的起卦，退回按时间起卦，合理。
+    if(!e.gua&&e.ts){e.gua=guaAutoFromTs(e.ts);changed=true;}
+    else if(e.gua){const inf=GUA_INFO[e.gua.name]||['✨',''];if(e.gua.icon!==inf[0]){e.gua.icon=inf[0];changed=true;}if(!e.gua.feel){e.gua.feel=inf[1];changed=true;}}
     if(e.gua&&!e.gua.nuclearName&&e.gua.lines){const hL=guaTriFromLines(e.gua.lines.slice(1,4)),hU=guaTriFromLines(e.gua.lines.slice(2,5));e.gua.nuclearName=GUA_NAMES[hU][hL];changed=true;}
     if(e.gua&&!e.gua.oppositeName&&e.gua.lines){
       const opp=e.gua.lines.map(l=>l?0:1);
@@ -4466,7 +4614,7 @@ function guaBackfill(){
       e.gua.isCorrect=!!e.gua.lines[e.gua.moving-1]===(e.gua.moving%2===1);
       changed=true;
     }
-    if(e.gua&&e.gua.crossName===undefined&&e.gua.upper&&e.gua.lower){
+    if(e.gua&&e.gua.crossName===undefined&&e.gua.upper&&e.gua.lower&&e.gua.lines){
       e.gua.crossName=GUA_NAMES[e.gua.lower][e.gua.upper];
       const correspondMap={1:4,2:5,3:6,4:1,5:2,6:3};
       e.gua.correspondLine=correspondMap[e.gua.moving];
@@ -4496,24 +4644,26 @@ function getGanzhi(date){
   const yBranch = ((yY - 4) % 12 + 12) % 12;
   const yearPillar = GZ_STEMS[yStem] + GZ_BRANCHES[yBranch];
   
-  // 月柱 (Month pillar) - based on 节气 (solar terms), simplified to month boundaries
-  // Months in 干支: 寅(Feb)=1, 卯(Mar)=2, 辰(Apr)=3, ... 丑(Jan)=12
-  // Boundary: each month roughly starts on the 4th-7th day
-  // Simplified: use month >= 4th day boundary
-  let lunarMonthIdx; // 0=寅, 1=卯, 2=辰, ...
-  // Solar term boundaries (approximate): 
-  // 立春 ~ Feb 4, 惊蛰 ~ Mar 6, 清明 ~ Apr 5, 立夏 ~ May 5, 芒种 ~ Jun 6,
-  // 小暑 ~ Jul 7, 立秋 ~ Aug 7, 白露 ~ Sep 8, 寒露 ~ Oct 8, 立冬 ~ Nov 7,
-  // 大雪 ~ Dec 7, 小寒 ~ Jan 6
-  const termDays=[6,4,6,5,5,6,7,7,8,8,7,7]; // approx start day for each month boundary
-  let solarMonth; // 1-12, where 1=寅月
-  if(M === 1){
-    solarMonth = D >= termDays[11] ? 12 : 11; // 12月=丑, 11月=子
-    // wait: 小寒(Jan 6)→丑月(12) , 大雪(Dec 7)→子月(11)
-    if(D < termDays[11]) solarMonth = 11; else solarMonth = 12;
-  } else {
-    if(D >= termDays[M-2]) solarMonth = M - 1; else solarMonth = M - 2;
-    if(solarMonth <= 0) solarMonth = 11; // Dec wraps to 子
+  // 月柱 (Month pillar) - 按节气月边界（近似值，不做精确天文计算，但要保证单调、
+  // 不会在年初这个边界上算错位）。
+  // 原来的写法是拿日历月份直接减2去反推节气月序号，2月份的时候"M-2"算出来是0，
+  // 代码把"0"错误地默认成"子月(11)"——但2月立春之前应该还是"丑月(12)"，这个
+  // 默认值选错了，等于把"上一个节气月"错记成了"上上个节气月"。而且年柱用的
+  // 立春阈值是2月4日，这里原来用的却是2月6日，两个阈值对不上，多出两天窗口。
+  // 改成统一用"这一天是一年中第几天"去跟每个节气月的起始点比较，不再靠日历
+  // 月份数字反推，就不会再有这个错位——不管年初年末，判断逻辑完全一样。
+  const DOY_CUM=[0,31,59,90,120,151,181,212,243,273,304,334]; // 每月1号是当年第几天（不算闰年，边界期误差最多1天，可接受）
+  const doy=DOY_CUM[M-1]+D;
+  // 12个节气月里，只有1-10这十个（寅到亥）有明确"从某天开始"的起点可以循环比较；
+  // 子月(11)和丑月(12)横跨了元旦，单独当默认值处理，不放进循环——上一版的bug
+  // 就是把丑月的起点(第6天)也放进了循环，"第6天以后"这个条件几乎全年都成立，
+  // 结果把后面所有月份都错误覆盖回了丑月。
+  const SM_STARTS=[[1,35],[2,65],[3,95],[4,125],[5,157],[6,188],[7,219],[8,251],[9,281],[10,311]];
+  let solarMonth;
+  if(doy<6||doy>=341) solarMonth=11;              // 子月：横跨元旦（大雪之后到小寒之前）
+  else{
+    solarMonth=12;                                  // 默认丑月（小寒开始到立春之前）
+    for(const [sm,start] of SM_STARTS){ if(doy>=start) solarMonth=sm; }
   }
   // solarMonth 1=寅 ... 11=子, 12=丑
   // Branch index: solarMonth=1→branch 2(寅), 2→3(卯), ... 11→0(子), 12→1(丑)
@@ -5235,7 +5385,9 @@ function guanRenderBuNumsRow(chosen, entry){
   row.querySelector('.guan-bu-go').onclick=()=>{
     const live=(document.getElementById('gs1ReasonInput')?.value||'').trim();
     if(live)entry.reason=live;
-    if(!entry.reason){toast('先写下要问的事');guanToggleReasonOpen();return;}
+    // 起心动念是自己心里的事，不需要写出来才算数——问题写不写完全随意，
+    // 不写也一样能起卦，只是解读的时候会围绕这一卦本身去讲，不会假装
+    // 知道你心里问的是什么。
     const raw=Array.from(row.querySelectorAll('.guan-bu-num')).map(i=>i.value.trim());
     const filled=raw.filter(v=>v!=='');
     let gua;
@@ -5248,7 +5400,14 @@ function guanRenderBuNumsRow(chosen, entry){
     }
     entry.gua=gua;
     sv('energyLog',energyLog);
-    if(typeof guanCommitReason==='function')guanCommitReason();
+    if(entry.reason&&typeof guanCommitReason==='function'){
+      guanCommitReason();
+    }else{
+      // 没写问题——不用假装"封存"了什么，直接把"+问题"这一行收起来，
+      // 不留一个看起来"没点完"的悬空状态。
+      const toggle=document.getElementById('gs1ReasonToggle');
+      if(toggle){toggle.classList.add('hidden');}
+    }
     const rec=document.getElementById('gs1Recorded');
     if(rec)guanRenderRecordedLine(rec,chosen,entry);
     row.remove();
@@ -5257,12 +5416,6 @@ function guanRenderBuNumsRow(chosen, entry){
   };
   detail.appendChild(row);
   if(window._gs1ResetTimer)clearTimeout(window._gs1ResetTimer); // 报数期间别自动收起
-}
-// 把缘由输入框打开（如果还没开），用在报数前得先写问题的提醒里
-function guanToggleReasonOpen(){
-  const inp=document.getElementById('gs1ReasonInput');
-  if(inp&&!inp.classList.contains('show')&&typeof guanToggleReason==='function')guanToggleReason();
-  if(inp)setTimeout(()=>inp.focus(),50);
 }
 // 揭卦弹窗：六爻从下往上一根根浮现（动爻描一圈），本卦 → 变卦，然后 AI 解读。
 // 解读只生成一次，存回这条记录，下次打开直接显示，也方便以后导出给 AI 看。
@@ -5335,14 +5488,15 @@ async function guaFetchReading(entry){
 
 【卦】${guaLabel(g)}
 【她记录的状态】「${entry.state||''}」${entry.feel?'（'+entry.feel+'）':''}
-【她写的${manual?'要问的事':'缘由'}】"${entry.reason||'（没写）'}"
+【她写的${manual?'要问的事':'缘由'}】"${entry.reason||'（这次没写，留在心里）'}"
 
 解读要求：
-1. ${manual?'这是她郑重报数问的一件具体的事，整段解读都要围绕这件事来答——先说清这一卦对这件事的映照是什么，不要绕开她问的问题去泛泛谈卦。':'这一卦是按她记录那一刻的时间起的，跟她写的内容没有因果关系——你的工作是把这一刻的卦象和她此刻写下的状态对照起来看，找出真实的映照，不要生拉硬扯；对不上的地方也可以直说这一卦提醒的是另一面。'}
+1. ${manual?(entry.reason?'这是她郑重报数问的一件具体的事，整段解读都要围绕这件事来答——先说清这一卦对这件事的映照是什么，不要绕开她问的问题去泛泛谈卦。':'她这次报数问了一卦，但没有写下具体问的是什么——这是她的选择，起心动念留在自己心里就够了，不需要说出来。你不知道她具体在问什么，就不要猜、不要编，也不要提"你没有写下问题"这件事本身；只需要如实解读这一卦客观呈现的意象，把它当成一面纯粹的镜子讲清楚就好。'):'这一卦是按她记录那一刻的时间起的，跟她写的内容没有因果关系——你的工作是把这一刻的卦象和她此刻写下的状态对照起来看，找出真实的映照，不要生拉硬扯；对不上的地方也可以直说这一卦提醒的是另一面。'}
 2. 先看她写的这句话，主语是谁，解读就是在解谁——判断标准是字面的主语，不是去猜"背后真正在意的是谁"：
    - 主语是她自己（"我今天……""我在纠结……""我是不是……"），或者没写清楚、看不出主语——默认用"她"来称呼。
    - 主语是别人——不管是"我朋友""我妈""公司那个同事"这类关系称呼，还是具体人名，还是"他/她"（比如"他想我吗""他是不是不喜欢我了"，主语都是"他"）——解读就是在解那个人，用对应的第三人称去讲他（"他""她""那位朋友"这类），不要因为背后其实是她在意这件事，就把主语偷偷换回"她"。
    - 全文人称必须从头到尾一致，中途不要切换。
+   - 如果用户写的话本身是在对AI说（比如"你觉得我该怎么办""帮我看看""给我个建议"这种）——这句话不是要解读的"主语"，而是她此刻的"求助姿态"。这种情况下，把整段文字当成"她此刻在向你求助"这个状态本身来解读，人称默认用"她"；不要因为她用了问句就在结尾也用问句回她，也不要因为她说了"该怎么办"就真的给出建议——这两条底线，仍然是规则5、7在管，不是另开一套新规矩。
 3. 分几层但写成连贯的话，不分点：本卦的意象在说什么；动爻（第${g.moving}爻，${g.isCentral?'居中位':'不居中位'}、${g.isCorrect?'当位':'不当位'}、${g.hasCorrespondence?`与第${g.correspondLine}爻有应`:`与第${g.correspondLine}爻无应`}——中位是全卦最稳的位置（二爻是下卦之中，五爻是上卦之中，这两个位置天然带一种"守中不偏"的分量）；当位是这一爻本身阴阳是否安在了该在的地方；有应是它和呼应爻（初四、二五、三六两两相应）之间是不是一阴一阳、互相支持——有应就不是孤军奋战，无应就要点出"独木难支"或者"没有回响"。这三者共同决定这一爻的分量与孤立程度，可以据此判断这一爻的解读该有多重、多急）——这是全卦的重点。${guaYaoci(g.name,g.moving)?`这一爻的爻辞原文已经核对过、附在了上面【卦】那一条里——请紧扣这段原文的字面意思去讲它落在这件事上意味着什么，不要脱离原文另外发挥或者引申出原文没有的意思。`:'这一卦暂时没有核对过的爻辞原文，请用你对这一爻传统含义的理解，用自己的话讲它落在这件事上意味着什么。'}变卦${g.changedName}给出的是这件事的走向或另一面。互卦${g.nuclearName||''}可以一句带过，指向过程中的内在状态。错卦${g.oppositeName||''}、综卦${g.reverseName||''}、交卦${g.crossName||''}不必每次都提，只在它们真的能帮这次解读说得更透时才带一句（比如本卦和错卦/综卦之间有值得点出的呼应或反差，或者交卦能讲清"换位会看到什么"）。
 4. 必须引用她写的原话里的一个词或一句（用「」括起来），让她看到你是在解这段具体的话，不是套话。
 5. 卦是镜子不是预言：可以直说这一爻在讲什么，但不预测具体结果，不下判断，不灌鸡汤；遇到剥、否、蹇、困这类卦如实说它的消耗和难处，再指出它内在提示的方向。
@@ -5958,7 +6112,6 @@ function setupStartBtnVoice(){
 function voiceStartListening(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   const btn=document.getElementById('startBtn');
-  const status=document.getElementById('voiceQuickStatus');
   if(!SR){
     toast('这台设备/浏览器不支持语音识别');
     return;
@@ -5977,18 +6130,14 @@ function voiceStartListening(){
   rec.continuous=true;
   rec.maxAlternatives=1;
   btn.classList.add('voice-listening');
-  status.textContent='按住说话，松开处理';
-  status.classList.add('show');
   rec.onresult=(e)=>{
     let combined='';
     for(let i=0;i<e.results.length;i++)combined+=e.results[i][0].transcript;
     voiceLatestTranscript=combined;
-    status.textContent=combined;
   };
   rec.onerror=(e)=>{
     voiceRecognition=null;
     btn.classList.remove('voice-listening');
-    status.classList.remove('show');
     if(e.error==='no-speech')toast('没听到声音，再试一次');
     else if(e.error==='not-allowed'||e.error==='service-not-allowed')toast('没有麦克风权限，去系统设置里开一下');
     else if(e.error!=='aborted')toast('识别失败，再试一次'); // aborted是我们自己主动stop触发的，不算错误
@@ -5999,7 +6148,6 @@ function voiceStartListening(){
   }catch(err){
     voiceRecognition=null;
     btn.classList.remove('voice-listening');
-    status.classList.remove('show');
     toast('没能呼出语音识别，再试一次');
   }
 }
@@ -6012,15 +6160,11 @@ function voiceStopListening(){
   }
   const text=voiceLatestTranscript.trim();
   if(text)voiceProcessTranscript(text);
-  else{
-    document.getElementById('voiceQuickStatus').classList.remove('show');
-  }
+  else toast('没录上，再说一次'); // 真正"没录上"的情况——才需要给文字提示
 }
 async function voiceProcessTranscript(text){
   const btn=document.getElementById('startBtn');
-  const status=document.getElementById('voiceQuickStatus');
   btn.classList.remove('voice-listening');
-  status.classList.add('show');
   // 本地快速匹配——如果说的话里直接包含某个已有标签的完整名字，就不用等AI
   // 跑一轮网络请求了，直接本地判定匹配、立刻开始。日常大部分时候都是在做
   // "已经建过标签的熟悉的事"，这条路径会明显更快；只有这里没匹配上，才退回去
@@ -6028,11 +6172,9 @@ async function voiceProcessTranscript(text){
   const localMatch=tags.find(t=>text.includes(t.name));
   if(localMatch){
     voiceCommitTag(localMatch);
-    status.classList.remove('show');
     return;
   }
   btn.classList.add('voice-thinking');
-  status.textContent=`"${text}" · 判断中…`;
   try{
     const sysPrompt=`用户对着计时App说了一句话，想开始给某件事计时（也可能是在已经计时的情况下，想再加一件事一起做）。
 从这句话里提炼出这件事的标签名字：去掉"现在""正在""开始""准备""了"这类不影响活动本身的语气词/时态词，但必须保留描述这个动作的关键词——如果动词本身就是这件事名字的一部分，绝对不能删掉它，删了会变成一个东西的名字而不是一件事。
@@ -6060,10 +6202,8 @@ async function voiceProcessTranscript(text){
     if(!tag)throw new Error('没听懂要做什么，再说一次');
     voiceCommitTag(tag);
     btn.classList.remove('voice-thinking');
-    status.classList.remove('show');
   }catch(err){
     btn.classList.remove('voice-thinking');
-    status.classList.remove('show');
     toast(err.message||'没听清，再说一次');
   }
 }
@@ -6714,11 +6854,23 @@ function closeSum(){document.getElementById('sumBg').classList.remove('show')}
 function expDayTXT(dk){
   const recs=allDays[dk]||[];
   const evs=getEventsForDate(dk);
-  if(!recs.length&&!evs.length)return;
+  const enLogs=(typeof energyLog!=='undefined'?energyLog:[]).filter(e=>dkOf(e.ts)===dk);
+  if(!recs.length&&!evs.length&&!enLogs.length)return;
   let txt=`梵 · ${dk}\n${'─'.repeat(28)}\n\n`;let tot=0;
   recs.forEach(r=>{const s=new Date(r.start),e=new Date(r.end);
     txt+=`${pad(s.getHours())}:${pad(s.getMinutes())}—${pad(e.getHours())}:${pad(e.getMinutes())} ${tagLabelFor(r)} (${fmtD(r.duration)})\n`;tot+=r.duration;});
   if(tot)txt+=`\n总计: ${fmtD(tot)}\n`;
+  if(enLogs.length){
+    txt+=`\n${'─'.repeat(28)}\n情绪 · 占卜:\n`;
+    enLogs.forEach(en=>{
+      const d=new Date(en.ts);
+      txt+=`${pad(d.getHours())}:${pad(d.getMinutes())} · ${en.state||''}`;
+      if(en.gua)txt+=` · ${guaLabel(en.gua)}`;
+      txt+='\n';
+      if(en.reason)txt+=`  ${en.reason}\n`;
+      if(en.gua&&en.gua.reading)txt+=`  解读：${en.gua.reading}\n`;
+    });
+  }
   if(evs.length){
     txt+=`\n${'─'.repeat(28)}\n日程事件:\n`;
     evs.forEach(ev=>{
@@ -6733,10 +6885,18 @@ function expDayTXT(dk){
   download(txt,`梵_${dk}.txt`,'text/plain');
 }
 function expDayCSV(dk){
-  const recs=allDays[dk]||[];if(!recs.length)return;
-  let csv='date,tag,start_time,end_time,duration_seconds,duration_readable\n';
+  const recs=allDays[dk]||[];
+  const enLogs=(typeof energyLog!=='undefined'?energyLog:[]).filter(e=>dkOf(e.ts)===dk);
+  if(!recs.length&&!enLogs.length)return;
+  let csv='date,type,time,detail\n';
+  const esc=(s)=>`"${String(s||'').replace(/"/g,'""').replace(/\n/g,' / ')}"`;
   recs.forEach(r=>{const s=new Date(r.start),e=new Date(r.end);
-    csv+=`${dk},${tagLabelFor(r)},${pad(s.getHours())}:${pad(s.getMinutes())}:${pad(s.getSeconds())},${pad(e.getHours())}:${pad(e.getMinutes())}:${pad(e.getSeconds())},${r.duration},${fmtD(r.duration)}\n`;});
+    csv+=`${dk},time,${pad(s.getHours())}:${pad(s.getMinutes())}:${pad(s.getSeconds())}—${pad(e.getHours())}:${pad(e.getMinutes())}:${pad(e.getSeconds())},${esc(tagLabelFor(r)+' ('+fmtD(r.duration)+')')}\n`;});
+  enLogs.forEach(en=>{
+    const d=new Date(en.ts);
+    const detail=(en.state||'')+(en.gua?' · '+guaLabel(en.gua):'')+(en.reason?' · 缘由：'+en.reason:'')+(en.gua&&en.gua.reading?' · 解读：'+en.gua.reading:'');
+    csv+=`${dk},energy,${pad(d.getHours())}:${pad(d.getMinutes())},${esc(detail)}\n`;
+  });
   download(csv,`梵_${dk}.csv`,'text/csv');
 }
 function exportAllCSV(){
@@ -8242,6 +8402,7 @@ function renderCal(){
   setTimeout(()=>applyUITheme(),50);
 }
 function showDayD(dk){
+  if(typeof guaBackfill==='function')guaBackfill(); // 顺手补一次半途放弃的起卦，不用等刷新页面
   const recs=allDays[dk]||[];
   const evs=getEventsForDate(dk);
   const marks=getMarksForDate(dk);
@@ -8307,8 +8468,11 @@ function showDayD(dk){
       const stateObj=guanAllStates().find(s=>s.name===en.state);
       return stateObj?stateObj.icon:(en.emoji||'');
     })();
-    // 日历里不管卜卦模式开没开，每条记录的卦都显示（数据本来就在）；自己报过数的带个小点。
-    const guaChip=en.gua?`<span class="guan-gua-chip${en.gua.mode==='manual'?' manual':''}" data-gua-ts="${en.ts}" title="点开揭卦">${en.gua.icon?en.gua.icon+' ':''}${en.gua.name}</span>`:'';
+    // 卦分两种情况：这条记录本身就是"卜"起的——不管开关状态都要显示，因为
+    // 这条记录存在的意义就是那一卦；普通情绪记录旁边附带的那个自动算出来的
+    // 卦——只有卜卦模式开着才显示，关着的时候情绪记录就该干干净净，不掺卦进来。
+    const showGua = en.state==='卜' ? !!en.gua : (guanDivinationMode && !!en.gua);
+    const guaChip=showGua?`<span class="guan-gua-chip${en.gua.mode==='manual'?' manual':''}" data-gua-ts="${en.ts}" title="点开揭卦">${en.gua.icon?en.gua.icon+' ':''}${en.gua.name}</span>`:'';
     // "卜"这个状态名本身没什么信息量——真正有内容的是它算出来的那一卦。
     // 所以"卜"记录不显示"卜🔮"，直接让卦（比如"👣 履"）当这条记录的主显示；
     // 平时滑情绪词记录的，还是照常显示情绪本身，卦作为后面附带的一层。
