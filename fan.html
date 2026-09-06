@@ -177,7 +177,7 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .btn.inactive{opacity:.3;cursor:default}
 .btn.inactive:active{transform:none}
 .btn.inactive.voice-listening{opacity:.9;animation:voicePulse 1.3s ease-in-out infinite;cursor:pointer}
-.btn.inactive.voice-thinking{opacity:.75;animation:aiThinking 1s ease-in-out infinite;cursor:pointer}
+.btn.inactive.voice-thinking{opacity:.75;animation:voicePulse .75s ease-in-out infinite;cursor:pointer}
 .btn-strong{background:rgba(255,255,255,.16)}
 
 .end-btn{display:block;width:100%;margin-top:12px;padding:12px;border-radius:14px;
@@ -6075,7 +6075,8 @@ function saveTag(){
 // 用的是浏览器自带的语音识别（Web Speech API），不用额外接服务、不用另外
 // 收费；缺点是不同浏览器/系统支持程度不一样，Safari（也就是这个PWA主要跑的
 // 环境）上的表现不一定稳，实际好不好用需要你自己试。
-let voiceRecognition=null;
+let voiceRecognitionInstance=null; // 复用的识别对象——只建一次，不再每次按住说话都new一个新的
+let voiceRecognitionActive=false;   // 当前是不是正在监听中（跟"实例存不存在"分开算，实例造好之后会一直留着）
 let voiceLatestTranscript='';
 // "开始"按钮外观跟着有没有选标签走——没选就是看起来"禁用"的暗淡样子，
 // 但故意不用原生 disabled 属性：disabled 会让大多数浏览器彻底屏蔽掉这个
@@ -6096,7 +6097,7 @@ function setupStartBtnVoice(){
     voiceStartListening();
   };
   const onPressEnd=()=>{
-    if(voiceRecognition)voiceStopListening();
+    if(voiceRecognitionActive)voiceStopListening();
   };
   btn.addEventListener('touchstart',onPressStart,{passive:true});
   btn.addEventListener('touchend',onPressEnd);
@@ -6109,18 +6110,13 @@ function setupStartBtnVoice(){
     startTimer();
   });
 }
-function voiceStartListening(){
+// 造一次识别对象、往后一直复用——事件处理器（onresult/onerror/onend）也只在
+// 造对象这一刻挂一次，不会每次说话都重新挂。
+function voiceGetOrCreateRecognition(){
+  if(voiceRecognitionInstance)return voiceRecognitionInstance;
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  const btn=document.getElementById('startBtn');
-  if(!SR){
-    toast('这台设备/浏览器不支持语音识别');
-    return;
-  }
-  if(voiceRecognition){return;} // 已经在听了，别重复触发
-  if(!aiApiKey){openAiKeySettings();return;}
+  if(!SR)return null;
   const rec=new SR();
-  voiceRecognition=rec;
-  voiceLatestTranscript='';
   rec.lang='zh-CN';
   rec.interimResults=true;
   // 改成"按住说话，松手就处理"——不再依赖浏览器自己判断"你是不是说完了、
@@ -6129,35 +6125,59 @@ function voiceStartListening(){
   // 瞬间就立刻拿当前识别到的文字去处理，不用再等它自己反应过来。
   rec.continuous=true;
   rec.maxAlternatives=1;
-  btn.classList.add('voice-listening');
   rec.onresult=(e)=>{
     let combined='';
     for(let i=0;i<e.results.length;i++)combined+=e.results[i][0].transcript;
     voiceLatestTranscript=combined;
   };
   rec.onerror=(e)=>{
-    voiceRecognition=null;
-    btn.classList.remove('voice-listening');
+    voiceRecognitionActive=false;
+    const btn=document.getElementById('startBtn');
+    if(btn)btn.classList.remove('voice-listening');
     if(e.error==='no-speech')toast('没听到声音，再试一次');
     else if(e.error==='not-allowed'||e.error==='service-not-allowed')toast('没有麦克风权限，去系统设置里开一下');
     else if(e.error!=='aborted')toast('识别失败，再试一次'); // aborted是我们自己主动stop触发的，不算错误
   };
-  rec.onend=()=>{voiceRecognition=null;};
+  rec.onend=()=>{
+    voiceRecognitionActive=false;
+    if(voiceStopPending){voiceStopPending=false;voiceFinishAndProcess();}
+  };
+  voiceRecognitionInstance=rec;
+  return rec;
+}
+function voiceStartListening(){
+  const rec=voiceGetOrCreateRecognition();
+  const btn=document.getElementById('startBtn');
+  if(!rec){
+    toast('这台设备/浏览器不支持语音识别');
+    return;
+  }
+  if(voiceRecognitionActive)return; // 已经在听了，别重复触发
+  if(!aiApiKey){openAiKeySettings();return;}
+  voiceLatestTranscript='';
+  btn.classList.add('voice-listening');
   try{
     rec.start();
+    voiceRecognitionActive=true;
   }catch(err){
-    voiceRecognition=null;
     btn.classList.remove('voice-listening');
     toast('没能呼出语音识别，再试一次');
   }
 }
-// 松开手指——不管浏览器自己有没有反应过来，直接拿当前已经识别到的文字去处理。
+// 松开手指——不能松手那一刻就立刻去读识别结果，最后一段话的文字很可能还在
+// 异步路上没送到；调用stop()之后要等引擎真正确认"结束了"（onend触发），该给
+// 的结果这时候才算都给完了，再去读文字才靠得住。留一个短暂的兜底超时，防止
+// 个别浏览器onend不按时触发导致卡住不处理。
+let voiceStopPending=false;
 function voiceStopListening(){
   const btn=document.getElementById('startBtn');
   btn.classList.remove('voice-listening');
-  if(voiceRecognition){
-    try{voiceRecognition.stop();}catch(e){}
-  }
+  if(!voiceRecognitionActive){voiceFinishAndProcess();return;}
+  voiceStopPending=true;
+  try{voiceRecognitionInstance.stop();}catch(e){voiceStopPending=false;voiceRecognitionActive=false;voiceFinishAndProcess();}
+  setTimeout(()=>{if(voiceStopPending){voiceStopPending=false;voiceRecognitionActive=false;voiceFinishAndProcess();}},800);
+}
+function voiceFinishAndProcess(){
   const text=voiceLatestTranscript.trim();
   if(text)voiceProcessTranscript(text);
   else toast('没录上，再说一次'); // 真正"没录上"的情况——才需要给文字提示
