@@ -144,10 +144,21 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 /* Tags inline */
 .tags-sec{margin:18px 0 8px}
 .tags-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.voice-quick-row{margin-top:10px;text-align:center}
+.voice-quick-btn{background:none;border:1px dashed rgba(255,255,255,.12);border-radius:100px;
+  padding:6px 14px;cursor:pointer;color:rgba(255,255,255,.4);
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;
+  display:inline-flex;align-items:center;gap:6px;transition:all .3s}
+.voice-quick-icon{font-size:13px}
+.voice-quick-btn.listening{border-color:rgba(232,130,110,.5);color:rgba(232,150,130,.85);
+  border-style:solid;animation:voicePulse 1.4s ease-in-out infinite}
+.voice-quick-btn.thinking{border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.65)}
+@keyframes voicePulse{0%,100%{opacity:.7}50%{opacity:1}}
 .tg{padding:6px 14px;border-radius:100px;font-size:11px;letter-spacing:.04em;
   border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
   cursor:pointer;transition:all .35s,color 2s;position:relative;display:flex;align-items:center;gap:6px;
-  backdrop-filter:blur(10px)}
+  backdrop-filter:blur(10px);max-width:200px}
+.tg-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tg.sel{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.1)}
 .tg:active{transform:scale(.95)}
 .tg-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
@@ -585,11 +596,12 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   font-family:'Noto Serif SC',serif;font-size:11px;padding:3px 0;outline:none}
 .guan-ai-clarify a{display:block;margin-top:6px;font-family:'Cormorant Garamond',serif;
   font-style:italic;font-size:10px;opacity:.6;cursor:pointer;text-align:right}
-.guan-ai-card-acts{display:flex;gap:8px}
+.guan-ai-card-acts{display:flex;gap:6px}
 .guan-ai-card-acts button{flex:1;padding:9px 0;border-radius:100px;cursor:pointer;color:inherit;
-  font-family:'Noto Serif SC',serif;font-weight:300;font-size:11px}
+  font-family:'Noto Serif SC',serif;font-weight:300;font-size:10.5px;letter-spacing:0}
 .guan-ai-dismiss{border:1px solid rgba(128,128,128,.25);background:transparent;opacity:.55}
 .guan-ai-regen{border:1px solid rgba(128,128,128,.25);background:transparent;opacity:.75}
+.guan-ai-back{border:1px solid rgba(128,128,128,.2);background:transparent;opacity:.55}
 .guan-ai-accept{border:none;background:rgba(128,128,128,.22);opacity:.95}
 
 /* --- Step 1b: mode cards --- */
@@ -1260,6 +1272,14 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   letter-spacing:.4em;color:rgba(255,250,244,.55);margin-bottom:20px;text-indent:.4em}
 .hc-emoji-row{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-bottom:10px}
 .hc-gradients{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px;margin-bottom:20px}
+.hc-reminder-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:20px}
+.hc-reminder-lbl{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;
+  color:rgba(255,250,244,.4)}
+.hc-reminder-input{background:rgba(255,250,244,.06);border:1px solid rgba(255,250,244,.1);
+  border-radius:8px;color:rgba(255,250,244,.85);font-family:'EB Garamond',serif;font-size:13px;
+  padding:4px 8px;color-scheme:dark}
+.hc-reminder-clear{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;
+  color:rgba(255,250,244,.3);cursor:pointer}
 .hc-grad{width:32px;height:32px;border-radius:50%;cursor:pointer;
   border:2px solid transparent;transition:all .2s}
 .hc-grad.sel{border-color:rgba(255,250,244,.9);transform:scale(1.1)}
@@ -1573,6 +1593,9 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .gal-paused-tag{position:absolute;top:10px;right:12px;font-family:'Cormorant Garamond',serif;
   font-style:italic;font-size:9px;color:rgba(255,255,255,.85);
   background:rgba(0,0,0,.25);padding:2px 8px;border-radius:100px;backdrop-filter:blur(4px)}
+.gal-due-tag{position:absolute;top:10px;left:12px;font-family:'Noto Serif SC',serif;
+  font-weight:400;font-size:9px;letter-spacing:.05em;color:rgba(255,255,255,.95);
+  background:rgba(200,90,60,.55);padding:3px 9px;border-radius:100px;backdrop-filter:blur(4px)}
 
 .memo-priority-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
 .memo-pri{padding:5px 10px;border-radius:100px;font-size:9px;letter-spacing:.1em;
@@ -2347,8 +2370,12 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .guan-card{padding:24px 18px;border-radius:18px;
   background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
   backdrop-filter:blur(10px);margin-bottom:16px;transition:all 2s}
+.guan-card-hd{position:relative}
 .guan-card-label{font-size:8px;letter-spacing:.4em;text-transform:uppercase;
   text-align:center;opacity:.55;margin-bottom:18px;transition:color 2s}
+.guan-divination-btn{position:absolute;right:2px;top:-2px;font-size:11px;opacity:.25;
+  cursor:pointer;padding:4px;transition:opacity .3s,color .3s}
+.guan-divination-btn.on{opacity:.85;color:#C08850}
 .sw-row{display:none;justify-content:center;gap:24px;padding:6px 0;margin-bottom:10px}
 .sw-row.show{display:flex}
 .sw-btn{display:flex;align-items:center;gap:6px;cursor:pointer;
@@ -2366,7 +2393,7 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   margin-bottom:14px;padding:0;width:100%}
 .gs1-emoji{display:flex;flex-direction:column;align-items:center;gap:5px;
   cursor:pointer;transition:all .3s;opacity:.4;flex:1 1 0;min-width:0}
-.gs1-emoji.preview{opacity:.85;transform:scale(1.05)}
+.gs1-emoji.preview{opacity:.65;transform:scale(1)}
 .gs1-emoji.confirmed{opacity:1;transform:scale(1.1)}
 .gs1-emoji-icon{font-size:17px;line-height:1}
 .gs1-emoji-label{font-size:9px;font-family:'Noto Serif SC',serif;font-weight:300;
@@ -2746,6 +2773,11 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 
       <div class="tags-sec">
         <div class="tags-row" id="tagsRow"></div>
+        <div class="voice-quick-row">
+          <button class="voice-quick-btn" id="voiceQuickBtn" onclick="voiceStartListening()" title="说话快速开始">
+            <span class="voice-quick-icon">🎙️</span><span class="voice-quick-status" id="voiceQuickStatus">说一句话，直接开始</span>
+          </button>
+        </div>
       </div>
 
       <div class="acts" id="actI">
@@ -3095,7 +3127,10 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
     <!-- ============ 观 (GUAN) ============ -->
     <div class="pg" id="pgG">
       <div class="guan-card">
-        <div class="guan-card-label" onclick="toggleSW()">此 刻 · 能 量</div>
+        <div class="guan-card-hd">
+          <div class="guan-card-label" onclick="toggleSW()">此 刻 · 能 量</div>
+          <span class="guan-divination-btn" id="guanDivinationBtn" onclick="event.stopPropagation();guanToggleDivinationMode()" title="卜卦模式">☰</span>
+        </div>
         <div class="sw-row" id="swRow">
           <div class="sw-btn" id="swMoonBtn" onclick="event.stopPropagation();recordSW('sleep')">🌙<span class="sw-time" id="swMoonTime"></span></div>
           <div class="sw-btn" id="swSunBtn" onclick="event.stopPropagation();recordSW('wake')">☀️<span class="sw-time" id="swSunTime"></span></div>
@@ -3245,7 +3280,7 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 <div class="add-modal" id="addMod">
   <div class="add-box">
     <h3>添加标签</h3>
-    <input id="addInp" placeholder="标签名称" maxlength="20">
+    <input id="addInp" placeholder="标签名称" maxlength="24">
     <div class="color-grid" id="colorGrid"></div>
     <div class="add-acts">
       <button class="btn" onclick="closeAdd()">取消</button>
@@ -4650,11 +4685,39 @@ function guanScheduleCollapse(){
 // 无论写了什么，最后都会落到一个情绪/能量状态上——不再有"这不算情绪"这种死胡同分支了，
 // 情绪命名法本身的前提就是总能给它贴个标签。若AI真的拿不准，会另外送一个可选的澄清问题，
 // 但不等回答也会先给一个合理的命名，用户可以选择回答以得到更准确的版本。
+// 统一渲染"AI 建议新状态"这张卡片——"上一个"只有历史栈里真有东西时才出现，
+// 三个地方（首次问、追问后、换一个）都走这一份，不用各自重复写一遍卡片结构。
+function guanRenderAiSuggestCard(aiRow,icon,name,feel,clarifyHtml){
+  const canGoBack=guanAiSuggestHistory.length>0;
+  aiRow.innerHTML=`<div class="guan-ai-card">
+    <div class="guan-ai-card-hint">AI 发现一个新状态</div>
+    <div class="guan-ai-card-word">${icon||'✨'} 「${escapeHtml(name)}」——${escapeHtml(feel||'')}</div>
+    ${clarifyHtml||''}
+    <div class="guan-ai-card-acts">
+      <button class="guan-ai-dismiss" onclick="guanDismissAiSuggestion()">忽略</button>
+      ${canGoBack?'<button class="guan-ai-back" onclick="guanBackAiSuggestion()">上一个</button>':''}
+      <button class="guan-ai-regen" onclick="guanRegenerateAiWord()">换一个</button>
+      <button class="guan-ai-accept" onclick="guanAcceptAiSuggestion()">采纳</button>
+    </div>
+  </div>`;
+}
+// "上一个"——退回历史栈里存的上一版建议，不用重新问一遍 AI。
+function guanBackAiSuggestion(){
+  const aiRow=document.getElementById('guanAiRow');
+  if(!aiRow||!guanAiSuggestHistory.length)return;
+  const prev=guanAiSuggestHistory.pop();
+  aiRow.dataset.pendingIcon=prev.icon;
+  aiRow.dataset.pendingName=prev.name;
+  aiRow.dataset.pendingFeel=prev.feel;
+  guanRenderAiSuggestCard(aiRow,prev.icon,prev.name,prev.feel,null);
+}
 async function guanAskAiState(){
   const aiRow=document.getElementById('guanAiRow');
   if(!aiRow||!gs1LastEntryTs)return;
   const entry=energyLog.find(e=>e.ts===gs1LastEntryTs);
   if(!entry)return;
+  // 每次重新问，都是一个全新的语境——历史栈清空，不带着上一条记录的旧建议。
+  guanAiSuggestHistory=[];
   // 问 AI 不用等封存——直接从输入框拿当前写的内容，并静静存下来，不等用户点封存。
   const liveReason=(document.getElementById('gs1ReasonInput')?.value||'').trim();
   const reason=liveReason||entry.reason||'';
@@ -4694,10 +4757,7 @@ ${all.map(s=>`${s.icon} 「${s.name}」— ${s.feel||''}`).join('\n')}
     const concept=judge.concept||'这次的感受，词库里没有一个词能完全对上';
     // 第二步：只负责写——给一个方向和参考例子，不再堆一堆规则，让文字回到词库本来的语感。
     aiRow.innerHTML=`<div class="guan-ai-loading">✨ AI 正在想怎么形容…</div>`;
-    const writePrompt=`请给下面这个感觉核心取一个词，风格要跟这几个例子完全一样——都是1-2个字的词，配一个贴切的 emoji，feel 是几个用"、"连起来的短语，不是完整解释句：
-🌕「盈」— 充盈、满溢、感恩的满足
-🏔️「根」— 有根、落地、踏实、不慌
-🍷「酥」— 微醉、脸热、飘然、身体软
+    const writePrompt=`请给下面这个感觉核心取一个词。${guanWriteStyleInstruction()}
 
 这次要命名的感觉核心："${concept}"
 
@@ -4710,22 +4770,16 @@ ${all.map(s=>`${s.icon} 「${s.name}」— ${s.feel||''}`).join('\n')}
     aiRow.dataset.pendingName=written.name;
     aiRow.dataset.pendingFeel=written.feel||'';
     // 存下这次写词依据的"感觉核心"，供"重新生成"按钮用——不用重新走一遍判断步骤，
-    // 直接拿同一个概念再写一版不一样的词。
+    // 直接拿同一个概念再写一版不一样的词。同时存一份当时用的缘由文字快照——
+    // 如果之后"换一个"的时候发现输入框里的文字已经不是这份快照了（用户又改了/
+    // 写了更多），说明该判断的语境变了，就不该再拿这个旧概念硬套，得重新问一次。
     aiRow.dataset.pendingConcept=concept;
+    aiRow.dataset.pendingReasonSnapshot=reason;
     const clarifyHtml=judge.clarify?`<div class="guan-ai-clarify">${escapeHtml(judge.clarify)}
       <input id="guanClarifyInput" placeholder="回答会让词更准，不答也行">
       <a onclick="guanRefineWithClarify()">回答后重新想</a>
     </div>`:'';
-    aiRow.innerHTML=`<div class="guan-ai-card">
-      <div class="guan-ai-card-hint">AI 发现一个新状态</div>
-      <div class="guan-ai-card-word">${written.icon||'✨'} 「${escapeHtml(written.name)}」——${escapeHtml(written.feel||'')}</div>
-      ${clarifyHtml}
-      <div class="guan-ai-card-acts">
-        <button class="guan-ai-dismiss" onclick="guanDismissAiSuggestion()">忽略</button>
-        <button class="guan-ai-regen" onclick="guanRegenerateAiWord()">换一个</button>
-        <button class="guan-ai-accept" onclick="guanAcceptAiSuggestion()">采纳</button>
-      </div>
-    </div>`;
+    guanRenderAiSuggestCard(aiRow,written.icon,written.name,written.feel,clarifyHtml);
   }catch(err){
     aiRow.innerHTML=`<div class="guan-ai-loading">${escapeHtml(err.message||'这一次没看清，再试试')}</div>`;
     setTimeout(()=>{
@@ -4743,12 +4797,11 @@ async function guanRefineWithClarify(){
   if(!answer)return;
   const entry=energyLog.find(e=>e.ts===gs1LastEntryTs);
   if(!entry)return;
+  guanAiSuggestHistory=[]; // 这也是一次全新语境（多补充了信息），历史栈清空重来
   const all=guanAllStates();
   aiRow.innerHTML=`<div class="guan-ai-loading">✨ AI 正在重新想…</div>`;
   try{
-    const writePrompt=`用户写了："${entry.reason||''}"，补充了一句："${answer}"。请结合这两句，重新给这个感觉核心取一个词，风格要跟这几个例子完全一样：
-🌕「盈」— 充盈、满溢、感恩的满足
-🏔️「根」— 有根、落地、踏实、不慌
+    const writePrompt=`用户写了："${entry.reason||''}"，补充了一句："${answer}"。请结合这两句，重新给这个感觉核心取一个词。${guanWriteStyleInstruction()}
 
 不能用这些已经存在的名字：${all.map(s=>s.name).join('、')}。
 
@@ -4759,15 +4812,8 @@ async function guanRefineWithClarify(){
     aiRow.dataset.pendingName=written.name;
     aiRow.dataset.pendingFeel=written.feel||'';
     aiRow.dataset.pendingConcept=`${entry.reason||''}；补充：${answer}`;
-    aiRow.innerHTML=`<div class="guan-ai-card">
-      <div class="guan-ai-card-hint">AI 发现一个新状态</div>
-      <div class="guan-ai-card-word">${written.icon||'✨'} 「${escapeHtml(written.name)}」——${escapeHtml(written.feel||'')}</div>
-      <div class="guan-ai-card-acts">
-        <button class="guan-ai-dismiss" onclick="guanDismissAiSuggestion()">忽略</button>
-        <button class="guan-ai-regen" onclick="guanRegenerateAiWord()">换一个</button>
-        <button class="guan-ai-accept" onclick="guanAcceptAiSuggestion()">采纳</button>
-      </div>
-    </div>`;
+    aiRow.dataset.pendingReasonSnapshot=entry.reason||'';
+    guanRenderAiSuggestCard(aiRow,written.icon,written.name,written.feel,null);
   }catch(err){
     aiRow.innerHTML=`<div class="guan-ai-loading">${escapeHtml(err.message||'这一次没看清，再试试')}</div>`;
     setTimeout(()=>{
@@ -4782,20 +4828,35 @@ async function guanRegenerateAiWord(){
   const aiRow=document.getElementById('guanAiRow');
   if(!aiRow)return;
   const concept=aiRow.dataset.pendingConcept;
+  const prevIcon=aiRow.dataset.pendingIcon;
   const prevName=aiRow.dataset.pendingName;
+  const prevFeel=aiRow.dataset.pendingFeel;
+  const snapshot=aiRow.dataset.pendingReasonSnapshot||'';
   if(!concept)return;
+  // 先看缘由文字是不是已经跟当初生成这个建议时不一样了（用户又改了、写了更多）——
+  // 如果变了，说明该判断的语境本身变了，不该再拿旧的 concept 硬凑一个新词，
+  // 直接当成一次全新的"问问AI"，让它按现在写的内容重新判断、重新想。
+  const entry=energyLog.find(e=>e.ts===gs1LastEntryTs);
+  const liveReason=(document.getElementById('gs1ReasonInput')?.value||'').trim()||(entry?entry.reason:'')||'';
+  if(liveReason&&liveReason!==snapshot){
+    await guanAskAiState();
+    return;
+  }
+  // 没变的话，把这一版存进历史栈（供"上一个"用），生成下一版时把历史里出现过的
+  // 所有名字、emoji 都拉进禁用名单，不再只挡"上一个"，明显减少重复撞出同一个emoji。
+  guanAiSuggestHistory.push({icon:prevIcon,name:prevName,feel:prevFeel});
   const all=guanAllStates();
   aiRow.innerHTML=`<div class="guan-ai-loading">✨ AI 正在换一个角度想…</div>`;
   try{
-    const writePrompt=`请给下面这个感觉核心重新取一个词，风格要跟这几个例子完全一样——都是1-2个字的词，配一个贴切的 emoji，feel 是几个用"、"连起来的短语，不是完整解释句：
-🌕「盈」— 充盈、满溢、感恩的满足
-🏔️「根」— 有根、落地、踏实、不慌
-🍷「酥」— 微醉、脸热、飘然、身体软
+    const usedNames=[...guanAiSuggestHistory.map(h=>h.name),prevName].filter(Boolean);
+    const usedIcons=[...guanAiSuggestHistory.map(h=>h.icon),prevIcon].filter(Boolean);
+    const writePrompt=`请给下面这个感觉核心重新取一个词。${guanWriteStyleInstruction()}
 
 这次要命名的感觉核心："${concept}"
 
-上一次给的词是「${prevName}」，这次必须换一个不一样的词——可以是换个角度、换个更贴切的意象，或者侧重这个感觉核心里不同的那一面，不能只是近义词换皮。
-不能用这些已经存在的名字：${all.map(s=>s.name).join('、')}，也不能是「${prevName}」。
+之前给过的词和emoji都不能再用——名字：${usedNames.join('、')||'（无）'}；emoji：${usedIcons.join(' ')||'（无）'}。
+这次要换一个不一样的词，也要换一个不一样的emoji（不能只是把同一个emoji再用一次），可以是换个角度、换个更贴切的意象，或者侧重这个感觉核心里不同的那一面，不能只是近义词换皮。
+不能用这些已经存在的名字：${all.map(s=>s.name).join('、')}。
 
 只返回 JSON，不要有其他文字：{"icon":"...","name":"...","feel":"..."}`;
     const written=await callClaudeJSON(writePrompt,'请换一个角度重新命名。');
@@ -4804,16 +4865,11 @@ async function guanRegenerateAiWord(){
     aiRow.dataset.pendingName=written.name;
     aiRow.dataset.pendingFeel=written.feel||'';
     aiRow.dataset.pendingConcept=concept;
-    aiRow.innerHTML=`<div class="guan-ai-card">
-      <div class="guan-ai-card-hint">AI 发现一个新状态</div>
-      <div class="guan-ai-card-word">${written.icon||'✨'} 「${escapeHtml(written.name)}」——${escapeHtml(written.feel||'')}</div>
-      <div class="guan-ai-card-acts">
-        <button class="guan-ai-dismiss" onclick="guanDismissAiSuggestion()">忽略</button>
-        <button class="guan-ai-regen" onclick="guanRegenerateAiWord()">换一个</button>
-        <button class="guan-ai-accept" onclick="guanAcceptAiSuggestion()">采纳</button>
-      </div>
-    </div>`;
+    aiRow.dataset.pendingReasonSnapshot=snapshot;
+    guanRenderAiSuggestCard(aiRow,written.icon,written.name,written.feel,null);
   }catch(err){
+    // 生成失败的话，把刚才存进历史栈的那份退回去，不留一个"有去无回"的历史记录。
+    guanAiSuggestHistory.pop();
     aiRow.innerHTML=`<div class="guan-ai-loading">${escapeHtml(err.message||'这一次没看清，再试试')}</div>`;
     setTimeout(()=>{
       if(aiRow)aiRow.innerHTML=`<button class="guan-ai-ask" onclick="guanAskAiState()">✨ 问问 AI 这算什么状态</button>`;
@@ -4830,6 +4886,7 @@ function guanAcceptAiSuggestion(){
   if(guanAllStates().some(s=>s.name===name)){
     aiRow.innerHTML=`<div class="guan-ai-loading" style="animation:none">「${escapeHtml(name)}」这个字已经在用了，没能存成新词</div>`;
     delete aiRow.dataset.pendingIcon;delete aiRow.dataset.pendingName;delete aiRow.dataset.pendingFeel;delete aiRow.dataset.pendingConcept;
+    guanAiSuggestHistory=[];
     return;
   }
   guanCustomStates.push({
@@ -4860,17 +4917,51 @@ function guanAcceptAiSuggestion(){
   guanBuildEmojiRow();
   aiRow.innerHTML=`<div class="guan-ai-loading" style="animation:none">已经加进你的词库了 · 下次可以直接选「${escapeHtml(name)}」</div>`;
   delete aiRow.dataset.pendingIcon;delete aiRow.dataset.pendingName;delete aiRow.dataset.pendingFeel;delete aiRow.dataset.pendingConcept;
+  guanAiSuggestHistory=[];
   guanScheduleCollapse();
 }
 
 function guanDismissAiSuggestion(){
   const aiRow=document.getElementById('guanAiRow');
   if(aiRow){aiRow.style.display='none';aiRow.innerHTML='';}
+  guanAiSuggestHistory=[];
   guanScheduleCollapse();
 }
 
 // Track most recent entry for reason updates
 let gs1LastEntryTs = null;
+// AI 给"照"这里造词时，历次生成过的建议(icon/name/feel)都存在这——
+// 一是重新生成的时候，把这里全部拿去当"不能再用"的名单，不会老是撞出同一个emoji；
+// 二是支持"回到上一个"，反悔了可以退回去，不用凭记忆重新造一次。
+let guanAiSuggestHistory = [];
+// 卜卦模式——开了之后，AI 给"照"造新词时，改用卦象/爻辞那种语言风格来命名，
+// 图标还是照常配一个普通 emoji（不换成别的符号）。三个地方（首次问、追问后、
+// 换一个）共用这份风格说明，开关只用改这一处，不用三个地方分别改。
+let guanDivinationMode = ld('guanDivinationMode', false);
+function guanToggleDivinationMode(){
+  guanDivinationMode = !guanDivinationMode;
+  sv('guanDivinationMode', guanDivinationMode);
+  const btn = document.getElementById('guanDivinationBtn');
+  if(btn) btn.classList.toggle('on', guanDivinationMode);
+  toast(guanDivinationMode ? '卜卦模式已开启' : '卜卦模式已关闭');
+}
+function guanWriteStyleInstruction(){
+  if(guanDivinationMode){
+    return `这次改用「卜卦」的方式来命名——用像卦象、爻辞那样的语言风格：
+名字可以直接用一个真实存在的卦名（比如乾、坤、屯、蒙、需、讼、师、比、履、泰、否、谦、豫、随、蛊、临、观、剥、复、颐、坎、离、咸、恒、遁、晋、睽、蹇、解、损、益、夬、姤、萃、升、困、井、革、鼎、震、艮、渐、丰、旅、巽、兑、涣、节），也可以是带这种卦象意味的单字；
+feel 部分不用现代大白话，要用更古典、更像爻辞/彖辞那种口吻去描述这个状态，简短、留白，不写成完整解释句；
+emoji 还是照常配一个普通的表情符号，不用换成别的符号。
+
+例子：
+🌊「坎」— 险中求生、行有尚
+🔥「离」— 附丽而明、柔中带刚
+🌱「屯」— 万物始生、艰难前行`;
+  }
+  return `风格要跟这几个例子完全一样——都是1-2个字的词，配一个贴切的 emoji，feel 是几个用"、"连起来的短语，不是完整解释句：
+🌕「盈」— 充盈、满溢、感恩的满足
+🏔️「根」— 有根、落地、踏实、不慌
+🍷「酥」— 微醉、脸热、飘然、身体软`;
+}
 
 // Backwards-compat stubs (no-op since intensity removed)
 function guanBuildDots(){}
@@ -5002,25 +5093,39 @@ function guanDoRecord(){
   const now = new Date();
   const gz = getGanzhi(now);
   const chosen = guanAllStates()[gs1Idx];
-  const entry = {
-    ts: Date.now(),
-    idx: gs1Idx,
-    state: chosen.name,
-    icon: chosen.icon||'', // 存下当时选中的图标本身，不要只存名字——见下方showDayD里的说明
-    feel: chosen.feel||'', // 同理，这个词当下的解释也直接存进记录里，不依赖之后现查
-    solar: fmtSolar(now),
-    ganzhi: gz.full,
-    gzYear: gz.year, gzMonth: gz.month, gzDay: gz.day, gzHour: gz.hour
-  };
-  energyLog.push(entry);
-  gs1LastEntryTs = entry.ts;
+  // 如果当前还有一条"刚记录、还没定型"的条目（比如正在写缘由，还没到自动收起），
+  // 这次再点"记录"就当成"改主意了，把情绪换个更贴切的词"，直接更新这同一条记录，
+  // 而不是另外新开一条——这样已经写了一半、还没点"封存"的缘由文字不会被清空，
+  // 也不会平白多出一条时间几乎一样的重复记录。
+  const existing = gs1LastEntryTs ? energyLog.find(e=>e.ts===gs1LastEntryTs) : null;
+  let entry;
+  if(existing){
+    existing.idx = gs1Idx;
+    existing.state = chosen.name;
+    existing.icon = chosen.icon||'';
+    existing.feel = chosen.feel||'';
+    entry = existing;
+  }else{
+    entry = {
+      ts: Date.now(),
+      idx: gs1Idx,
+      state: chosen.name,
+      icon: chosen.icon||'', // 存下当时选中的图标本身，不要只存名字——见下方showDayD里的说明
+      feel: chosen.feel||'', // 同理，这个词当下的解释也直接存进记录里，不依赖之后现查
+      solar: fmtSolar(now),
+      ganzhi: gz.full,
+      gzYear: gz.year, gzMonth: gz.month, gzDay: gz.day, gzHour: gz.hour
+    };
+    energyLog.push(entry);
+    gs1LastEntryTs = entry.ts;
+  }
   sv('energyLog', energyLog);
   
   // Switch to "recorded" state with optional reason
   document.getElementById('gs1Confirm').classList.remove('show');
   const rec = document.getElementById('gs1Recorded');
   rec.classList.add('show');
-  rec.textContent = `已 记 录 · ${guanAllStates()[gs1Idx].name}`;
+  rec.textContent = `已 记 录 · ${chosen.name}`;
   
   // Now show reason toggle (optional)
   const reasonToggle = document.getElementById('gs1ReasonToggle');
@@ -5031,13 +5136,20 @@ function guanDoRecord(){
   reasonToggle.onclick = guanToggleReason;
   reasonToggle.style.cursor = '';
   reasonToggle.classList.remove('hidden');
-  document.getElementById('gs1ReasonInput').classList.remove('show');
-  document.getElementById('gs1ReasonInput').value = '';
-  document.getElementById('gs1ReasonInput').style.height = '';
-  document.getElementById('gs1ReasonInput').style.overflowY = '';
+  // 只有真正开启一条全新记录时才清空缘由输入框——如果是"换情绪"（existing 存在），
+  // 已经写了的文字要留着，这正是这次要修的那个"字全没了"的问题。
+  const reasonInput = document.getElementById('gs1ReasonInput');
+  if(!existing){
+    reasonInput.classList.remove('show');
+    reasonInput.value = '';
+    reasonInput.style.height = '';
+    reasonInput.style.overflowY = '';
+  }
   document.getElementById('gs1Detail').classList.add('show');
   // 新的一条记录开始了——上一条记录留下的AI建议（比如"已经加进你的词库了…"）
   // 必须马上清掉，否则它会一直占着位置，还会挡住这一条新记录的"问问AI"按钮出现。
+  // 换情绪的情况也一并清掉——旧的AI建议是针对换之前那个情绪+缘由生成的，
+  // 情绪换了，那条建议就不再适用了。
   const aiRowFresh = document.getElementById('guanAiRow');
   if(aiRowFresh){aiRowFresh.style.display='none';aiRowFresh.innerHTML='';}
   
@@ -5252,7 +5364,7 @@ function renderTags(){
   tags.forEach(t=>{
     const el=document.createElement('div');
     el.className='tg'+(selTagIds.includes(t.id)?' sel':'')+(editing?' editing':'');
-    el.innerHTML=`<span class="tg-dot" style="background:${t.color}"></span>${t.name}<span class="tg-x" onclick="event.stopPropagation();delTag('${t.id}')">✕</span>`;
+    el.innerHTML=`<span class="tg-dot" style="background:${t.color}"></span><span class="tg-name">${escapeHtml(t.name)}</span><span class="tg-x" onclick="event.stopPropagation();delTag('${t.id}')">✕</span>`;
     // 点一下 = 加入这次要挂的标签集合；再点一下 = 移出。可以同时选好几个——
     // 比如"等AI回复的时候顺便看书"，就把"写代码"和"看书"都选上，一起开始计时。
     // 这一排标签在计时进行中(running/paused)也照样能点——正做着A，做着做着
@@ -5329,6 +5441,107 @@ function saveTag(){
 // ================================================================
 // TIMER
 // ================================================================
+// ================================================================
+// 语音快速开始——说一句话，AI 判断这是要做什么事，自动匹配/新建标签、
+// 直接开始计时。不动原来标签按钮那套，两种方式并存，这个纯粹是多一个入口。
+// 用的是浏览器自带的语音识别（Web Speech API），不用额外接服务、不用另外
+// 收费；缺点是不同浏览器/系统支持程度不一样，Safari（也就是这个PWA主要跑的
+// 环境）上的表现不一定稳，实际好不好用需要你自己试。
+let voiceRecognition=null;
+function voiceStartListening(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const btn=document.getElementById('voiceQuickBtn');
+  const status=document.getElementById('voiceQuickStatus');
+  if(!SR){
+    toast('这台设备/浏览器不支持语音识别');
+    return;
+  }
+  if(voiceRecognition){return;} // 已经在听了，别重复触发
+  if(!aiApiKey){openAiKeySettings();return;}
+  const rec=new SR();
+  voiceRecognition=rec;
+  rec.lang='zh-CN';
+  rec.interimResults=false;
+  rec.maxAlternatives=1;
+  btn.classList.add('listening');
+  status.textContent='在听 · 说完停顿一下';
+  rec.onresult=(e)=>{
+    const transcript=e.results[0][0].transcript;
+    voiceProcessTranscript(transcript);
+  };
+  rec.onerror=(e)=>{
+    voiceRecognition=null;
+    btn.classList.remove('listening');
+    status.textContent='说一句话，直接开始';
+    if(e.error==='no-speech')toast('没听到声音，再试一次');
+    else if(e.error==='not-allowed'||e.error==='service-not-allowed')toast('没有麦克风权限，去系统设置里开一下');
+    else toast('识别失败，再试一次');
+  };
+  rec.onend=()=>{
+    voiceRecognition=null;
+    btn.classList.remove('listening');
+  };
+  try{
+    rec.start();
+  }catch(err){
+    voiceRecognition=null;
+    btn.classList.remove('listening');
+    status.textContent='说一句话，直接开始';
+    toast('没能呼出语音识别，再试一次');
+  }
+}
+async function voiceProcessTranscript(text){
+  const btn=document.getElementById('voiceQuickBtn');
+  const status=document.getElementById('voiceQuickStatus');
+  btn.classList.remove('listening');
+  btn.classList.add('thinking');
+  status.textContent=`"${text}" · AI 判断中…`;
+  try{
+    const sysPrompt=`用户对着计时App说了一句话，想开始给某件事计时（也可能是在已经计时的情况下，想再加一件事一起做）。
+从这句话里判断她想做的是什么事，在下面这份她已有的标签列表里找最匹配的一个；如果没有任何一个真正匹配这件事，就给一个建议的新标签名字（简洁，2-6个字，风格要跟她已有的标签一致，不要是一整句话，也不要带"正在""开始"这类多余的词，只留事情本身，比如"我现在开始做脱毛功课了"应该提炼成"脱毛"）。
+
+她已有的标签：${tags.map(t=>t.name).join('、')||'（还没有标签）'}
+
+她说的话："${text}"
+
+只返回 JSON，不要有其他文字：{"matchedTagName":"已有标签里完全匹配的那个名字，没有就是null","newTagName":"如果没匹配到，建议的新标签名字；如果匹配到了就是null"}`;
+    const result=await callClaudeJSON(sysPrompt,'请判断。');
+    if(!result)throw new Error('没听懂，再说一次');
+    let tag=null;
+    if(result.matchedTagName)tag=tags.find(t=>t.name===result.matchedTagName);
+    if(!tag&&result.newTagName){
+      // 按你的选择：不用确认，直接自动新建这个标签
+      tag={id:'t'+Date.now(),name:result.newTagName,color:COLORS[Math.floor(Math.random()*COLORS.length)]};
+      tags.push(tag);
+      sv('tags',tags);
+    }
+    if(!tag)throw new Error('没听懂要做什么，再说一次');
+    if(tState==='running'){
+      // 已经在计时了——当成"同时"功能一样，把这件事并进当前这段计时里，
+      // 复用跟点标签一样的分段逻辑（先把到现在为止这一段存成一条记录）。
+      if(!selTagIds.includes(tag.id)){
+        splitTimerSegment();
+        selTagIds.push(tag.id);
+        const selTags=selTagIds.map(id=>tags.find(x=>x.id===id)).filter(Boolean);
+        document.getElementById('tTag').textContent=selTags.length>1
+          ?selTags.map(x=>x.name).join('、')+'（同时进行）':selTags[0].name;
+        const now=new Date();
+        document.getElementById('tMeta').textContent=pad(now.getHours())+':'+pad(now.getMinutes())+' 开始';
+        saveTimerState();
+      }
+    }else{
+      selTagIds=[tag.id];
+      startTimer();
+    }
+    renderTags();
+    status.textContent='说一句话，直接开始';
+    btn.classList.remove('thinking');
+  }catch(err){
+    status.textContent='说一句话，直接开始';
+    btn.classList.remove('thinking');
+    toast(err.message||'没听清，再说一次');
+  }
+}
 function startTimer(){
   if(!selTagIds.length||tState!=='idle')return;
   const selTags=selTagIds.map(id=>tags.find(t=>t.id===id)).filter(Boolean);
@@ -9635,6 +9848,54 @@ function habitMoon(streak){
   return '🌕';
 }
 
+// ================================================================
+// 习惯提醒——说清楚这里能做到什么、做不到什么：
+// 这是个纯前端、没有后台服务器的 app，浏览器/系统真正意义上的"定时推送"
+// （哪怕你把 app 关掉、手机锁屏很久也照样弹出通知）需要一台服务器在背后
+// 到点主动推送，这个目前做不到。这里做的是"退而求其次但依然有用"的两层：
+// 1. 只要你打开 app，习惯卡片上会显示"该 XX 了"这个提醒标——这个百分百可靠。
+// 2. 如果浏览器/PWA这个页面还开着（哪怕在后台，没被系统彻底杀掉），会尝试用
+//    系统的通知功能弹一条提醒——这个是"尽力而为"，页面被完全关掉、或者手机
+//    锁屏太久系统把它冻结/回收了，就不会弹出来了，不能完全依赖它。
+let habitRemindedToday={};
+function habitReminderSetup(){
+  const hasAnyReminder=habits.some(h=>h.reminderTime);
+  if(hasAnyReminder&&typeof Notification!=='undefined'&&Notification.permission==='default'){
+    Notification.requestPermission();
+  }
+  habitReminderCheck();
+  setInterval(habitReminderCheck,60000);
+}
+function habitReminderCheck(){
+  const tk=todayK();
+  if(habitRemindedToday._day!==tk){habitRemindedToday={_day:tk};} // 跨天了，清空今天的"已提醒"记录
+  const now=new Date();
+  habits.forEach(h=>{
+    if(!h.reminderTime||h.paused)return;
+    if(isHabitDoneToday(h,tk))return;
+    if(habitRemindedToday[h.id])return; // 这个习惯今天已经提醒过了，不重复弹
+    const [rh,rm]=h.reminderTime.split(':').map(Number);
+    const due=now.getHours()>rh||(now.getHours()===rh&&now.getMinutes()>=rm);
+    if(!due)return;
+    habitRemindedToday[h.id]=true;
+    if(typeof Notification!=='undefined'&&Notification.permission==='granted'){
+      try{
+        new Notification(`该${h.name}了`,{
+          body:`「${h.name}」的提醒时间到了 · ${h.reminderTime}`,
+          icon:'icon-180.png',
+          tag:'habit-'+h.id // 同一个习惯的通知会互相替换，不会在通知栏堆一排
+        });
+      }catch(e){}
+    }
+  });
+  // 只要有习惯到点了，也顺手把当前显示的习惯列表重画一次，让卡片上的
+  // "该XX了"标签能第一时间出现，不用等你手动切换页面才刷新出来——但只在
+  // 习惯这个列表当前真的显示在屏幕上时才这么做，不会在你用别的页面时
+  // 无缘无故被重绘打断。
+  const habitListEl=document.getElementById('habitList');
+  const habitListVisible=habitListEl&&habitListEl.offsetParent!==null;
+  if(habitListVisible&&habits.some(h=>h.reminderTime&&!h.paused&&!isHabitDoneToday(h,tk)))renderHabits();
+}
 function renderHabitCard(h,tk){
   const log=h.log||{};
   const todayCount=log[tk]||0;
@@ -9672,8 +9933,19 @@ function renderHabitCard(h,tk){
     subLabel=`<div class="gal-sub">每天</div>`;
   }
   
+  // 设了提醒时间、今天还没完成、当前时间已经过了提醒点——卡片上露出一个很轻的
+  // 提醒标。这是"打开app就能看到"这一层，保证一定看得到；另外还有一层"哪怕没
+  // 打开app也可能收到系统通知"的尝试，见 guanHabitReminderCheck() 那边的说明
+  // 和它自带的限制。
+  const dueReminder = h.reminderTime && !h.paused && !isHabitDoneToday(h,tk) && (()=>{
+    const now=new Date();
+    const [rh,rm]=h.reminderTime.split(':').map(Number);
+    return now.getHours()>rh || (now.getHours()===rh && now.getMinutes()>=rm);
+  })();
+  
   return `<div class="gal-card${h.paused?' paused':''}" data-hid="${h.id}" style="background:${gradCss}" onclick="openHabitDetail('${h.id}')">
     ${h.paused?'<span class="gal-paused-tag">休眠中</span>':''}
+    ${dueReminder?`<span class="gal-due-tag">该 ${escapeHtml(h.name)} 了</span>`:''}
     <div class="gal-top">
       <span class="gal-emoji">${h.emoji||''}</span>
       ${h.paused?'':checkEl}
@@ -9791,7 +10063,7 @@ let habitDraft={emoji:'',freq:'daily',times:2,slots:[],weekdays:[],monthday:1,we
 
 function openHabitCreate(){
   document.getElementById('habitCreateBg')?.remove();
-  habitDraft={emoji:'💊',freq:'daily',times:2,slots:['早','晚'],weekdays:[],monthday:1,weeklyTarget:2,gradient:0,customGrad:null};
+  habitDraft={emoji:'💊',freq:'daily',times:2,slots:['早','晚'],weekdays:[],monthday:1,weeklyTarget:2,gradient:0,customGrad:null,reminderTime:''};
   let html=`<div class="habit-create-bg" id="habitCreateBg" onclick="if(event.target===this)closeHabitCreate()">
     <div class="habit-create-box">
       <div class="hc-title">一 个 新 习 惯</div>
@@ -9809,6 +10081,12 @@ function openHabitCreate(){
       <div class="hc-detail" id="hcDetail"></div>
       
       <div class="hc-gradients" id="hcGradients"></div>
+      
+      <div class="hc-reminder-row">
+        <span class="hc-reminder-lbl">提醒（可不设）</span>
+        <input type="time" class="hc-reminder-input" id="hcReminder" value="" onchange="habitDraft.reminderTime=this.value">
+        <a class="hc-reminder-clear" onclick="document.getElementById('hcReminder').value='';habitDraft.reminderTime=''">清除</a>
+      </div>
       
       <div class="hc-actions">
         <button class="hc-save" onclick="hcSave()">建 立</button>
@@ -9986,7 +10264,7 @@ function hcSave(){
   if(!name){document.getElementById('hcName').focus();return;}
   const grad=HABIT_GRADIENTS[habitDraft.gradient]||HABIT_GRADIENTS[0];
   const h={id:'h'+Date.now(),name,emoji:habitDraft.emoji||'',freq:habitDraft.freq,
-    grad:grad.slice(),log:{},createdAt:Date.now()};
+    grad:grad.slice(),log:{},createdAt:Date.now(),reminderTime:habitDraft.reminderTime||''};
   if(habitDraft.freq==='multi'){
     // Order slots by canonical order
     const ordered=HABIT_SLOTS.filter(s=>habitDraft.slots.includes(s));
@@ -10028,7 +10306,8 @@ function openHabitEdit(id){
     monthday:h.monthday||1,
     weeklyTarget:h.weeklyTarget||2,
     gradient:gi,
-    customGrad:null
+    customGrad:null,
+    reminderTime:h.reminderTime||''
   };
   const freqBtns=['daily','multi','weekly','monthly'].map(f=>
     `<button class="hc-freq${h.freq===f?' sel':''}" data-f="${f}" onclick="hcSetFreq('${f}')">${{daily:'每天',multi:'每天多次',weekly:'每周',monthly:'每月'}[f]}</button>`
@@ -10041,6 +10320,11 @@ function openHabitEdit(id){
       <div class="hc-freq-opts">${freqBtns}</div>
       <div class="hc-detail" id="hcDetail"></div>
       <div class="hc-gradients" id="hcGradients"></div>
+      <div class="hc-reminder-row">
+        <span class="hc-reminder-lbl">提醒（可不设）</span>
+        <input type="time" class="hc-reminder-input" id="hcReminder" value="${h.reminderTime||''}" onchange="habitDraft.reminderTime=this.value">
+        <a class="hc-reminder-clear" onclick="document.getElementById('hcReminder').value='';habitDraft.reminderTime=''">清除</a>
+      </div>
       <div class="hc-actions">
         <button class="hc-save" onclick="hcSaveEdit()">保 存</button>
       </div>
@@ -10060,6 +10344,7 @@ function hcSaveEdit(){
   h.name=name;
   h.emoji=habitDraft.emoji||'';
   h.freq=habitDraft.freq;
+  h.reminderTime=habitDraft.reminderTime||'';
   const grad=HABIT_GRADIENTS[habitDraft.gradient]||HABIT_GRADIENTS[0];
   h.grad=grad.slice();
   // Clear freq-specific fields then set the current ones
@@ -11414,6 +11699,9 @@ function init(){
   // Recover any timer/pomodoro that was running when app was last closed
   recoverTimer();
   recoverPomo();
+  habitReminderSetup();
+  const guanDivBtn=document.getElementById('guanDivinationBtn');
+  if(guanDivBtn)guanDivBtn.classList.toggle('on',guanDivinationMode);
   // When iOS returns from background, immediately sync timers
   document.addEventListener('visibilitychange',()=>{
     if(document.visibilityState==='visible'){
