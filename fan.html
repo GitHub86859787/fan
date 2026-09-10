@@ -131,6 +131,10 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   backdrop-filter:blur(30px);transition:all 2s}
 .t-idle{font-family:'Noto Serif SC',serif;font-weight:200;font-size:15px;letter-spacing:.06em;
   line-height:1.8;transition:color 2s}
+.tb-home{margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;
+  font-family:'Noto Serif SC',serif;font-weight:300;font-size:12px;letter-spacing:.08em;opacity:.7;transition:opacity .3s}
+.tb-home #tbHomeName{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle}
+.tb-home #tbHomeDig{font-family:'Cormorant',serif;font-size:14px;letter-spacing:.06em;font-variant-numeric:tabular-nums}
 .t-label{font-family:'Cormorant',serif;font-size:12px;font-style:italic;letter-spacing:.1em;
   display:flex;align-items:center;justify-content:center;gap:6px;transition:color 2s}
 .t-pulse{width:5px;height:5px;border-radius:50%;animation:pls 2.5s ease-in-out infinite}
@@ -625,10 +629,15 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 .tb-ring-fg.idle{stroke:rgba(255,250,244,.3);stroke-dashoffset:0;transition:none;filter:none}
 .tb-ring-center{position:absolute;inset:0;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:2px}
-.tb-task-chip{margin-top:8px;padding:5px 14px;border-radius:100px;
-  background:rgba(255,255,255,.06);font-family:'Cormorant',serif;font-style:italic;
-  font-size:12px;letter-spacing:.03em;color:rgba(255,250,244,.6);max-width:150px;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 任务名放在圆的上方，横跨整张卡片——不再被圆弧收窄限制，名字再长也能
+   自然折行，不会像之前那样顶出圆的边界。短名字单行；长名字折两行，字号
+   略降一档；两行还装不下才省略号收尾。 */
+.tb-task-header{margin:0 auto 14px;padding:0 24px;max-width:260px;text-align:center;
+  font-family:'Cormorant',serif;font-style:italic;font-size:14px;letter-spacing:.04em;
+  color:rgba(255,250,244,.6);line-height:1.5;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;text-overflow:ellipsis}
+.tb-task-header.long{font-size:12px}
 #tbDig{color:rgba(255,250,244,.94);font-size:38px}
 #tbPhase{color:rgba(255,250,244,.4)}
 .tb-hard-note{margin-top:14px;font-family:'Cormorant',serif;font-style:italic;font-size:9px;
@@ -1775,6 +1784,8 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
   font-family:'Noto Serif SC',serif;font-weight:300;color:inherit;
   transition:all .3s,color 2s;opacity:.55}
 .insp-opt-btn.sel{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.2);opacity:1}
+.coll-tags{margin-top:5px;font-family:'Noto Serif SC',serif;font-weight:300;font-size:9px;
+  letter-spacing:.2em;opacity:.45;cursor:pointer}
 
 /* 筛选提示 */
 .insp-filter-hint{display:flex;align-items:center;gap:6px;
@@ -2801,12 +2812,26 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
     <div class="pg on" id="pgT">
       <div class="today-sched" id="todaySched" style="display:none"></div>
       <div class="t-card" id="tCard">
-        <div id="tIdle"><div class="t-idle">选择标签 · 轻触开始</div></div>
+        <div id="tIdle">
+          <div class="t-idle">选择标签 · 轻触开始</div>
+        </div>
+        <!-- 待办的时间盒正在计时、标签计时器没在跑——直接接管首页大表盘，
+             外观跟标签计时（下面的 tRun）完全一样，只是点一下跳去时间盒页面。 -->
+        <div id="tbTakeover" style="display:none" onclick="goPage('P');pmSetUiMode('timebox');">
+          <div class="t-label"><span class="t-pulse"></span><span id="tbTakeoverName"></span></div>
+          <div class="t-digits" id="tbTakeoverDig">00<span class="co">:</span>00<span class="co">:</span>00</div>
+          <div class="t-meta">时间盒 · 轻触查看</div>
+        </div>
         <div id="tRun" style="display:none">
           <div class="t-label"><span class="t-pulse" id="tPulse"></span><span id="tTag"></span></div>
           <div class="t-digits" id="tDig">00<span class="co">:</span>00<span class="co">:</span>00</div>
           <div class="t-meta" id="tMeta"></div>
           <div class="t-paused" id="tPaused" style="display:none">已暂停</div>
+        </div>
+        <!-- 只在"标签计时器和待办计时器同时在跑"这种少见情况下才出现——
+             这时候大表盘被标签计时占着，待办计时改用这条小字提示，不会互相盖掉。 -->
+        <div class="tb-home" id="tbHome" style="display:none" onclick="goPage('P');pmSetUiMode('timebox');">
+          <span class="t-pulse"></span><span id="tbHomeName"></span><span id="tbHomeDig"></span>
         </div>
       </div>
 
@@ -2949,6 +2974,7 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 
         <!-- Step 2: running -->
         <div class="pm-card" id="tbRun" style="display:none">
+          <div class="tb-task-header" id="tbRunTask"></div>
           <div class="tb-ring-holder">
             <svg class="tb-ring-svg" viewBox="0 0 200 200">
               <circle class="tb-ring-bg" cx="100" cy="100" r="90"></circle>
@@ -2957,7 +2983,6 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
             <div class="tb-ring-center">
               <div class="pm-phase" id="tbPhase">时间盒 · 正计时</div>
               <div class="pm-digits" id="tbDig">00:00</div>
-              <div class="tb-task-chip" id="tbRunTask"></div>
             </div>
           </div>
           <div class="tb-hard-note" id="tbHardNote" style="display:none">
@@ -3134,11 +3159,14 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
         <div class="cat-tabs" id="shopSubTabs">
           <button class="cat-tab on" onclick="shopSetSub('shopping')">物品</button>
           <button class="cat-tab" onclick="shopSetSub('ingredient')">食材</button>
+          <button class="cat-tab" onclick="shopSetSub('collection')">收藏</button>
         </div>
         <div class="memo-input-row">
           <textarea class="memo-input" id="shopInp" placeholder="添加物品..." rows="1"></textarea>
           <button class="memo-add-btn" id="shopAddBtn" onclick="shopSmartAdd()">+</button>
         </div>
+        <!-- 收藏的类别/地区（既是筛选，也是新加一条时默认带上的标签） -->
+        <div class="insp-opts" id="collOpts" style="display:none"></div>
         <div class="memo-list" id="shopList"></div>
       </div>
 
@@ -4243,7 +4271,6 @@ const GUAN_STATES=[
   {icon:'🌕',name:'盈',color:'#D4A857',feel:'充盈、满溢、感恩的满足'},
   {icon:'🔥',name:'燃',color:'#E85A2C',feel:'精力充沛、有动力、状态好'},
   {icon:'🏔️',name:'根',color:'#5E6B5C',feel:'有根、落地、踏实、不慌'},
-  {icon:'🔮',name:'明',color:'#9FB8C9',feel:'清晰、通透、看得见方向、想通了'},
   {icon:'🌊',name:'流',color:'#4A8FB8',feel:'平稳、专注、安静地做事'},
   {icon:'🌀',name:'转',color:'#6E4C8E',feel:'胡思乱想、停不下来、脑子很快但身体累'},
   {icon:'❄️',name:'冷',color:'#B8D4E8',feel:'没感觉、麻木、不想动'},
@@ -4593,14 +4620,19 @@ function guaLabel(g){
 // （在 energyLog 声明之后再调用，见下方 guanBackfillIconFeel 旁边）
 function guaBackfill(){
   let changed=false;
+  // 先把空的"照"/"卜"清掉——这些是滑过去又没做的，不该留在日历里
+  // （正在面板上编辑的那一条除外）。
+  if(typeof guanPruneEmptyEntries==='function'&&guanPruneEmptyEntries(typeof gs1LastEntryTs!=='undefined'?gs1LastEntryTs:null))changed=true;
   (energyLog||[]).forEach(e=>{
-    // 不管是不是"卜"，只要这条记录还没有卦，就按它自己的时间戳补一个——
-    // "卜"记录也会走到这里，是故意的：如果当时滑到"卜"、确认了，但报数那步
-    // 没走完（没填数字也没点"起卦"）就退出了，这条记录会一直卡在gua=null，
-    // 日历里就只剩"卜"两个字加图标，什么内容都没有，也没法点开揭卦。这里给它
-    // 兜个底，按它自己的时间戳补一个自动起的卦——这跟"起卦"按钮本身"不填数字
-    // 就按此刻自动起卦"是同一套逻辑，半途放弃的起卦，退回按时间起卦，合理。
-    if(!e.gua&&e.ts){e.gua=guaAutoFromTs(e.ts);changed=true;}
+    // 没起卦的"卜"，但留了三个数——数字是当时的灵感，直接用它们把卦起出来，接得上；
+    // 只写了问题没填数的，按它自己的时间起卦（跟"起卦"按钮不填数的行为一样）。
+    if(!e.gua&&e.ts&&e.state==='卜'&&e.ts!==(typeof gs1LastEntryTs!=='undefined'?gs1LastEntryTs:null)){
+      const ns=Array.isArray(e.buNums)?e.buNums.map(v=>parseInt(v,10)):[];
+      if(ns.length===3&&ns.every(n=>Number.isFinite(n)&&n>0)){e.gua=guaManual(ns[0],ns[1],ns[2]);delete e.buNums;changed=true;}
+      else{e.gua=guaAutoFromTs(e.ts);delete e.buNums;changed=true;}
+    }
+    // 普通记录没有卦的，按时间补一个
+    if(!e.gua&&e.ts&&e.state!=='卜'){e.gua=guaAutoFromTs(e.ts);changed=true;}
     else if(e.gua){const inf=GUA_INFO[e.gua.name]||['✨',''];if(e.gua.icon!==inf[0]){e.gua.icon=inf[0];changed=true;}if(!e.gua.feel){e.gua.feel=inf[1];changed=true;}}
     if(e.gua&&!e.gua.nuclearName&&e.gua.lines){const hL=guaTriFromLines(e.gua.lines.slice(1,4)),hU=guaTriFromLines(e.gua.lines.slice(2,5));e.gua.nuclearName=GUA_NAMES[hU][hL];changed=true;}
     if(e.gua&&!e.gua.oppositeName&&e.gua.lines){
@@ -4724,12 +4756,25 @@ function fmtSolar(date){
 }
 
 let energyLog = ld('energyLog', []);
+// 当前面板上正在编辑的那条记录的 ts——要在 guaBackfill() 之前声明，因为清理空记录时要跳过它
+let gs1LastEntryTs = null;
+// 滑到"卜"但还没起卦的草稿——不进 energyLog，滑过去本身不算记录；点了"起卦"那一刻才成为一条记录。
+// 草稿会存在本地（问题、三个数），页面关了再开还能接着填。
+let gs1BuDraft = ld('guanBuDraft', null);
+function guanCurrentEntry(){
+  if(!gs1LastEntryTs)return null;
+  if(gs1BuDraft&&gs1BuDraft.ts===gs1LastEntryTs)return gs1BuDraft;
+  return (energyLog||[]).find(e=>e.ts===gs1LastEntryTs)||null;
+}
+function guanSaveDraft(){ sv('guanBuDraft', gs1BuDraft); }
 // 一次性回填——只跑一次，跑完标记掉。之前"改名逻辑只在原来是'照'时才同步图标"
 // 那个漏洞修好之前记的历史数据，很可能是"名字已经是新词了，图标却还停在照的图标
 // 上"这种对不上的状态；这里用现在的 guanCustomStates / guanWordArchive 数据，
 // 尽力把这些历史记录的图标、解释补回来。补不了的情况只有一种：entry.state 本身
 // 还停留在"照"（没有任何线索知道它当时到底被改成了什么词），这种没法回填，跳过。
 guaBackfill();
+// "明"这个默认状态已经去掉（滑杆上不再有），历史记录里的"明"保留；它以前的图标🔮换成🧭，免得在日历里跟"卜"混
+(function(){let ch=false;(energyLog||[]).forEach(e=>{if(e.state==='明'&&e.icon==='🔮'){e.icon='🧭';ch=true;}});if(ch)sv('energyLog',energyLog);})();
 (function guanBackfillIconFeel(){
   if(ld('guanIconBackfillDone',false))return;
   let changed=false;
@@ -4890,7 +4935,37 @@ function guanInit(){
   // Build 5 intensity dots
   guanBuildDots();
   
-  setTimeout(()=>guanSetSlider(Math.min(4,guanAllStates().length-1)), 50);
+  setTimeout(()=>{
+    guanSetSlider(Math.min(4,guanAllStates().length-1));
+    guanResumeBuDraft();
+  }, 50);
+}
+// 上次滑到"卜"、写了问题或填了数、但没点"起卦"就走了——把那份草稿原样接回面板上
+function guanResumeBuDraft(){
+  const d=gs1BuDraft;
+  if(!d||!d.ts)return;
+  if(guanIsEmptyEntry(d)){gs1BuDraft=null;guanSaveDraft();return;}
+  if(!guanDivinationMode)return; // 卜卦模式没开，草稿先留着，开了再接
+  const states=guanAllStates();
+  const idx=states.findIndex(s=>s.name==='卜');
+  if(idx<0)return;
+  guanSetSlider(idx);
+  gs1LastEntryTs=d.ts;
+  document.getElementById('gs1Preview').style.display='none';
+  document.getElementById('gs1Confirm').classList.remove('show');
+  const rec=document.getElementById('gs1Recorded');
+  rec.classList.add('show');
+  guanRenderRecordedLine(rec,states[idx],d);
+  const reasonInput=document.getElementById('gs1ReasonInput');
+  const reasonToggle=document.getElementById('gs1ReasonToggle');
+  reasonInput.placeholder='写下要问的事…';
+  reasonInput.value=d.reason||'';
+  reasonInput.classList.add('show');
+  reasonToggle.classList.add('hidden');
+  document.getElementById('gs1Detail').classList.add('show');
+  guanRenderBuNumsRow(states[idx],d);
+  document.querySelectorAll('.gs1-emoji').forEach((e,j)=>{e.classList.remove('preview','confirmed');if(j===idx)e.classList.add('confirmed');});
+  setTimeout(guanAutoGrowReason,20);
 }
 
 function guanSetSlider(i){
@@ -4911,6 +4986,9 @@ function guanSetSlider(i){
     e.classList.remove('preview','confirmed');
     if(j===i) e.classList.add('preview');
   });
+  // 确认按钮的字跟着滑到的状态走——滑到"卜"不是在记录情绪，是要补卦
+  const cbtn=document.getElementById('gs1Confirm');
+  if(cbtn){const st=guanAllStates()[i];cbtn.textContent=(st&&st.name==='卜')?'卜 卦':'记 录';}
   // Update intensity bar color to match new state
   if(typeof guanUpdateIntensityColor==='function')guanUpdateIntensityColor();
 }
@@ -4939,9 +5017,38 @@ function guanAutoGrowReason(){
 // 统一的"回到拖动选择"重置逻辑——所有自动收起/超时路径都走这里，
 // 确保「已封存」文案、AI建议区（比如"已经加进你的词库了…"）、输入框高度
 // 会被一起清空，不会有任何一块状态残留到下一次记录里。
+// 一条记录算不算"空"：
+//  - "照"本身没有情绪，靠写下来的字让AI去认——没写字，这条"照"就没有内容，不该留；
+//  - "卜"是为了起卦——没起卦、没写问题、也没填数，就是滑过去又没做，不该留。
+// 其他情绪词（盈、涨这些）本身就是内容，不写字也算数。
+function guanIsEmptyEntry(e){
+  if(!e)return false;
+  const hasReason=!!(e.reason&&String(e.reason).trim());
+  if(e.state==='照')return !hasReason;
+  if(e.state==='卜'){
+    const hasNums=Array.isArray(e.buNums)&&e.buNums.some(v=>v!=null&&String(v).trim()!=='');
+    return !e.gua&&!hasReason&&!hasNums;
+  }
+  return false;
+}
+function guanPruneEmptyEntries(exceptTs){
+  if(!Array.isArray(energyLog))return false;
+  const before=energyLog.length;
+  energyLog=energyLog.filter(e=>e.ts===exceptTs||!guanIsEmptyEntry(e));
+  if(energyLog.length!==before){sv('energyLog',energyLog);return true;}
+  return false;
+}
 function guanResetPanel(){
+  // 面板收起的这一刻，刚才那条如果是空的"照"/"卜"，就当没记过
+  if(gs1LastEntryTs){
+    const cur=guanCurrentEntry();
+    if(cur===gs1BuDraft&&cur){
+      // 卜的草稿：空的直接扔掉；写了问题/填了数的留在本地，下次打开接着填
+      if(guanIsEmptyEntry(cur)){gs1BuDraft=null;guanSaveDraft();}
+    }else if(cur&&guanIsEmptyEntry(cur))guanPruneEmptyEntries();
+  }
   const rec=document.getElementById('gs1Recorded');
-  if(rec)rec.classList.remove('show');
+  if(rec){rec.classList.remove('show');rec.style.display='';}
   const buRow=document.getElementById('guanBuNumsRow');
   if(buRow)buRow.remove();
   const ri=document.getElementById('gs1ReasonInput');
@@ -4976,8 +5083,8 @@ function guanSaveCurrentReason(){
   const input=document.getElementById('gs1ReasonInput');
   const reason=(input&&input.value||'').trim();
   if(!reason)return false;
-  const entry=energyLog.find(e=>e.ts===gs1LastEntryTs);
-  if(entry){entry.reason=reason;sv('energyLog',energyLog);}
+  const entry=guanCurrentEntry();
+  if(entry){entry.reason=reason;if(entry===gs1BuDraft)guanSaveDraft();else sv('energyLog',energyLog);}
   return true;
 }
 
@@ -4996,7 +5103,7 @@ function guanToggleReason(){
 
 // 当前这条是不是滑到"卜"记的——是的话，"问问AI这算什么状态"就不该出现（那是给情绪命名用的）
 function guanIsBuEntry(){
-  const e=gs1LastEntryTs?(energyLog||[]).find(x=>x.ts===gs1LastEntryTs):null;
+  const e=guanCurrentEntry();
   return !!(e&&e.state==='卜');
 }
 // Show seal button when user types
@@ -5005,7 +5112,8 @@ function guanReasonOnInput(){
   const input=document.getElementById('gs1ReasonInput');
   const btn=document.getElementById('gs1SealBtn');
   const val=input.value.trim();
-  if(val){
+  // 补卦不用"封存"——"起卦"那一下就是定稿，这里不出现封存按钮
+  if(val&&!guanIsBuEntry()){
     btn.classList.add('show');
   }else{
     btn.classList.remove('show');
@@ -5030,15 +5138,21 @@ function guanCommitReason(){
   const reason=(document.getElementById('gs1ReasonInput').value||'').trim();
   // Hide input + seal, show "已封存"
   const toggle=document.getElementById('gs1ReasonToggle');
-  toggle.innerHTML=guanIsBuEntry()?'✓ 问 题 已 定':'✓ 已 封 存';
-  toggle.style.color='rgba(255,250,244,.45)';
-  toggle.style.fontSize='9px';
-  toggle.style.letterSpacing='.4em';
-  toggle.classList.remove('hidden');
-  // 已封存后，这行字不应该再能点开输入框——点一下又跳出输入框是之前的 bug。
-  // 锁住点击，直到自动收起时（见下面的重置逻辑）才恢复。
-  toggle.onclick=null;
-  toggle.style.cursor='default';
+  if(guanIsBuEntry()){
+    // 补卦的问题定下来之后，什么都不用写——卦起出来自然会打开揭卦，问题本身会在里面。
+    toggle.classList.add('hidden');
+    toggle.onclick=null;
+  }else{
+    toggle.innerHTML='✓ 已 封 存';
+    toggle.style.color='rgba(255,250,244,.45)';
+    toggle.style.fontSize='9px';
+    toggle.style.letterSpacing='.4em';
+    toggle.classList.remove('hidden');
+    // 已封存后，这行字不应该再能点开输入框——点一下又跳出输入框是之前的 bug。
+    // 锁住点击，直到自动收起时（见下面的重置逻辑）才恢复。
+    toggle.onclick=null;
+    toggle.style.cursor='default';
+  }
   document.getElementById('gs1ReasonInput').classList.remove('show');
   document.getElementById('gs1SealBtn').classList.remove('show');
 
@@ -5109,7 +5223,7 @@ function guanBackAiSuggestion(){
 async function guanAskAiState(){
   const aiRow=document.getElementById('guanAiRow');
   if(!aiRow||!gs1LastEntryTs)return;
-  const entry=energyLog.find(e=>e.ts===gs1LastEntryTs);
+  const entry=guanCurrentEntry();
   if(!entry)return;
   // 每次重新问，都是一个全新的语境——历史栈清空，不带着上一条记录的旧建议。
   guanAiSuggestHistory=[];
@@ -5130,17 +5244,17 @@ async function guanAskAiState(){
 她现有的词库（每个词是一种能量/情绪状态，定义要严格按字面理解，不要泛化）：
 ${all.map(s=>`${s.icon} 「${s.name}」— ${s.feel||''}`).join('\n')}
 
-她刚才选的词是「${entry.state}」，并写了这样一段缘由："${reason}"
+她刚才选的词是「${entry.state}」，并写了这样一段："${reason}"
 
-判断标准（精准比省事重要，宁可多造词也不要凑合）：
-- 只有当这段描述的核心情绪，跟词库里某个词的定义几乎逐字对得上（不只是表面都出现"想很多"这种字眼，而是本质上是同一种体验）时，才判定 fits 为 true。
-- 千万不要因为字面/主题上的联想就归类——比如"发工资"这种跟钱有关的场景，不能因为字面沾到"盈余"就归到"盈"，得看这段话背后真正的情绪体验是什么，这两种完全不是一回事。
-- 只要这段描述里有词库任何一个词都没捕捉到的独特成分，就应该判定不 fits。不要因为"大致有点像"就偷懒选现有词。
-- 即使这段描述听起来很像纯粹的生理需求或身体信号（比如单纯饿了、困了、胃痛、想上厕所），也不要直接判定"不是情绪"——情绪命名法的前提就是任何体验都能找到它背后的能量色彩，哪怕很淡（比如胃痛背后可能是烦躁、抵抗、身体拖住了注意力这类感受，总能找到一个）。concept 字段要诚实地把这种"身体信号带出的淡淡的情绪色彩"写出来，不要强行把它说成很激烈的情绪。
-- 如果这段描述真的太短/太模糊，情绪色彩模糊到你自己也不确定，可以额外给一个 clarify 问题（一句话，问一个能帮你更准确的信息，比如"这种不舒服后面，是更像烦躁，还是更像无奈/抵抗？"），但即使不问也必须先给一个 concept，不能留空。
+先老老实实读这段字，问自己一件事：她此刻自己是什么感觉？
+- 这段字里"发生了什么、别人说了什么、故事里的人是什么情绪"，都不等于她此刻自己的感觉。比如她记了一个梦，梦里有人质疑她——被质疑的是梦里的那个她，写下这段字的她此刻未必有任何被质疑的感觉，多半只是在记一个梦。不要把内容里的情绪当成她的情绪。
+- 如果这段字本身就是一段记述（一个梦、一件事、一段对话），她自己的情绪并不明显，那最准确的判断就是"这是一段记述，没有明显的情绪"——concept 就如实写这个，不要硬从里面挖一个情绪出来凑数。准确比"总得给个情绪"重要得多。
+- 只有当她此刻自己的感觉真的清楚、而且跟词库里某个词的定义本质上是同一种体验时，才判定 fits 为 true；字面/主题上的联想不算（比如跟钱有关不等于"盈"）。
+- 如果她的感觉清楚但词库里没有一个词对得上，判定不 fits，concept 写清楚那个感觉核心是什么。
+- 真的拿不准的时候，可以额外给一个 clarify 问题（一句话），但也要先给出你目前最诚实的 concept。
 
 只返回 JSON，不要有其他文字：
-{"fits":true} 或 {"fits":false,"concept":"一句话内部笔记，说清楚这段描述里最独特、最值得被命名的那个感觉核心是什么，不用讲究文采，给下一步写词用","clarify":null或"一句话问题，可选，只在真的不确定时才给"}`;
+{"fits":true} 或 {"fits":false,"concept":"一句话内部笔记，如实说她此刻自己的感觉是什么，或者说清这只是一段记述、没有明显情绪，不用讲究文采，给下一步写词用","clarify":null或"一句话问题，可选，只在真的不确定时才给"}`;
   try{
     const judge=await callClaudeJSON(judgePrompt,'请判断。');
     if(!judge)throw new Error('AI 没有返回结果');
@@ -5156,6 +5270,8 @@ ${all.map(s=>`${s.icon} 「${s.name}」— ${s.feel||''}`).join('\n')}
 
 她写的完整内容："${reason}"
 （判断步骤内部提炼出的方向供参考，不是命名的唯一依据：${concept}——命名请针对她写的这整段内容去体会，不要只根据这一句摘要，摘要可能丢掉了细节和层次。）
+
+如果上面的方向说的是"这只是一段记述、没有明显情绪"，那就不要为了让它看起来像个情绪词，硬编一个她并没有的情绪出来——名字和 feel 都如实写这段字实际是什么、实际是什么感觉，具体叫什么由这段字本身决定，没有固定答案。准确比像样重要。
 
 不能用这些已经存在的名字：${all.map(s=>s.name).join('、')}。emoji 要能传达这个感觉的全部面向，不能只画出其中欢快的一半。
 
@@ -5191,7 +5307,7 @@ async function guanRefineWithClarify(){
   if(!aiRow||!input)return;
   const answer=input.value.trim();
   if(!answer)return;
-  const entry=energyLog.find(e=>e.ts===gs1LastEntryTs);
+  const entry=guanCurrentEntry();
   if(!entry)return;
   guanAiSuggestHistory=[]; // 这也是一次全新语境（多补充了信息），历史栈清空重来
   const all=guanAllStates();
@@ -5232,7 +5348,7 @@ async function guanRegenerateAiWord(){
   // 先看缘由文字是不是已经跟当初生成这个建议时不一样了（用户又改了、写了更多）——
   // 如果变了，说明该判断的语境本身变了，不该再拿旧的 concept 硬凑一个新词，
   // 直接当成一次全新的"问问AI"，让它按现在写的内容重新判断、重新想。
-  const entry=energyLog.find(e=>e.ts===gs1LastEntryTs);
+  const entry=guanCurrentEntry();
   const liveReason=(document.getElementById('gs1ReasonInput')?.value||'').trim()||(entry?entry.reason:'')||'';
   if(liveReason&&liveReason!==snapshot){
     await guanAskAiState();
@@ -5303,7 +5419,7 @@ function guanAcceptAiSuggestion(){
   // 的原因。名字、图标、解释三者必须一起改，漏了任何一个都会导致这条记录"图标/
   // 解释和名字对不上"。
   if(gs1LastEntryTs){
-    const entry=energyLog.find(e=>e.ts===gs1LastEntryTs);
+    const entry=guanCurrentEntry();
     if(entry){
       entry.state=name;
       entry.icon=aiRow.dataset.pendingIcon||'✨';
@@ -5325,8 +5441,7 @@ function guanDismissAiSuggestion(){
   guanScheduleCollapse();
 }
 
-// Track most recent entry for reason updates
-let gs1LastEntryTs = null;
+// Track most recent entry for reason updates（声明挪到了 energyLog 旁边，见上）
 // AI 给"照"这里造词时，历次生成过的建议(icon/name/feel)都存在这——
 // 一是重新生成的时候，把这里全部拿去当"不能再用"的名单，不会老是撞出同一个emoji；
 // 二是支持"回到上一个"，反悔了可以退回去，不用凭记忆重新造一次。
@@ -5339,12 +5454,13 @@ let guanDivinationMode = ld('guanDivinationMode', false);
 // "已 记 录 · 盈" 这一行——卜卦模式下，后面安静地跟一个卦名小字（比如"坎"），
 // 长按它才揭卦看解读；不按就只是个字。平时（开关关着）这一行跟以前一模一样。
 function guanRenderRecordedLine(rec, chosen, entry){
-  // "卜"这个状态名本身没什么信息量——卦起出来之后，直接让卦（比如"👣 履"）
-  // 当这一行的主显示，不再是"已记录·卜·👣履"这种重复的说法。
-  // 还没起卦之前（正在填三个数那会儿），先老老实实显示"已记录·卜"。
-  const showBu = chosen.name==='卜' && guanDivinationMode && entry && entry.gua;
-  rec.innerHTML = showBu ? '已 记 录 · ' : `已 记 录 · ${escapeHtml(chosen.name)}`;
-  if(showBu){
+  // "卜"不是在记录情绪，是在补卦——这一行就直接叫"补 卦"，卦起出来之后
+  // 让卦本身（比如"👣 履"）跟在后面当主显示；还没起卦（正在填三个数）就只写"补 卦"。
+  if(chosen.name==='卜'){
+    // 起卦之前这一行没有任何信息，不显示；起卦之后直接显示卦本身，不加前缀
+    rec.innerHTML='';
+    if(!entry||!entry.gua){rec.style.display='none';return;}
+    rec.style.display='';
     const chip=document.createElement('span');
     chip.className='guan-gua-chip'+(entry.gua.mode==='manual'?' manual':'');
     chip.textContent=(entry.gua.icon?entry.gua.icon+' ':'')+entry.gua.name;
@@ -5353,6 +5469,8 @@ function guanRenderRecordedLine(rec, chosen, entry){
     rec.appendChild(chip);
     return;
   }
+  rec.style.display='';
+  rec.innerHTML = `已 记 录 · ${escapeHtml(chosen.name)}`;
   if(!guanDivinationMode||!entry||!entry.gua)return;
   const chip=document.createElement('span');
   chip.className='guan-gua-chip'+(entry.gua.mode==='manual'?' manual':'');
@@ -5375,20 +5493,29 @@ function guanRenderBuNumsRow(chosen, entry){
   row.className='guan-bu-row';
   // 一个按钮就够——填了三个数就用报数起卦；不填，直接点"起卦"就按此刻的时间起卦。
   // 不用分开做两条路，也不用挨个标"上/下/动"，圆圈本身够清楚了。
-  row.innerHTML=`<div class="guan-bu-lbl">静 心 · 默 数 三 个 数（不 填 也 行）</div>
+  row.innerHTML=`<div class="guan-bu-lbl">静 心 · 默 数 三 个 数 · 不 填 则 依 时 空 起 卦</div>
     <div class="guan-bu-line">
       <input type="number" inputmode="numeric" class="guan-bu-num" min="1">
       <input type="number" inputmode="numeric" class="guan-bu-num" min="1">
       <input type="number" inputmode="numeric" class="guan-bu-num" min="1">
     </div>
     <button class="guan-bu-go">起　卦</button>`;
+  // 数字是一时的灵感——边打边存进这条记录里，就算面板意外被关掉、页面被刷新，
+  // 这三个数也还在（重新打开时回填；如果一直没回来点"起卦"，加载时会直接用
+  // 这三个数把卦起出来，接得上）。
+  const numInputs=Array.from(row.querySelectorAll('.guan-bu-num'));
+  if(Array.isArray(entry.buNums))numInputs.forEach((inp,i)=>{if(entry.buNums[i]!=null&&entry.buNums[i]!=='')inp.value=entry.buNums[i];});
+  numInputs.forEach(inp=>{inp.addEventListener('input',()=>{
+    entry.buNums=numInputs.map(x=>x.value.trim());
+    if(entry===gs1BuDraft)guanSaveDraft();else sv('energyLog',energyLog);
+  });});
   row.querySelector('.guan-bu-go').onclick=()=>{
     const live=(document.getElementById('gs1ReasonInput')?.value||'').trim();
     if(live)entry.reason=live;
     // 起心动念是自己心里的事，不需要写出来才算数——问题写不写完全随意，
     // 不写也一样能起卦，只是解读的时候会围绕这一卦本身去讲，不会假装
     // 知道你心里问的是什么。
-    const raw=Array.from(row.querySelectorAll('.guan-bu-num')).map(i=>i.value.trim());
+    const raw=numInputs.map(i=>i.value.trim());
     const filled=raw.filter(v=>v!=='');
     let gua;
     if(filled.length===0){
@@ -5399,6 +5526,12 @@ function guanRenderBuNumsRow(chosen, entry){
       gua=guaManual(ns[0],ns[1],ns[2]);
     }
     entry.gua=gua;
+    delete entry.buNums; // 卦已经起出来了，草稿数字不用再留
+    if(entry===gs1BuDraft){
+      // 这一刻草稿才正式成为一条记录
+      if(!energyLog.some(e=>e.ts===entry.ts))energyLog.push(entry);
+      gs1BuDraft=null;guanSaveDraft();
+    }
     sv('energyLog',energyLog);
     if(entry.reason&&typeof guanCommitReason==='function'){
       guanCommitReason();
@@ -5411,7 +5544,11 @@ function guanRenderBuNumsRow(chosen, entry){
     const rec=document.getElementById('gs1Recorded');
     if(rec)guanRenderRecordedLine(rec,chosen,entry);
     row.remove();
+    // 卦起出来了，这条记录就"封口"了——后面再滑别的情绪是新的一条，不会再
+    // 被当成"改主意"而带着这一卦。面板给一个宽松的时间自己收起，不再永远停着。
+    gs1LastEntryTs=null;
     if(window._gs1ResetTimer)clearTimeout(window._gs1ResetTimer);
+    window._gs1ResetTimer=setTimeout(guanResetPanel,60000);
     guaOpenReveal(entry.ts);
   };
   detail.appendChild(row);
@@ -5484,24 +5621,25 @@ async function guaFetchReading(entry){
     if(live&&live!==entry.reason){entry.reason=live;sv('energyLog',energyLog);}
   }
   const manual=g.mode==='manual';
-  const sys=`你是一位懂《周易》的朋友，在帮用户看她刚起的一卦。这个产品的选择是——让用户用第三人称去看自己的处境，不是在跟AI对话，是在旁观自己；这种抽离感，反而能让人看得更清、更容易走进去。你的每一段解读都要贴合这个基调。请按传统解卦的层次来解，但用她听得懂的、温和克制的话：
+  const sys=`你是一位懂《周易》的朋友，在帮用户看她刚起的一卦。这个产品的选择是——让用户用第三人称去看自己的处境，不是在跟AI对话，是在旁观自己；这种抽离感，反而能让人看得更清、更容易走进去。你的每一段解读都要贴合这个基调。请按传统解卦的层次来解，但用她听得懂的、温和克制的话；最后要给出这一卦的指引：
 
 【卦】${guaLabel(g)}
 【她记录的状态】「${entry.state||''}」${entry.feel?'（'+entry.feel+'）':''}
 【她写的${manual?'要问的事':'缘由'}】"${entry.reason||'（这次没写，留在心里）'}"
 
 解读要求：
-1. ${manual?(entry.reason?'这是她郑重报数问的一件具体的事，整段解读都要围绕这件事来答——先说清这一卦对这件事的映照是什么，不要绕开她问的问题去泛泛谈卦。':'她这次报数问了一卦，但没有写下具体问的是什么——这是她的选择，起心动念留在自己心里就够了，不需要说出来。你不知道她具体在问什么，就不要猜、不要编，也不要提"你没有写下问题"这件事本身；只需要如实解读这一卦客观呈现的意象，把它当成一面纯粹的镜子讲清楚就好。'):'这一卦是按她记录那一刻的时间起的，跟她写的内容没有因果关系——你的工作是把这一刻的卦象和她此刻写下的状态对照起来看，找出真实的映照，不要生拉硬扯；对不上的地方也可以直说这一卦提醒的是另一面。'}
+1. ${manual?(entry.reason?'这是她郑重报数问的一件具体的事，整段解读都要围绕这件事来答。开头的一两句话，就直接对着她问的那句话本身说——用这一卦的话回答它的字面意思，不要先绕一大圈讲卦理再慢慢靠近。比如她问"他是怎么想我的"，开头就要说这一卦里他的样子、他的位置、他对着她的姿态是什么；她问"明天要干嘛"，卦不排日程，但要直接说这一卦给这一天的姿态和方向是什么（该动还是该等、该往外还是该往内），而不是回避掉。先把这句话回答了，再往下展开卦理。':'她这次报数问了一卦，但没有写下具体问的是什么——这是她的选择，起心动念留在自己心里就够了，不需要说出来。你不知道她具体在问什么，就不要猜、不要编，也不要提"你没有写下问题"这件事本身；只需要如实解读这一卦客观呈现的意象，把它当成一面纯粹的镜子讲清楚就好。'):'这一卦是按她记录那一刻的时间起的，跟她写的内容没有因果关系——你的工作是把这一刻的卦象和她此刻写下的状态对照起来看，找出真实的映照，不要生拉硬扯；对不上的地方也可以直说这一卦提醒的是另一面。'}
 2. 先看她写的这句话，主语是谁，解读就是在解谁——判断标准是字面的主语，不是去猜"背后真正在意的是谁"：
    - 主语是她自己（"我今天……""我在纠结……""我是不是……"），或者没写清楚、看不出主语——默认用"她"来称呼。
    - 主语是别人——不管是"我朋友""我妈""公司那个同事"这类关系称呼，还是具体人名，还是"他/她"（比如"他想我吗""他是不是不喜欢我了"，主语都是"他"）——解读就是在解那个人，用对应的第三人称去讲他（"他""她""那位朋友"这类），不要因为背后其实是她在意这件事，就把主语偷偷换回"她"。
    - 全文人称必须从头到尾一致，中途不要切换。
-   - 如果用户写的话本身是在对AI说（比如"你觉得我该怎么办""帮我看看""给我个建议"这种）——这句话不是要解读的"主语"，而是她此刻的"求助姿态"。这种情况下，把整段文字当成"她此刻在向你求助"这个状态本身来解读，人称默认用"她"；不要因为她用了问句就在结尾也用问句回她，也不要因为她说了"该怎么办"就真的给出建议——这两条底线，仍然是规则5、7在管，不是另开一套新规矩。
+   - 她问的这个人跟她是什么关系，只按她写的来；没写就不假设——不要因为她问的是"他怎么想我"就默认这是暧昧或感情，也不要因为卦是咸、归妹、姤这类就往情爱上解。一个普通朋友、一个同事、一个亲人，都可能被这样问。用关系无关的方式讲这个人对着她的姿态（靠近还是疏远、有回应还是没回应、动还是静），让她自己往她们真实的关系里对号。同理，断语按字面讲：凶就说凶在哪、吉就说吉在哪，不要把它翻译成"吃亏""占上风""赢了输了"这种加了戏的话。
+   - 如果用户写的话本身是在对AI说（比如"你觉得我该怎么办""帮我看看""给我个建议"这种）——这句话不是要解读的"主语"，而是她此刻的"求助姿态"。这种情况下，把整段文字当成"她此刻在向你求助"这个状态本身来解读，人称默认用"她"；不要因为她用了问句就在结尾也用问句回她；她问"该怎么办"，答案要从卦里来（规则7那种从爻辞和卦象推出来的指引），不是你自己的主意。
 3. 分几层但写成连贯的话，不分点：本卦的意象在说什么；动爻（第${g.moving}爻，${g.isCentral?'居中位':'不居中位'}、${g.isCorrect?'当位':'不当位'}、${g.hasCorrespondence?`与第${g.correspondLine}爻有应`:`与第${g.correspondLine}爻无应`}——中位是全卦最稳的位置（二爻是下卦之中，五爻是上卦之中，这两个位置天然带一种"守中不偏"的分量）；当位是这一爻本身阴阳是否安在了该在的地方；有应是它和呼应爻（初四、二五、三六两两相应）之间是不是一阴一阳、互相支持——有应就不是孤军奋战，无应就要点出"独木难支"或者"没有回响"。这三者共同决定这一爻的分量与孤立程度，可以据此判断这一爻的解读该有多重、多急）——这是全卦的重点。${guaYaoci(g.name,g.moving)?`这一爻的爻辞原文已经核对过、附在了上面【卦】那一条里——请紧扣这段原文的字面意思去讲它落在这件事上意味着什么，不要脱离原文另外发挥或者引申出原文没有的意思。`:'这一卦暂时没有核对过的爻辞原文，请用你对这一爻传统含义的理解，用自己的话讲它落在这件事上意味着什么。'}变卦${g.changedName}给出的是这件事的走向或另一面。互卦${g.nuclearName||''}可以一句带过，指向过程中的内在状态。错卦${g.oppositeName||''}、综卦${g.reverseName||''}、交卦${g.crossName||''}不必每次都提，只在它们真的能帮这次解读说得更透时才带一句（比如本卦和错卦/综卦之间有值得点出的呼应或反差，或者交卦能讲清"换位会看到什么"）。
 4. 必须引用她写的原话里的一个词或一句（用「」括起来），让她看到你是在解这段具体的话，不是套话。
-5. 卦是镜子不是预言：可以直说这一爻在讲什么，但不预测具体结果，不下判断，不灌鸡汤；遇到剥、否、蹇、困这类卦如实说它的消耗和难处，再指出它内在提示的方向。
+5. 卦是镜子不是预言——但这句话要分清两件事：爻辞原文自己带的断语（吉、凶、悔、吝、无咎、有终、利/不利这些）是原文自己的判断，不是你在预言，这些要直说，而且要落到她问的这件事上说清楚（比如"这一爻断的是'凶'，落在她问的事上，凶在哪里"），不要含糊带过；你不能做的是在原文之外自己编具体结果（"他下周会联系你""这件事三个月内会成"这类）。不下判断说的是不替她评价对错，不是不说卦辞的断语；不灌鸡汤。遇到剥、否、蹇、困这类卦如实说它的消耗和难处，再指出它内在提示的方向。
 6. 篇幅不限——把该讲的讲透，需要多长就多长，不要为了凑短把话说虚；可以分几段自然地写，不用标题、不要前言。
-7. 结尾不要抛问题、不要给建议或指引（不要出现"你应该""可以试着""建议你"这类词，问句也不要）。用一句"落点句"收束——把这一卦最想说的核心，用一句"这一爻讲的是……"或"这一卦的核心是……"这样揭示式的话点出来，点到即止，不告诉她该怎么办，让她自己在心里回味。落点句可以带上人称（比如"这一爻讲的是她此刻在做的事——……"），也可以不带，看哪种更贴合整段解读的呼吸；但如果带人称，必须和前面全文保持一致（前面用的是"她"就还是"她"，是"他"就还是"他"），不要突然断裂。
+7. 结尾要给指引——卦是宇宙给的指引，不是只照一照就完了。最后单独一段，说清这一卦此刻给她的方向：该动还是该等、该进还是该退、该守还是该变、该往外还是该往内。这个指引必须从卦里来——从爻辞的断语（吉、凶、利、不利、无咎、有终）、从卦象和象辞本身推出来，并且说清楚"为什么这一卦这样指"，让她看见指引和卦之间的那条线。口吻是"这一卦的指引是……""这一爻指向的是……"，是卦在说话，不是你在替她拿主意，所以不要出现"你应该""建议你""我觉得你可以"这类话；也不要泛泛的鸡汤（"顺其自然""相信自己"这种谁都能说的话不算指引）。指引要具体到这件事、这一爻，一两句到一小段，说透就停，不要抛问题。人称跟全文一致（前面用"她"就还是"她"，是"他"就还是"他"），不要突然断裂。
 
 直接返回这一段文字本身，不要 JSON，不要引号包裹，不要任何多余的话。`;
   const text=await callClaudeText(sys,'请解这一卦。');
@@ -5549,7 +5687,7 @@ function guanApplyDivinationModeUI(){
   if(typeof guanBuildEmojiRow==='function') guanBuildEmojiRow();
   const rec=document.getElementById('gs1Recorded');
   if(rec&&rec.classList.contains('show')&&gs1LastEntryTs){
-    const entry=(energyLog||[]).find(e=>e.ts===gs1LastEntryTs);
+    const entry=guanCurrentEntry();
     const chosen=guanAllStates()[gs1Idx];
     if(entry&&chosen)guanRenderRecordedLine(rec,chosen,entry);
   }
@@ -5708,7 +5846,15 @@ function guanDoRecord(){
   // 这次再点"记录"就当成"改主意了，把情绪换个更贴切的词"，直接更新这同一条记录，
   // 而不是另外新开一条——这样已经写了一半、还没点"封存"的缘由文字不会被清空，
   // 也不会平白多出一条时间几乎一样的重复记录。
-  const existing = gs1LastEntryTs ? energyLog.find(e=>e.ts===gs1LastEntryTs) : null;
+  let existing = guanCurrentEntry();
+  // 已经报过数、起过卦的那条，是一件已经完成的事——不能再被后面滑到别的情绪
+  // 的记录当成"改主意"覆盖掉，否则新记的那条情绪会莫名其妙带着刚才那一卦。
+  // 遇到这种情况就另开一条，让上一条安静地留在原地。
+  if(existing&&existing.gua&&existing.gua.mode==='manual'&&chosen.name!=='卜'){existing=null;gs1LastEntryTs=null;}
+  // 当前是一条"卜"的草稿、这次却滑到了别的情绪——草稿不是记录，扔掉它，
+  // 写过的字带到新记录里，别丢。
+  let carriedReason=null;
+  if(existing&&existing===gs1BuDraft&&chosen.name!=='卜'){carriedReason=existing.reason||null;gs1BuDraft=null;guanSaveDraft();existing=null;gs1LastEntryTs=null;}
   let entry;
   if(existing){
     existing.idx = gs1Idx;
@@ -5731,8 +5877,15 @@ function guanDoRecord(){
     };
     // 每条记录天生自带这一刻的卦（按时间算），不管开没开卜卦模式都存——
     // 唯独滑到"卜"的记录例外："卜"就是"我要自己报数"，报数之前不该先冒出一个自动的卦来。
-    entry.gua = chosen.name==='卜' ? null : guaAutoFromTs(entry.ts);
-    energyLog.push(entry);
+    if(chosen.name==='卜'){
+      // 滑到"卜"不算记录——先当草稿放着，点了"起卦"才进 energyLog
+      entry.gua=null;
+      gs1BuDraft=entry;guanSaveDraft();
+    }else{
+      entry.gua=guaAutoFromTs(entry.ts);
+      if(carriedReason)entry.reason=carriedReason;
+      energyLog.push(entry);
+    }
     gs1LastEntryTs = entry.ts;
   }
   sv('energyLog', energyLog);
@@ -5757,9 +5910,10 @@ function guanDoRecord(){
   const reasonInput = document.getElementById('gs1ReasonInput');
   if(!existing){
     reasonInput.classList.remove('show');
-    reasonInput.value = '';
+    reasonInput.value = carriedReason||'';
     reasonInput.style.height = '';
     reasonInput.style.overflowY = '';
+    if(carriedReason){reasonInput.classList.add('show');reasonToggle.classList.add('hidden');setTimeout(guanAutoGrowReason,20);}
   }
   document.getElementById('gs1Detail').classList.add('show');
   guanRenderBuNumsRow(chosen, entry);
@@ -5787,11 +5941,16 @@ function guanDoRecord(){
   });
   
   // Auto-collapse after 30 seconds (gives time to write reason)
+  // 滑到"卜"的不装这个计时器——报数是一时的灵感，不该被倒计时催着，什么时候
+  // 点"起卦"什么时候算数。（之前这里无条件重新装了一个，把上面为"卜"清掉的那次
+  // 白清了，就是"稍微想一下报数框就自动没了"的根源。）
   if(window._gs1ResetTimer)clearTimeout(window._gs1ResetTimer);
-  window._gs1ResetTimer = setTimeout(()=>{
-    guanSaveCurrentReason();
-    guanResetPanel();
-  }, 30000);
+  if(chosen.name!=='卜'){
+    window._gs1ResetTimer = setTimeout(()=>{
+      guanSaveCurrentReason();
+      guanResetPanel();
+    }, 30000);
+  }
 }
 
 function guanShowMeaning(state, anchor){
@@ -6250,6 +6409,28 @@ function voiceCommitTag(tag){
   renderTags();
   syncStartBtnState();
 }
+// 首页这块区域到底该显示什么——统一由这一个函数说了算，不用每处自己判断：
+//  - 标签计时器在跑：显示大表盘（tRun）；这时如果待办计时也在跑（少见的同时
+//    两个都开着的情况），大表盘被标签占着，待办计时改用下面那条小提示。
+//  - 标签计时器没在跑、待办计时在跑：待办计时直接接管大表盘，外观跟标签计时
+//    时一模一样（大数字），不再是一条不起眼的小字。
+//  - 两个都没在跑：显示"选择标签·轻触开始"。
+function syncHomeTimerDisplay(){
+  const idle=document.getElementById('tIdle'),run=document.getElementById('tRun'),
+        takeover=document.getElementById('tbTakeover'),pill=document.getElementById('tbHome');
+  if(!idle||!run||!takeover||!pill)return;
+  const tagOn = tState==='running'||tState==='paused';
+  if(tagOn){
+    idle.style.display='none';run.style.display='block';takeover.style.display='none';
+    pill.style.display=tbRunning?'flex':'none';
+  }else if(tbRunning){
+    idle.style.display='none';run.style.display='none';takeover.style.display='block';
+    pill.style.display='none';
+  }else{
+    idle.style.display='block';run.style.display='none';takeover.style.display='none';
+    pill.style.display='none';
+  }
+}
 function startTimer(){
   if(!selTagIds.length||tState!=='idle')return;
   const selTags=selTagIds.map(id=>tags.find(t=>t.id===id)).filter(Boolean);
@@ -6261,6 +6442,7 @@ function startTimer(){
   document.getElementById('tIdle').style.display='none';
   document.getElementById('tRun').style.display='block';
   document.getElementById('tPaused').style.display='none';
+  syncHomeTimerDisplay();
   document.getElementById('tTag').textContent=selTags.length>1?selTags.map(t=>t.name).join('、')+'（同时进行）':selTags[0].name;
   const now=new Date();
   document.getElementById('tMeta').textContent=pad(now.getHours())+':'+pad(now.getMinutes())+' 开始';
@@ -6301,6 +6483,7 @@ function recoverTimer(){
   document.getElementById('tIdle').style.display='none';
   document.getElementById('tRun').style.display='block';
   document.getElementById('tTag').textContent=savedTags.length>1?savedTags.map(t=>t.name).join('、')+'（同时进行）':savedTags[0].name;
+  syncHomeTimerDisplay();
   const now=new Date(tStart);
   document.getElementById('tMeta').textContent=pad(now.getHours())+':'+pad(now.getMinutes())+' 开始';
   if(tState==='paused'){
@@ -6409,6 +6592,7 @@ function resetTimer(){
   renderTags();
   syncStartBtnState();
   document.getElementById('tIdle').style.display='block';document.getElementById('tRun').style.display='none';
+  syncHomeTimerDisplay();
   document.getElementById('actR').style.display='none';document.getElementById('actP').style.display='none';
   document.getElementById('actI').style.display='flex';
 }
@@ -6639,6 +6823,7 @@ function recContinueTimer(){
   document.getElementById('tPaused').style.display='none';
   document.getElementById('tTag').textContent=selTags.length>1?selTags.map(t=>t.name).join('、')+'（同时进行）':selTags[0].name;
   document.getElementById('tMeta').textContent=pad(sh)+':'+pad(sm)+' 开始';
+  syncHomeTimerDisplay();
   document.getElementById('actI').style.display='none';
   document.getElementById('actR').style.display='flex';
   if(tInterval)clearInterval(tInterval);
@@ -7957,7 +8142,7 @@ function tbRenderDurPresets(){
 function tbApplyRunUI(){
   const ring=document.getElementById('tbRingFg');
   document.getElementById('tbPhase').textContent=tbType==='countdown'?'时间盒 · 倒计时':'时间盒 · 正计时';
-  document.getElementById('tbRunTask').textContent=tbParentId?(tbParentText+' · '+tbSelText):tbSelText;
+  tbSetTaskChipText(document.getElementById('tbRunTask'),tbParentId?(tbParentText+' · '+tbSelText):tbSelText);
   document.getElementById('tbHardNote').style.display=tbType==='countdown'?'flex':'none';
   if(tbType==='countdown'){
     ring.classList.remove('idle');
@@ -7965,6 +8150,13 @@ function tbApplyRunUI(){
   }else{
     ring.classList.add('idle');
   }
+}
+// 任务名放在圆上方那一行——短的单行就好；长的（拼接了"母任务·子任务"这种）
+// 字号降一档给两行留出空间。12个字大概是单行能舒服装下的上限，超过就换样式。
+function tbSetTaskChipText(el,text){
+  if(!el)return;
+  el.textContent=text||'';
+  el.classList.toggle('long',(text||'').length>12);
 }
 function tbStartSession(){
   if(!tbSelId||tbRunning)return;
@@ -7977,7 +8169,33 @@ function tbStartSession(){
   tbInt=setInterval(tbTick,1000);tbTick();
 }
 
+// 首页 tIdle 里的"待办正在计时"那一行——跟着时间盒的状态走
+function tbHomeSync(){
+  syncHomeTimerDisplay();
+  if(!tbRunning)return;
+  const name=(tbParentText?tbParentText+' · ':'')+(tbSelText||'');
+  let digText;
+  if(tbType==='countdown'){
+    const left=Math.max(0,Math.ceil((tbEnd-Date.now())/1000));
+    digText=pad(Math.floor(left/60))+':'+pad(left%60);
+  }else{
+    const el=Math.max(0,Math.floor((Date.now()-tbStart)/1000));
+    const h=Math.floor(el/3600),m=Math.floor((el%3600)/60),sec=el%60;
+    digText=(h>0?pad(h)+':':'')+pad(m)+':'+pad(sec);
+  }
+  // 大表盘被接管、还是用小提示条，取决于标签计时器有没有同时在跑——
+  // 两边都更新一下，不管当前哪个在显示，切换的时候内容都是对的。
+  const tkName=document.getElementById('tbTakeoverName');
+  if(tkName)tbSetTaskChipText(tkName,name);
+  const tkDig=document.getElementById('tbTakeoverDig');
+  if(tkDig)tkDig.textContent=digText;
+  const nm=document.getElementById('tbHomeName');
+  if(nm)tbSetTaskChipText(nm,name);
+  const dg=document.getElementById('tbHomeDig');
+  if(dg)dg.textContent=digText;
+}
 function tbTick(){
+  tbHomeSync();
   if(!tbRunning)return;
   if(tbType==='countdown'){
     const left=Math.max(0,Math.ceil((tbEnd-Date.now())/1000));
@@ -8000,6 +8218,7 @@ function tbFinish(hardStop){
   if(!tbRunning)return;
   tbRunning=false;
   clearInterval(tbInt);tbInt=null;
+  tbHomeSync();
   try{timerEndBowl()}catch(e){}
   const end=hardStop?tbEnd:Date.now();
   const dur=Math.max(0,Math.floor((end-tbStart)/1000));
@@ -8944,6 +9163,8 @@ let memos=ld('memos',{todo:[],shopping:[],ingredient:[]});
 if(!Array.isArray(memos.todo))memos.todo=[];
 if(!Array.isArray(memos.shopping))memos.shopping=[];
 if(!Array.isArray(memos.ingredient))memos.ingredient=[];
+// 收藏：遇到的好东西（好吃的餐厅、好店、好地方）——不勾、不归档，记下来是为了以后回去找
+if(!Array.isArray(memos.collection))memos.collection=[];
 let inspirations=ld('inspirations',[]);
 let inspTags=ld('inspTags',['思','业','修']);
 let memoTabOrder=ld('memoTabOrder',['todo','habit','shopping','inspiration']);
@@ -10010,20 +10231,128 @@ function ingDetectBulk(){
 // ----------- SHOPPING (with shopping/ingredient subtabs) -----------
 let shopSub=ld('shopSub','shopping'); // 'shopping'(物品) or 'ingredient'(食材)
 
+// ----------- 收藏：类别 × 地区 -----------
+// 两排小标签：类别（餐厅…）和地区（东莞、深圳、韩国…）。选中的标签既是列表的
+// 筛选条件，也是这时候新加一条会默认带上的标签——"正看着深圳·餐厅，加一条，
+// 它就是深圳的餐厅"。点一下选中，再点取消；"＋"新建；长按改名。
+let collTypes=ld('collTypes',['餐厅']);
+let collRegions=ld('collRegions',[]);
+let collSelType=null, collSelRegion=null;
+function collRenderChips(){
+  const box=document.getElementById('collOpts');
+  if(!box)return;
+  if(shopSub!=='collection'){box.style.display='none';return;}
+  box.style.display='flex';
+  box.innerHTML='';
+  const mkRow=(lbl,kind,list,sel)=>{
+    const row=document.createElement('div');row.className='insp-opt-row';
+    const l=document.createElement('span');l.className='insp-opt-lbl';l.textContent=lbl;row.appendChild(l);
+    list.forEach(t=>{
+      const b=document.createElement('button');
+      b.className='insp-opt-btn'+(sel===t?' sel':'');
+      b.dataset.tag=t;b.textContent=t;
+      b.onclick=()=>{if(b.dataset.lp)return;collToggle(kind,t);};
+      let timer=null;
+      const start=()=>{timer=setTimeout(()=>{b.dataset.lp='1';collRename(kind,t,b);if(navigator.vibrate)navigator.vibrate(40);},550);};
+      const cancel=()=>{if(timer)clearTimeout(timer);setTimeout(()=>{delete b.dataset.lp;},100);};
+      b.addEventListener('touchstart',start,{passive:true});b.addEventListener('touchend',cancel);b.addEventListener('touchmove',cancel,{passive:true});
+      b.addEventListener('mousedown',start);b.addEventListener('mouseup',cancel);b.addEventListener('mouseleave',cancel);
+      row.appendChild(b);
+    });
+    const add=document.createElement('button');add.className='insp-opt-btn';add.textContent='＋';
+    add.onclick=()=>collNew(kind,add);
+    row.appendChild(add);
+    return row;
+  };
+  box.appendChild(mkRow('类别','type',collTypes,collSelType));
+  box.appendChild(mkRow('地区','region',collRegions,collSelRegion));
+  setTimeout(()=>applyUITheme(),50);
+}
+function collToggle(kind,v){
+  if(kind==='type')collSelType=(collSelType===v)?null:v;
+  else collSelRegion=(collSelRegion===v)?null:v;
+  collRenderChips();renderShopList();
+}
+function collInlineInput(initial,onDone){
+  const inp=document.createElement('input');
+  inp.className='cat-tab-input';inp.value=initial||'';inp.maxLength=6;
+  let done=false;
+  const finish=()=>{if(done)return;done=true;onDone((inp.value||'').trim());};
+  inp.addEventListener('blur',finish);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();inp.blur();}if(e.key==='Escape'){inp.value=initial||'';inp.blur();}});
+  return inp;
+}
+function collNew(kind,btn){
+  const inp=collInlineInput('',v=>{
+    const list=kind==='type'?collTypes:collRegions;
+    if(v&&!list.includes(v)){list.push(v);sv(kind==='type'?'collTypes':'collRegions',list);}
+    if(v){if(kind==='type')collSelType=v;else collSelRegion=v;}
+    collRenderChips();renderShopList();
+  });
+  btn.replaceWith(inp);inp.focus();
+}
+function collRename(kind,oldV,btn){
+  const inp=collInlineInput(oldV,v=>{
+    if(v&&v!==oldV){
+      const list=kind==='type'?collTypes:collRegions;
+      const i=list.indexOf(oldV);if(i>=0)list[i]=v;
+      sv(kind==='type'?'collTypes':'collRegions',list);
+      (memos.collection||[]).forEach(it=>{if(kind==='type'&&it.type===oldV)it.type=v;if(kind==='region'&&it.region===oldV)it.region=v;});
+      sv('memos',memos);
+      if(kind==='type'&&collSelType===oldV)collSelType=v;
+      if(kind==='region'&&collSelRegion===oldV)collSelRegion=v;
+    }
+    collRenderChips();renderShopList();
+  });
+  btn.replaceWith(inp);inp.focus();inp.select();
+}
+// 改某一条收藏的类别/地区：点卡片上的小标签，弹出同样的两排选择
+function collEditTags(id){
+  const item=(memos.collection||[]).find(i=>i.id===id);if(!item)return;
+  const card=document.querySelector(`[data-mid="${id}"]`);if(!card)return;
+  const old=card.querySelector('.coll-picker');if(old){old.remove();return;}
+  const pk=document.createElement('div');pk.className='insp-opts coll-picker';pk.style.margin='8px 0 0';pk.style.width='100%';
+  const mkRow=(lbl,kind,list,cur)=>{
+    const row=document.createElement('div');row.className='insp-opt-row';
+    const l=document.createElement('span');l.className='insp-opt-lbl';l.textContent=lbl;row.appendChild(l);
+    list.forEach(t=>{
+      const b=document.createElement('button');b.className='insp-opt-btn'+(cur===t?' sel':'');b.textContent=t;
+      b.onclick=(e)=>{e.stopPropagation();if(kind==='type')item.type=(item.type===t)?null:t;else item.region=(item.region===t)?null:t;sv('memos',memos);renderShopList();};
+      row.appendChild(b);
+    });
+    return row;
+  };
+  pk.appendChild(mkRow('类别','type',collTypes,item.type));
+  pk.appendChild(mkRow('地区','region',collRegions,item.region));
+  card.appendChild(pk);
+  setTimeout(()=>applyUITheme(),50);
+}
 function shopSetSub(sub){
   shopSub=sub;
   sv('shopSub',sub);
   document.querySelectorAll('#shopSubTabs .cat-tab').forEach((t,i)=>{
-    t.classList.toggle('on',(i===0&&sub==='shopping')||(i===1&&sub==='ingredient'));
+    t.classList.toggle('on',(i===0&&sub==='shopping')||(i===1&&sub==='ingredient')||(i===2&&sub==='collection'));
   });
   const inp=document.getElementById('shopInp');
-  if(inp)inp.placeholder=sub==='ingredient'?'添加食材...':'添加物品...';
+  if(inp)inp.placeholder=shopPlaceholder(sub);
+  collRenderChips();
   renderShopList();
 }
 
+function shopPlaceholder(sub){
+  if(sub==='ingredient')return '添加食材...';
+  if(sub==='collection')return '记一个好东西… 比如：那家牛肉面，汤很鲜';
+  return '添加物品...';
+}
 function shopSmartAdd(){
   const inp=document.getElementById('shopInp');
   const text=inp.value;
+  // 收藏是一整条话（"XX餐厅，牛肉面很好吃"），里面的逗号是句子的一部分，不拆成多条
+  if(shopSub==='collection'){
+    const t=text.trim();if(!t)return;
+    memos.collection.unshift({id:'c'+Date.now(),text:t,type:collSelType||null,region:collSelRegion||null,createdAt:Date.now()});
+    playMemoAdd();sv('memos',memos);inp.value='';renderShopList();return;
+  }
   if(/[,，;；、\n\r]/.test(text)){
     // bulk
     const parts=text.split(/[,，;;；、\n\r]+/).map(s=>s.trim()).filter(s=>s.length>0);
@@ -10045,7 +10374,7 @@ function shopSmartAdd(){
 function renderShopList(){
   // Make sure subtab placeholder is right
   const inp=document.getElementById('shopInp');
-  if(inp)inp.placeholder=shopSub==='shopping'?'添加物品...':'添加食材...';
+  if(inp)inp.placeholder=shopPlaceholder(shopSub);
   renderMemoList(shopSub,'shopList');
 }
 
@@ -10061,7 +10390,7 @@ function memoToggle(type,id){
   }
   sv('memos',memos);
   const rerender=()=>{
-    if(type==='shopping'||type==='ingredient')renderShopList();
+    if(type==='shopping'||type==='ingredient'||type==='collection')renderShopList();
     else renderMemoList(type);
   };
   // For todos with subs, re-render immediately so progress/subs update
@@ -10087,7 +10416,7 @@ function memoToggle(type,id){
 function memoDel(type,id){
   memos[type]=memos[type].filter(i=>i.id!==id);
   sv('memos',memos);
-  if(type==='shopping'||type==='ingredient')renderShopList();
+  if(type==='shopping'||type==='ingredient'||type==='collection')renderShopList();
   else renderMemoList(type);
 }
 function memoStartEdit(type,id){
@@ -10106,7 +10435,7 @@ function memoStartEdit(type,id){
   const finish=()=>{
     const nv=ta.value.trim();
     if(nv&&nv!==cur){item.text=nv;sv('memos',memos);}
-    if(type==='shopping'||type==='ingredient')renderShopList();
+    if(type==='shopping'||type==='ingredient'||type==='collection')renderShopList();
     else renderMemoList(type);
   };
   ta.addEventListener('blur',finish);
@@ -10117,15 +10446,19 @@ function memoStartEdit(type,id){
 }
 function renderMemoList(type,forceElId){
   let list=memos[type]||[];
+  if(type==='collection'){
+    if(collSelType)list=list.filter(i=>i.type===collSelType);
+    if(collSelRegion)list=list.filter(i=>i.region===collSelRegion);
+  }
   // Filter by todoCurrent for todo
   if(type==='todo'){
     list=list.filter(i=>(i.priority||'normal')===todoCurrent);
   }
-  const elId=forceElId||{todo:'todoList',shopping:'shopList',ingredient:'shopList'}[type];
+  const elId=forceElId||{todo:'todoList',shopping:'shopList',ingredient:'shopList',collection:'shopList'}[type];
   const el=document.getElementById(elId);
   if(!el)return;
   if(!list.length){
-    el.innerHTML='<div class="insp-empty">尚 无 条 目</div>';
+    el.innerHTML='<div class="insp-empty">'+(type==='collection'&&(collSelType||collSelRegion)?'这 里 还 没 有':'尚 无 条 目')+'</div>';
     setTimeout(()=>applyUITheme(),50);return;
   }
   const sorted=list.slice().sort((a,b)=>{
@@ -10143,6 +10476,17 @@ function renderMemoList(type,forceElId){
   el.innerHTML=sorted.map(item=>{
     if(type==='todo'){
       return renderTodoItem(item);
+    }
+    if(type==='collection'){
+      // 收藏没有"做完"这回事——不给勾选框，只有文字和删除
+      const tags=[item.type,item.region].filter(Boolean).join(' · ');
+      return `<div class="memo-item memo-collect" data-mid="${item.id}" style="flex-wrap:wrap">
+        <div style="flex:1;min-width:0">
+          <div class="memo-text" style="white-space:pre-wrap" onclick="memoStartEdit('${type}','${item.id}')">${escapeHtml(item.text)}</div>
+          <div class="coll-tags" onclick="collEditTags('${item.id}')">${tags?escapeHtml(tags):'<span style="opacity:.5">＋ 类别 · 地区</span>'}</div>
+        </div>
+        <button class="memo-del" onclick="memoDel('${type}','${item.id}')">✕</button>
+      </div>`;
     }
     return `<div class="memo-item${item.done?' done':''}" data-mid="${item.id}">
       <div class="memo-check${item.done?' checked':''}" onclick="memoToggle('${type}','${item.id}')"></div>
