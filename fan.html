@@ -2778,6 +2778,87 @@ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:tex
 #yangMenu .method-why{color:rgba(60,30,15,.6)}
 
 @media(min-width:500px){.app{border-left:1px solid rgba(255,255,255,.04);border-right:1px solid rgba(255,255,255,.04)}}
+/* ================================================================
+   试着 · 晨间补能量测试页
+================================================================ */
+.sz-bg{display:none;position:fixed;inset:0;z-index:500;background:rgba(10,8,6,.62);
+  backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);
+  overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sz-bg.show{display:block}
+.sz-box{position:relative;min-height:100%;
+  padding:calc(env(safe-area-inset-top,0px) + 22px) 20px calc(env(safe-area-inset-bottom,0px) + 50px)}
+.sz-close{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);right:20px;z-index:2;
+  opacity:.5;cursor:pointer;font-size:16px;padding:8px;color:rgba(255,250,244,.9)}
+.sz-wrap{max-width:440px;margin:0 auto;color:rgba(255,250,244,.86);
+  font-family:'Noto Serif SC','Cormorant',serif;font-weight:300;animation:popIn .3s cubic-bezier(.16,1,.3,1)}
+.sz-hd{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;padding-right:34px}
+.sz-hd-t{font-weight:200;font-size:26px;letter-spacing:.3em;color:#FFFAF4}
+.sz-hd-d{font-family:'Cormorant',serif;font-style:italic;font-size:13px;letter-spacing:.08em;color:rgba(255,250,244,.32)}
+.sz-hd-note{font-size:12px;line-height:1.9;color:rgba(255,250,244,.55);letter-spacing:.04em;margin-bottom:22px}
+.sz-tabs{display:flex;gap:18px;margin-bottom:26px;border-bottom:1px solid rgba(255,250,244,.1)}
+.sz-tab{background:none;border:none;color:rgba(255,250,244,.32);font-family:inherit;font-weight:300;
+  font-size:13px;letter-spacing:.2em;padding:6px 2px 10px;cursor:pointer;position:relative}
+.sz-tab.on{color:rgba(255,250,244,.86)}
+.sz-tab.on::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:#E6C9A3}
+.sz-view{display:none}.sz-view.on{display:block}
+.sz-cup-wrap{display:flex;flex-direction:column;align-items:center;margin:4px 0 30px}
+.sz-cup{width:96px;height:112px;display:block}
+.sz-cup-word{font-weight:200;font-size:15px;letter-spacing:.35em;color:rgba(255,250,244,.55);
+  margin-top:14px;text-align:center;transition:color .8s}
+.sz-cup-word.full{color:#E6C9A3}
+#szCupWater{transition:transform 1.1s cubic-bezier(.4,.1,.2,1)}
+.sz-stage{padding:20px 0 24px;border-top:1px solid rgba(255,250,244,.1)}
+.sz-stage:last-of-type{border-bottom:1px solid rgba(255,250,244,.1)}
+.sz-st-hd{display:flex;align-items:baseline;gap:12px;margin-bottom:4px}
+.sz-st-n{font-family:'Cormorant',serif;font-style:italic;font-size:13px;color:#C99B6A;letter-spacing:.06em;min-width:14px}
+.sz-st-t{font-weight:300;font-size:16px;letter-spacing:.14em;color:#FFFAF4}
+.sz-st-e{font-size:11px;color:rgba(255,250,244,.32);letter-spacing:.06em;margin-left:auto}
+.sz-st-note{font-size:12px;line-height:1.8;color:rgba(255,250,244,.55);margin:2px 0 14px 26px}
+.sz-opts{display:flex;flex-wrap:wrap;gap:8px 8px;padding-left:26px}
+.sz-opt{background:none;border:1px solid rgba(255,250,244,.14);color:rgba(255,250,244,.55);
+  font-family:inherit;font-weight:300;font-size:12.5px;letter-spacing:.04em;
+  padding:8px 13px;border-radius:100px;cursor:pointer;line-height:1.3;
+  transition:border-color .25s,color .25s,background .25s;position:relative}
+.sz-opt.on{border-color:#E6C9A3;color:#E6C9A3;background:rgba(230,201,163,.07)}
+.sz-opt.add{border-style:dashed;color:rgba(255,250,244,.32)}
+.sz-opt .sz-x{display:none;margin-left:6px;color:rgba(255,250,244,.32);font-family:'Cormorant',serif}
+.sz-stage.editing .sz-opt.custom .sz-x{display:inline}
+.sz-st-tools{padding-left:26px;margin-top:10px;display:flex;gap:16px}
+.sz-tool{background:none;border:none;color:rgba(255,250,244,.32);font-family:inherit;
+  font-size:11px;letter-spacing:.1em;cursor:pointer;padding:0}
+.sz-addrow{display:none;padding-left:26px;margin-top:10px;gap:8px}
+.sz-addrow.show{display:flex}
+.sz-addrow input{flex:1;background:rgba(255,250,244,.05);border:1px solid rgba(255,250,244,.14);
+  border-radius:100px;color:rgba(255,250,244,.86);font-family:inherit;font-size:13px;padding:8px 14px;outline:none}
+.sz-addrow button{background:none;border:1px solid rgba(255,250,244,.14);border-radius:100px;
+  color:rgba(255,250,244,.55);font-family:inherit;font-size:12px;padding:8px 14px;cursor:pointer;letter-spacing:.1em}
+.sz-feel{margin-top:28px}
+.sz-feel-t{font-weight:300;font-size:14px;letter-spacing:.2em;color:#FFFAF4;margin-bottom:10px}
+.sz-feel-h{font-size:11.5px;line-height:1.8;color:rgba(255,250,244,.32);margin-bottom:12px}
+.sz-textarea{width:100%;min-height:120px;resize:vertical;background:rgba(255,250,244,.05);
+  border:1px solid rgba(255,250,244,.14);border-radius:14px;color:rgba(255,250,244,.86);
+  font-family:inherit;font-weight:300;font-size:14px;line-height:1.85;padding:14px 16px;
+  outline:none;letter-spacing:.02em}
+.sz-textarea::placeholder{color:rgba(255,250,244,.32)}
+.sz-seal{display:block;margin:20px auto 0;background:none;border:1px solid #C99B6A;color:#E6C9A3;
+  font-family:inherit;font-weight:300;font-size:14px;letter-spacing:.35em;text-indent:.35em;
+  padding:12px 34px;border-radius:100px;cursor:pointer;transition:background .25s,transform .1s}
+.sz-seal:active{transform:scale(.97)}
+.sz-seal:disabled{border-color:rgba(255,250,244,.14);color:rgba(255,250,244,.32);cursor:default}
+.sz-sealed-msg{text-align:center;font-size:12px;color:rgba(255,250,244,.32);letter-spacing:.1em;margin-top:12px;min-height:18px}
+.sz-rec-tools{display:flex;gap:18px;margin-bottom:22px;flex-wrap:wrap}
+.sz-rec-empty{font-size:13px;line-height:1.9;color:rgba(255,250,244,.32);padding:30px 0;text-align:center}
+.sz-rec{padding:18px 0;border-top:1px solid rgba(255,250,244,.1)}
+.sz-rec:last-child{border-bottom:1px solid rgba(255,250,244,.1)}
+.sz-rec-d{font-family:'Cormorant',serif;font-style:italic;font-size:14px;letter-spacing:.06em;
+  color:#C99B6A;margin-bottom:10px;display:flex;justify-content:space-between;align-items:baseline}
+.sz-rec-d span{font-family:'Noto Serif SC',serif;font-style:normal;font-size:11px;color:rgba(255,250,244,.32);letter-spacing:.1em}
+.sz-rec-line{font-size:12.5px;line-height:1.9;color:rgba(255,250,244,.55);display:flex;gap:10px}
+.sz-rec-line b{font-weight:300;color:rgba(255,250,244,.32);min-width:14px;font-family:'Cormorant',serif;font-style:italic}
+.sz-rec-feel{font-size:13px;line-height:1.85;color:rgba(255,250,244,.86);margin-top:10px;white-space:pre-wrap;letter-spacing:.02em}
+.sz-rec-del{background:none;border:none;color:rgba(255,250,244,.32);font-family:inherit;font-size:11px;
+  letter-spacing:.1em;cursor:pointer;padding:0;margin-top:10px}
+.sz-foot{margin-top:36px;font-size:11px;line-height:1.9;color:rgba(255,250,244,.32);letter-spacing:.04em;text-align:center}
 </style>
 </head>
 <body>
@@ -5181,13 +5262,30 @@ function guanCommitReason(){
   // AI row too, so a leftover "已经加进你的词库了…" message can no longer survive into the
   // next entry and silently block the next "问问AI" button from showing.
   if(window._gs1ResetTimer)clearTimeout(window._gs1ResetTimer);
-  window._gs1ResetTimer=setTimeout(guanResetPanel,7000);
+  guanScheduleCollapse();
 }
 
+// 这条记录有没有值得保住的内容——目前只看写没写缘由。有内容就不能被自动收起
+// 悄悄清掉，不然人还在犹豫要不要采纳AI建议，面板已经把辛苦写的那段字收起来了，
+// 下次一碰滑杆就变成another条空记录，原来那段字虽然还在旧记录里，但已经看不到、
+// 摸不着，感觉就是平白丢了。
+function guanEntryHasContent(entry){
+  if(entry&&entry.reason&&String(entry.reason).trim())return true;
+  // 正在框里打、还没存进记录的字也算内容
+  const inp=document.getElementById('gs1ReasonInput');
+  return !!(inp&&inp.classList.contains('show')&&inp.value.trim());
+}
+// "还是同一个当下"的时限：写了字的记录，这段时间内再拖滑杆都算改主意、更新同一条；
+// 超过这个时间再来动，就是另一个时刻的另一条记录了。
+const GUAN_SAME_MOMENT_MS=10*60*1000;
 // 安全的情况下（用户已经采纳/忽略了AI的建议，或者压根没触发AI这一步）才重新安排自动收起。
+// 没写字的空记录 7 秒就收；写了字的给足 10 分钟——够她读完AI的建议、犹豫、换个词，
+// 不会在她还没做决定时就把面板悄悄收掉；但也不会永远停在那里，不然一小时后再来
+// 记别的情绪，会把上一条改掉而不是新开一条。
 function guanScheduleCollapse(){
   if(window._gs1ResetTimer)clearTimeout(window._gs1ResetTimer);
-  window._gs1ResetTimer=setTimeout(guanResetPanel,7000);
+  const delay=guanEntryHasContent(guanCurrentEntry())?GUAN_SAME_MOMENT_MS:7000;
+  window._gs1ResetTimer=setTimeout(()=>{guanSaveCurrentReason();guanResetPanel();},delay);
 }
 
 // Ask AI whether this reason describes an existing state well, or deserves its own new word.
@@ -5739,6 +5837,12 @@ function recordSW(type){
     }
   }
   if(!sleepWake[tk])sleepWake[tk]={};
+  // 起床时间已经记过了——再点这个太阳，不再是"取消起床记录"，改成打开"试着"，
+  // 试试今天想用哪种方式醒过来；月亮（睡眠）不受影响，还是原来的开关行为。
+  if(type==='wake'&&sleepWake[tk].wake){
+    openShiZhe();
+    return;
+  }
   if(sleepWake[tk][type]){
     delete sleepWake[tk][type];
   }else{
@@ -5746,6 +5850,185 @@ function recordSW(type){
   }
   sv('sleepWake',sleepWake);
   updSWDisplay();
+}
+
+// ================================================================
+// 试着 · 晨间补能量测试页 —— 逻辑跟独立版一模一样，只是所有函数/变量名
+// 加了 sz 前缀，避免跟主 app 已有的同名东西冲突；todayK/pad/escapeHtml/download
+// 直接用主 app 自己的（download 参数顺序跟这里originally写的不一样，调用时要注意）。
+// ================================================================
+const SZ_STAGES=[
+  {key:'bed',n:'一',title:'还在床上',energy:'零电',
+    note:'不拿手机。这一段替代的就是"看手机慢慢醒"，做的事一样被动，只是接收的是身体和感官。',
+    opts:['感觉身体压在床上的重量','从脚到头扫一遍身体','听那首醒来的歌','抱猫','看窗户那条光','手放在肚子上，跟着呼吸','什么都不做，允许自己没醒','再赖一会儿','听窗外的声音','摸一摸被子的质感','慢慢动一动脚趾和手指','想一个昨天的好瞬间','侧躺，蜷一会儿','闭着眼感受眼皮的重量','把窗帘那条缝再拉开一点','伸手摸到猫就好']},
+  {key:'up',n:'二',title:'下床',energy:'一点电',
+    note:'脚落地，先让身体到这个房间里来。',
+    opts:['开窗，站一会儿','一杯温水，慢慢喝','阳台站一分钟，回来','赤脚在地上走几步','洗脸，感觉水的温度','伸个懒腰，不叫拉伸','给猫添水、喂猫','拉开窗帘','点一支香，或滴一滴精油','看看天今天是什么颜色','慢慢刷牙，只刷牙','换一件舒服的衣服','在楼梯上停一下再下','把床铺平','站着看一会儿房间']},
+  {key:'eat',n:'三',title:'早饭',energy:'',
+    note:'被人照顾着吃一顿饭，这件事本身就是补的。',
+    opts:['不看屏幕地吃','尝出至少一种味道','心里谢一下做饭的人','吃完坐两分钟再起身','只喝一杯热的','吃的时候看窗外','吃的时候看猫','慢慢剥一个水果','和家人说几句话，不聊事','用最喜欢的那个杯子','吃完自己洗碗，感觉水','不吃，只喝水坐一会儿','先闻一闻再吃','放下筷子的时候真的放下']},
+  {key:'body',n:'四',title:'电起来了',energy:'可选',
+    note:'现在才轮到要动力的事。身体想哪个就哪个，都不想也行。',
+    opts:['冷水澡','拉伸 app，挑一个短的','出门走五分钟就回','抹身体乳，慢慢抹','闻一种味道','在喜欢的角落坐一下，不做事','什么都不做，直接下一步','晒五分钟太阳','浇花','放一整首歌，听完','泡一壶茶','涂鸦几笔，不为结果','敲几下木鱼','热水冲一下脖子和肩','摸一摸家里最喜欢的一件东西','梳头，慢慢梳']},
+  {key:'before',n:'五',title:'拿手机之前',energy:'',
+    note:'杯子满了的那一下。然后才是行情、消息、一天。',
+    opts:['说一句"杯子满了"','想三样感恩的，不用写','决定今天第一件事是什么','把早上冒出来的想法现在记下来','深呼吸三次','看一眼镜子里的自己','对猫说：今天开始了','什么都不做，直接拿','给今天起一个词','喝完杯子里最后一口']}
+];
+let szDays=ld('shi_days',{});
+let szCustom=ld('shi_custom',{});
+// 凌晨5点前算前一天——这是"试着"这个页面自己的日界，跟日历那边的日界（另一套逻辑）
+// 是两回事，不能共用主app的todayK()，得单独算。
+function szTodayK(){
+  const d=new Date();if(d.getHours()<5)d.setDate(d.getDate()-1);
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+function szPrettyDate(k){
+  const [y,m,d]=k.split('-').map(Number);
+  const dt=new Date(y,m-1,d);
+  const w=['日','一','二','三','四','五','六'][dt.getDay()];
+  return `${m}月${d}日 · 周${w}`;
+}
+let szTk=null,szToday=null;
+function openShiZhe(){
+  szTk=szTodayK();
+  if(!szDays[szTk])szDays[szTk]={picks:{},feel:'',sealed:null};
+  szToday=szDays[szTk];
+  document.getElementById('szBg').classList.add('show');
+  document.getElementById('szHdDate').textContent=szPrettyDate(szTk);
+  document.getElementById('szFeel').value=szToday.feel||'';
+  szShowView('today');
+  szRenderStages();
+  szUpdateSealUI();
+}
+function closeShiZhe(){document.getElementById('szBg').classList.remove('show');}
+function szShowView(v){
+  document.getElementById('szViewToday').classList.toggle('on',v==='today');
+  document.getElementById('szViewRec').classList.toggle('on',v==='rec');
+  document.getElementById('szTabToday').classList.toggle('on',v==='today');
+  document.getElementById('szTabRec').classList.toggle('on',v==='rec');
+  if(v==='rec')szRenderRecords();
+}
+function szRenderStages(){
+  const root=document.getElementById('szStages');
+  root.innerHTML='';
+  SZ_STAGES.forEach(s=>{
+    const el=document.createElement('section');
+    el.className='sz-stage';el.id='sz_st_'+s.key;
+    const all=[...s.opts,...(szCustom[s.key]||[])];
+    const picked=szToday.picks[s.key];
+    el.innerHTML=`
+      <div class="sz-st-hd">
+        <span class="sz-st-n">${s.n}</span>
+        <span class="sz-st-t">${s.title}</span>
+        ${s.energy?`<span class="sz-st-e">${s.energy}</span>`:''}
+      </div>
+      <div class="sz-st-note">${s.note}</div>
+      <div class="sz-opts" id="sz_opts_${s.key}"></div>
+      <div class="sz-addrow" id="sz_add_${s.key}">
+        <input placeholder="自己加一个" maxlength="30" onkeydown="if(event.key==='Enter')szAddCustom('${s.key}')">
+        <button onclick="szAddCustom('${s.key}')">加</button>
+      </div>
+      <div class="sz-st-tools">
+        <button class="sz-tool" onclick="szToggleAdd('${s.key}')">＋ 自己加</button>
+        ${(szCustom[s.key]||[]).length?`<button class="sz-tool" onclick="szToggleEdit('${s.key}')">整理</button>`:''}
+      </div>`;
+    root.appendChild(el);
+    const box=el.querySelector('#sz_opts_'+s.key);
+    all.forEach(o=>{
+      const isCustom=(szCustom[s.key]||[]).includes(o);
+      const b=document.createElement('button');
+      b.className='sz-opt'+(o===picked?' on':'')+(isCustom?' custom':'');
+      b.innerHTML=escapeHtml(o)+(isCustom?'<span class="sz-x" onclick="event.stopPropagation();szRemoveCustom(\''+s.key+'\',this)">×</span>':'');
+      b.dataset.opt=o;
+      b.onclick=()=>szPick(s.key,o);
+      box.appendChild(b);
+    });
+  });
+  szUpdateCup();
+}
+function szPick(key,o){
+  if(szToday.picks[key]===o)delete szToday.picks[key];else szToday.picks[key]=o;
+  szToday.sealed=null;
+  sv('shi_days',szDays);
+  const box=document.getElementById('sz_opts_'+key);
+  box.querySelectorAll('.sz-opt').forEach(b=>b.classList.toggle('on',b.dataset.opt===szToday.picks[key]));
+  szUpdateCup();szUpdateSealUI();
+}
+function szToggleAdd(key){document.getElementById('sz_add_'+key).classList.toggle('show');const i=document.querySelector('#sz_add_'+key+' input');if(i)i.focus()}
+function szToggleEdit(key){document.getElementById('sz_st_'+key).classList.toggle('editing')}
+function szAddCustom(key){
+  const inp=document.querySelector('#sz_add_'+key+' input');
+  const v=(inp.value||'').trim();if(!v)return;
+  if(!szCustom[key])szCustom[key]=[];
+  if(!szCustom[key].includes(v))szCustom[key].push(v);
+  sv('shi_custom',szCustom);inp.value='';szRenderStages();
+  document.getElementById('sz_add_'+key).classList.add('show');
+}
+function szRemoveCustom(key,xEl){
+  const o=xEl.parentElement.dataset.opt;
+  szCustom[key]=(szCustom[key]||[]).filter(x=>x!==o);sv('shi_custom',szCustom);
+  if(szToday.picks[key]===o){delete szToday.picks[key];sv('shi_days',szDays);}
+  szRenderStages();
+}
+function szUpdateCup(){
+  const n=Object.keys(szToday.picks).length;
+  const water=document.getElementById('szCupWater');
+  const lvl=Math.min(n,5)/5;
+  water.style.transform='translateY('+(90-Math.round(lvl*84))+'px)';
+  const w=document.getElementById('szCupWord');
+  const words=['空 着','一 点','一 半','多 了','快 满','满 了'];
+  w.textContent=words[Math.min(n,5)];
+  w.classList.toggle('full',n>=5);
+}
+function szOnFeelInput(){szToday.feel=document.getElementById('szFeel').value;szToday.sealed=null;sv('shi_days',szDays);szUpdateSealUI();}
+function szSealToday(){szToday.sealed=Date.now();sv('shi_days',szDays);szUpdateSealUI();}
+function szUpdateSealUI(){
+  const btn=document.getElementById('szSealBtn'),msg=document.getElementById('szSealedMsg');
+  const has=Object.keys(szToday.picks).length||szToday.feel.trim();
+  btn.disabled=!has;
+  if(szToday.sealed){
+    const d=new Date(szToday.sealed);
+    msg.textContent='充满于 '+pad(d.getHours())+':'+pad(d.getMinutes());
+    btn.textContent='已 充 满';
+  }else{msg.textContent='';btn.textContent='充 电 完 成';}
+}
+function szSortedKeys(){return Object.keys(szDays).filter(k=>Object.keys(szDays[k].picks).length||(szDays[k].feel||'').trim()).sort().reverse();}
+function szRenderRecords(){
+  const list=document.getElementById('szRecList');
+  const keys=szSortedKeys();
+  if(!keys.length){list.innerHTML='<div class="sz-rec-empty">还没有记录。<br>今早选过、写过的，会出现在这里。</div>';document.getElementById('szRecFoot').textContent='';return;}
+  list.innerHTML=keys.map(k=>{
+    const d=szDays[k];
+    const lines=SZ_STAGES.filter(s=>d.picks[s.key]).map(s=>`<div class="sz-rec-line"><b>${s.n}</b><span>${escapeHtml(d.picks[s.key])}</span></div>`).join('');
+    const sealed=d.sealed?`<span>充满 ${pad(new Date(d.sealed).getHours())}:${pad(new Date(d.sealed).getMinutes())}</span>`:'<span>没按充电完成</span>';
+    return `<div class="sz-rec">
+      <div class="sz-rec-d">${szPrettyDate(k)}${sealed}</div>
+      ${lines||'<div class="sz-rec-line"><span style="color:rgba(255,250,244,.32)">没有选</span></div>'}
+      ${(d.feel||'').trim()?`<div class="sz-rec-feel">${escapeHtml(d.feel.trim())}</div>`:''}
+      <button class="sz-rec-del" onclick="szDelDay('${k}')">删掉这一天</button>
+    </div>`;
+  }).join('');
+  document.getElementById('szRecFoot').textContent='共 '+keys.length+' 天有记录';
+}
+function szDelDay(k){
+  if(!confirm('删掉 '+szPrettyDate(k)+' 的记录？'))return;
+  if(k===szTk){szToday.picks={};szToday.feel='';szToday.sealed=null;document.getElementById('szFeel').value='';szRenderStages();szUpdateSealUI();}
+  else delete szDays[k];
+  sv('shi_days',szDays);szRenderRecords();
+}
+function szToText(){
+  return szSortedKeys().map(k=>{
+    const d=szDays[k];
+    const lines=SZ_STAGES.filter(s=>d.picks[s.key]).map(s=>`${s.n} · ${s.title}：${d.picks[s.key]}`).join('\n');
+    const feel=(d.feel||'').trim()?`\n感受：${d.feel.trim()}`:'';
+    return `## ${k}（${szPrettyDate(k)}）\n${lines||'（没有选）'}${feel}`;
+  }).join('\n\n');
+}
+function szExportText(){download('# 试着 · 早上充电记录\n\n'+szToText()+'\n','试着-'+szTk+'.md','text/markdown');}
+function szExportJSON(){download(JSON.stringify({exported:new Date().toISOString(),days:szDays,custom:szCustom},null,2),'试着-'+szTk+'.json','application/json');}
+async function szCopyText(){
+  try{await navigator.clipboard.writeText(szToText());toast('已复制');}
+  catch(e){prompt('复制下面的文字：',szToText());}
 }
 
 function updSWDisplay(){
@@ -5847,6 +6130,9 @@ function guanDoRecord(){
   // 而不是另外新开一条——这样已经写了一半、还没点"封存"的缘由文字不会被清空，
   // 也不会平白多出一条时间几乎一样的重复记录。
   let existing = guanCurrentEntry();
+  // 上一条已经是十分钟之前的事了（面板可能因为写了字一直没收起）——那是另一个
+  // 时刻，这次滑到的情绪另开一条，别把旧记录改掉。卜的草稿不受这条限制，慢慢填数没关系。
+  if(existing&&existing!==gs1BuDraft&&existing.ts&&Date.now()-existing.ts>GUAN_SAME_MOMENT_MS){existing=null;gs1LastEntryTs=null;}
   // 已经报过数、起过卦的那条，是一件已经完成的事——不能再被后面滑到别的情绪
   // 的记录当成"改主意"覆盖掉，否则新记的那条情绪会莫名其妙带着刚才那一卦。
   // 遇到这种情况就另开一条，让上一条安静地留在原地。
@@ -6125,10 +6411,6 @@ function guanShowTier(side, key){
     </div>`;
   });
   listEl.innerHTML = html;
-}
-
-function guanBackToTiers(side){
-  // No-op now - kept for compatibility with any old calls
 }
 
 function guanOpenMenu(side){
@@ -8013,6 +8295,7 @@ function resetPomo(){
 // ================================================================
 let pomoUiMode=ld('pomoUiMode','tomato'); // 'tomato' | 'timebox'
 let tbSelId=null,tbSelText=null,tbParentId=null,tbParentText=null,tbType='stopwatch',tbDur=25;
+let tbSelSource='todo'; // 'todo' 或 'shopping'——这次计的是待办里的事，还是购物清单里的一项
 let tbRunning=false,tbStart=null,tbEnd=null,tbInt=null;
 let _tbPendingNext=null; // {parentId,parentText,subId,subText} — set on the done screen when a next sub is available
 
@@ -8048,7 +8331,8 @@ function tbRenderTasks(){
     if(ao!==bo)return ao?-1:1;
     return b.createdAt-a.createdAt;
   });
-  if(!open.length){
+  const shopOpenCheck=(memos.shopping||[]).filter(i=>!i.done);
+  if(!open.length&&!shopOpenCheck.length){
     el.innerHTML='<div class="tb-task-empty">待办里还没有事 · 先去添一件</div>';
     document.getElementById('tbConfig').style.display='none';
   }else{
@@ -8091,6 +8375,27 @@ function tbRenderTasks(){
         el.appendChild(d);
       }
     });
+    // 购物清单里想买的东西，也能计时——比如"去超市"这种想知道花了多久的事。
+    const shopOpen=(memos.shopping||[]).filter(i=>!i.done);
+    if(shopOpen.length){
+      const shopGroup=document.createElement('div');
+      shopGroup.className='tb-task-group';
+      const shopLbl=document.createElement('div');
+      shopLbl.className='tb-task-parent-lbl';
+      shopLbl.style.cursor='default';
+      shopLbl.innerHTML=`<span class="tb-task-txt" style="opacity:.55">购 物</span>`;
+      shopGroup.appendChild(shopLbl);
+      shopOpen.forEach(item=>{
+        const sel=tbSelId===item.id&&tbSelSource==='shopping';
+        const d=document.createElement('div');
+        d.className='tb-task-item tb-sub'+(sel?' sel':'');
+        d.innerHTML=`<span class="tb-task-num">${sel?'✓':'·'}</span><span class="tb-task-txt">${escapeHtml(item.text)}</span>`;
+        d.onclick=()=>tbSelectTask(item.id,item.text,'shopping');
+        shopGroup.appendChild(d);
+      });
+      el.appendChild(shopGroup);
+      anyRendered=true;
+    }
     if(!anyRendered){
       el.innerHTML='<div class="tb-task-empty">待办里还没有事 · 先去添一件</div>';
       document.getElementById('tbConfig').style.display='none';
@@ -8099,14 +8404,14 @@ function tbRenderTasks(){
   setTimeout(()=>applyUITheme(),50);
 }
 
-function tbSelectTask(id,text){
-  tbSelId=id;tbSelText=text;tbParentId=null;tbParentText=null;
+function tbSelectTask(id,text,source){
+  tbSelId=id;tbSelText=text;tbParentId=null;tbParentText=null;tbSelSource=source||'todo';
   tbRenderTasks();
   document.getElementById('tbConfig').style.display='block';
 }
 
 function tbSelectSub(parentId,parentText,subId,subText){
-  tbSelId=subId;tbSelText=subText;tbParentId=parentId;tbParentText=parentText;
+  tbSelId=subId;tbSelText=subText;tbParentId=parentId;tbParentText=parentText;tbSelSource='todo';
   tbRenderTasks();
   document.getElementById('tbConfig').style.display='block';
 }
@@ -8231,7 +8536,7 @@ function tbFinish(hardStop){
   if(dur>0){
     // Same record shape as stopTimer() below — lands in the exact same
     // store the 计时 tab, calendar and exports already read from.
-    const rec={tagId:isSub?('sub_'+tbParentId+'_'+tbSelId):('todo_'+tbSelId),
+    const rec={tagId:isSub?('sub_'+tbParentId+'_'+tbSelId):((tbSelSource==='shopping'?'shop_':'todo_')+tbSelId),
       tagName:isSub?(tbParentText+' · '+tbSelText):tbSelText,tagColor:'#A8313A',start:tbStart,end,duration:dur};
     const dk=dkOf(tbStart);
     if(!allDays[dk])allDays[dk]=[];
@@ -8248,9 +8553,9 @@ function tbFinish(hardStop){
     sv('memos',memos);
     renderMemoList('todo');
   }else if(!isSub&&tbSelId){
-    // 独立任务同理——把这次专注的时长记在待办本身上，这样归档页才能分清
-    // "这条是靠时间盒精确计时完成的" 还是 "只是手动点了个勾"。
-    const item=(memos.todo||[]).find(t=>t.id===tbSelId);
+    // 独立任务同理——把这次专注的时长记在待办（或者购物这一项）本身上，这样
+    // 归档页才能分清"这条是靠时间盒精确计时完成的"还是"只是手动点了个勾"。
+    const item=((tbSelSource==='shopping'?memos.shopping:memos.todo)||[]).find(t=>t.id===tbSelId);
     if(item){
       item.timeboxSec=(item.timeboxSec||0)+dur;
       sv('memos',memos);
@@ -8292,7 +8597,7 @@ function tbFinish(hardStop){
     subActsEl.style.display='none';
     doneParentEl.style.display='none';
     document.getElementById('tbDoneTask').textContent=tbSelText;
-    hintEl.textContent='已同步进今日计时记录 · 点击左上勾选标记待办完成';
+    hintEl.textContent=tbSelSource==='shopping'?'已同步进今日计时记录 · 点击左上勾选标记已买到':'已同步进今日计时记录 · 点击左上勾选标记待办完成';
   }
   tbShowStep('done');
 }
@@ -8332,15 +8637,16 @@ function tbToggleDone(){
     }
     return;
   }
-  const item=(memos.todo||[]).find(t=>t.id===tbSelId);
+  const srcArr=tbSelSource==='shopping'?'shopping':'todo';
+  const item=(memos[srcArr]||[]).find(t=>t.id===tbSelId);
   if(!item)return;
-  memoToggle('todo',tbSelId);
-  const nowDone=!!(memos.todo||[]).find(t=>t.id===tbSelId)?.done;
+  memoToggle(srcArr,tbSelId);
+  const nowDone=!!(memos[srcArr]||[]).find(t=>t.id===tbSelId)?.done;
   document.getElementById('tbDoneCheck').classList.toggle('checked',nowDone);
 }
 
 function tbReset(){
-  tbSelId=null;tbSelText=null;tbParentId=null;tbParentText=null;_tbPendingNext=null;
+  tbSelId=null;tbSelText=null;tbParentId=null;tbParentText=null;tbSelSource='todo';_tbPendingNext=null;
   document.getElementById('tbConfig').style.display='none';
   tbShowStep('pick');
   tbRenderTasks();
@@ -8348,7 +8654,7 @@ function tbReset(){
 
 function tbSaveState(){
   if(!tbRunning){try{localStorage.removeItem('fan_tbActive')}catch(e){}return;}
-  try{localStorage.setItem('fan_tbActive',JSON.stringify({tbSelId,tbSelText,tbParentId,tbParentText,tbType,tbDur,tbStart,tbEnd}));}catch(e){}
+  try{localStorage.setItem('fan_tbActive',JSON.stringify({tbSelId,tbSelText,tbParentId,tbParentText,tbType,tbDur,tbStart,tbEnd,tbSelSource}));}catch(e){}
 }
 function tbClearState(){try{localStorage.removeItem('fan_tbActive')}catch(e){}}
 function tbRecover(){
@@ -8359,8 +8665,8 @@ function tbRecover(){
     const parent=(memos.todo||[]).find(t=>t.id===saved.tbParentId);
     const sub=parent&&parent.subs&&parent.subs.find(s=>s.id===saved.tbSelId);
     if(!parent||!sub||sub.done){tbClearState();return;}
-  }else if(!(memos.todo||[]).some(t=>t.id===saved.tbSelId)){tbClearState();return;}
-  tbSelId=saved.tbSelId;tbSelText=saved.tbSelText;tbParentId=saved.tbParentId||null;tbParentText=saved.tbParentText||null;
+  }else if(!((saved.tbSelSource==='shopping'?memos.shopping:memos.todo)||[]).some(t=>t.id===saved.tbSelId)){tbClearState();return;}
+  tbSelId=saved.tbSelId;tbSelText=saved.tbSelText;tbParentId=saved.tbParentId||null;tbParentText=saved.tbParentText||null;tbSelSource=saved.tbSelSource||'todo';
   tbType=saved.tbType;tbDur=saved.tbDur;
   tbStart=saved.tbStart;tbEnd=saved.tbEnd;tbRunning=true;
   pmSetUiMode('timebox');
@@ -12914,5 +13220,66 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
+<!-- ================================================================
+     试着 · 晨间补能量测试页 —— 起床时间已经记过之后，再点一次太阳，
+     不再是"取消起床记录"，而是打开这个页面，试试今天想用哪种方式醒过来。
+     所有 class/id 都加了 sz 前缀，跟主 app 已有的样式和 id 隔开，不会互相打架。
+================================================================ -->
+<div class="sz-bg" id="szBg" onclick="if(event.target===this)closeShiZhe()">
+  <div class="sz-box">
+    <div class="sz-close" onclick="closeShiZhe()">✕</div>
+    <div class="sz-wrap">
+      <div class="sz-hd">
+        <div class="sz-hd-t">试着</div>
+        <div class="sz-hd-d" id="szHdDate">—</div>
+      </div>
+      <div class="sz-hd-note">先把杯子倒满，再开始一天。每一段选一样，做完再选下一段。不是清单，选什么都对。</div>
+
+      <div class="sz-tabs">
+        <button class="sz-tab on" id="szTabToday" onclick="szShowView('today')">今 早</button>
+        <button class="sz-tab" id="szTabRec" onclick="szShowView('rec')">记 录</button>
+      </div>
+
+      <div class="sz-view on" id="szViewToday">
+        <div class="sz-cup-wrap">
+          <svg class="sz-cup" viewBox="0 0 96 112" fill="none" aria-hidden="true">
+            <defs>
+              <clipPath id="szCupClip"><path d="M18 22 L24 96 Q26 104 34 104 L62 104 Q70 104 72 96 L78 22 Z"/></clipPath>
+            </defs>
+            <g clip-path="url(#szCupClip)">
+              <rect id="szCupWater" x="0" y="20" width="96" height="90" fill="rgba(230,201,163,.22)" style="transform:translateY(90px)"/>
+            </g>
+            <path d="M18 22 L24 96 Q26 104 34 104 L62 104 Q70 104 72 96 L78 22" stroke="rgba(255,250,244,.35)" stroke-width="1.2"/>
+            <ellipse cx="48" cy="22" rx="30" ry="5" stroke="rgba(255,250,244,.35)" stroke-width="1.2"/>
+            <path d="M78 36 Q92 38 90 52 Q88 66 74 66" stroke="rgba(255,250,244,.28)" stroke-width="1.2"/>
+          </svg>
+          <div class="sz-cup-word" id="szCupWord">空 着</div>
+        </div>
+
+        <div id="szStages"></div>
+
+        <div class="sz-feel">
+          <div class="sz-feel-t">今天的感受</div>
+          <div class="sz-feel-h">做完以后写。做完是更在身体里了，还是没差？哪一段最卡？想写什么都行。</div>
+          <textarea class="sz-textarea" id="szFeel" placeholder="……" oninput="szOnFeelInput()"></textarea>
+          <button class="sz-seal" id="szSealBtn" onclick="szSealToday()">充 电 完 成</button>
+          <div class="sz-sealed-msg" id="szSealedMsg"></div>
+        </div>
+
+        <div class="sz-foot">选了什么、写了什么，都只是记下来。不算天数，不打分。</div>
+      </div>
+
+      <div class="sz-view" id="szViewRec">
+        <div class="sz-rec-tools">
+          <button class="sz-tool" onclick="szExportText()">导出为文字</button>
+          <button class="sz-tool" onclick="szExportJSON()">导出 JSON</button>
+          <button class="sz-tool" onclick="szCopyText()">复制全部</button>
+        </div>
+        <div id="szRecList"></div>
+        <div class="sz-foot" id="szRecFoot"></div>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
